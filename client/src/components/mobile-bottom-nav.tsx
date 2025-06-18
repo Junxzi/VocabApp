@@ -14,9 +14,12 @@ export function MobileBottomNav() {
   ];
 
   const scrollToTop = () => {
+    // For vocabulary page (homepage), use instant scroll for faster navigation
+    // For other pages, use smooth scroll
+    const behavior = location === "/" ? 'auto' : 'smooth';
     window.scrollTo({ 
       top: 0, 
-      behavior: 'smooth' 
+      behavior: behavior
     });
   };
 
