@@ -98,7 +98,7 @@ export function SwipeCard({
           onClick={onShowAnswer}
         >
           {/* Front of card */}
-          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden ${
+          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden card-front ${
             isDragging ? 'border-primary' : 'border-border'
           } bg-card`}>
             <CardContent className="p-6 h-full flex flex-col justify-between">
@@ -172,7 +172,7 @@ export function SwipeCard({
           </Card>
 
           {/* Back of card */}
-          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden rotate-y-180 ${
+          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden rotate-y-180 card-back ${
             isDragging ? 'border-primary' : 'border-border'
           } bg-card`}>
             <CardContent className="p-6 h-full flex flex-col justify-between">

@@ -14,11 +14,21 @@
   
   .backface-hidden {
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
   
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
+}
+
+/* Fix card flip z-index issues */
+.card-front {
+  z-index: 2;
+}
+
+.card-back {
+  z-index: 1;
 }
 
 /* Hide scrollbars */
