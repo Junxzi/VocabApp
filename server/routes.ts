@@ -121,6 +121,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get random words for study (specific endpoint for swipe study)
+  app.get("/api/vocabulary/random/:limit", async (req, res) => {
+    try {
+      const limit = parseInt(req.params.limit) || 30;
+      const words = await storage.getRandomWordsForStudy(limit);
+      res.json(words);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch random words for study" });
+    }
+  });
+
   // Get words for spaced repetition review
   app.get("/api/vocabulary/review/:limit", async (req, res) => {
     try {

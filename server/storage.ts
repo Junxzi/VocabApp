@@ -201,13 +201,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRandomWordsForStudy(limit: number): Promise<VocabularyWord[]> {
-    // Note: For true randomization in production, you might want to use a more sophisticated approach
-    // This uses a simple ORDER BY random() which works for PostgreSQL
-    return await db
+    // Get all words first
+    const allWords = await db
       .select()
-      .from(vocabularyWords)
-      .orderBy(desc(vocabularyWords.createdAt)) // Changed from random() for compatibility
-      .limit(limit);
+      .from(vocabularyWords);
+    
+    // Shuffle the array to get random order
+    const shuffled = [...allWords].sort(() => Math.random() - 0.5);
+    
+    // Return unique words up to the limit (no duplicates possible)
+    return shuffled.slice(0, Math.min(limit, shuffled.length));
   }
 
   async updateWordSpacedRepetition(id: number, known: boolean): Promise<VocabularyWord | undefined> {
