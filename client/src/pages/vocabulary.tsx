@@ -273,7 +273,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
       <Button 
         onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} 
         size="icon" 
-        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 h-14 w-14 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 z-50"
+        className="fixed top-6 right-6 md:top-8 md:right-8 h-14 w-14 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 z-50"
       >
         <Plus className="w-7 h-7" />
       </Button>
