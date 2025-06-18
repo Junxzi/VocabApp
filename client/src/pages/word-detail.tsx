@@ -29,11 +29,23 @@ export function WordDetailPage() {
   const { data: word, isLoading } = useQuery<VocabularyWord>({
     queryKey: ['/api/vocabulary', id],
     queryFn: async () => {
-      const response = await fetch(`/api/vocabulary/${id}`);
+      const response = await fetch(`/api/vocabulary/${id}`, {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Word not found');
       return response.json();
     },
-    enabled: !!id
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    // Try to get initial data from the vocabulary list cache
+    initialData: () => {
+      const vocabularyData = queryClient.getQueryData<VocabularyWord[]>(['/api/vocabulary']);
+      return vocabularyData?.find(w => w.id === parseInt(id!));
+    },
+    initialDataUpdatedAt: () => {
+      return queryClient.getQueryState(['/api/vocabulary'])?.dataUpdatedAt;
+    }
   });
 
   const updateEnrichmentMutation = useMutation({

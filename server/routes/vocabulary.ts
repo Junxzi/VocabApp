@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { z } from "zod";
 import { storage } from "../storage";
@@ -17,16 +16,24 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get vocabulary word by ID
+// Get single vocabulary word by ID
 router.get("/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid word ID" });
+    }
+
+    // Set cache headers for better performance
+    res.set('Cache-Control', 'private, max-age=300'); // 5 minutes
+
     const word = await storage.getVocabularyWord(id);
     if (!word) {
       return res.status(404).json({ message: "Vocabulary word not found" });
     }
     res.json(word);
   } catch (error) {
+    console.error('Error fetching vocabulary word:', error);
     res.status(500).json({ message: "Failed to fetch vocabulary word" });
   }
 });
@@ -142,13 +149,13 @@ router.post("/:id/enrich", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const word = await storage.getVocabularyWord(id);
-    
+
     if (!word) {
       return res.status(404).json({ message: "Vocabulary word not found" });
     }
 
     const enrichmentData = await enrichWordData(word.word);
-    
+
     const updatedWord = await storage.updateVocabularyWord(id, {
       pronunciationUs: enrichmentData.pronunciations.us,
       pronunciationUk: enrichmentData.pronunciations.uk,
