@@ -1,6 +1,6 @@
 import { users, vocabularyWords, categories, dailyChallenges, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord, type Category, type InsertCategory, type DailyChallenge, type InsertDailyChallenge } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, or, desc } from "drizzle-orm";
+import { eq, like, or, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -115,8 +115,7 @@ export class DatabaseStorage implements IStorage {
     const [word] = await db
       .select()
       .from(vocabularyWords)
-      .where(eq(vocabularyWords.id, id))
-      .where(eq(vocabularyWords.userId, userId));
+      .where(and(eq(vocabularyWords.id, id), eq(vocabularyWords.userId, userId)));
     return word || undefined;
   }
 
@@ -160,8 +159,7 @@ export class DatabaseStorage implements IStorage {
     const [word] = await db
       .update(vocabularyWords)
       .set(updateWord)
-      .where(eq(vocabularyWords.id, id))
-      .where(eq(vocabularyWords.userId, userId))
+      .where(and(eq(vocabularyWords.id, id), eq(vocabularyWords.userId, userId)))
       .returning();
     return word || undefined;
   }
@@ -176,8 +174,7 @@ export class DatabaseStorage implements IStorage {
   async deleteVocabularyWordByUser(id: number, userId: string): Promise<boolean> {
     const result = await db
       .delete(vocabularyWords)
-      .where(eq(vocabularyWords.id, id))
-      .where(eq(vocabularyWords.userId, userId));
+      .where(and(eq(vocabularyWords.id, id), eq(vocabularyWords.userId, userId)));
     return (result.rowCount || 0) > 0;
   }
 
