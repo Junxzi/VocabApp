@@ -1,9 +1,13 @@
 import { Link, useLocation } from "wouter";
-import { Home, BookOpen, TrendingUp, Shuffle } from "lucide-react";
+import { Home, BookOpen, TrendingUp, Shuffle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
-export function MobileBottomNav() {
+interface MobileBottomNavProps {
+  onAddWordClick: () => void;
+}
+
+export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
   const [location] = useLocation();
   const { t } = useLanguage();
 
@@ -37,6 +41,14 @@ export function MobileBottomNav() {
             </Link>
           );
         })}
+        
+        <button
+          onClick={onAddWordClick}
+          className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation text-primary bg-primary/10 hover:bg-primary/20"
+        >
+          <Plus className="w-5 h-5 mb-1" />
+          <span className="text-xs font-medium text-center leading-tight">{t("nav.add")}</span>
+        </button>
       </div>
     </div>
   );

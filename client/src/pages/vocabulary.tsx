@@ -5,9 +5,11 @@ import { VocabularyListView } from "@/components/vocabulary-list-view";
 import { SearchFilter, type SortOption, type ViewMode } from "@/components/search-filter";
 import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, type Language } from "@/lib/i18n";
+import { Plus, Globe, Upload } from "lucide-react";
 import type { VocabularyWord, InsertVocabularyWord } from "@shared/schema";
 
 interface VocabularyPageProps {
@@ -23,7 +25,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
     queryKey: ["/api/vocabulary"],
@@ -127,6 +129,29 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t("vocab.title")}</h1>
+        <div className="hidden md:flex items-center space-x-3">
+          <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+            <SelectTrigger className="w-20 h-10 p-2 border border-border/50 bg-background/50 rounded-lg hover:bg-muted/50 transition-colors">
+              <Globe className="w-5 h-5" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">EN</SelectItem>
+              <SelectItem value="ja">日本</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={() => window.dispatchEvent(new CustomEvent("openImport"))} variant="outline" size="lg" className="h-10 px-4 rounded-lg">
+            <Upload className="w-5 h-5 mr-2" />
+            Import
+          </Button>
+          <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="lg" className="h-10 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+            <Plus className="w-5 h-5 mr-2" />
+            Add Word
+          </Button>
+        </div>
+      </div>
+
       <SearchFilter
         onSearch={setSearchQuery}
         onCategoryFilter={setSelectedCategory}
@@ -138,10 +163,6 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         viewMode={viewMode}
         totalCount={filteredAndSortedWords.length}
       />
-
-      <div className="flex items-center justify-between mb-4 md:mb-6">
-        <h2 className="text-xl md:text-2xl font-semibold text-foreground">{t("vocab.title")}</h2>
-      </div>
 
       {filteredAndSortedWords.length === 0 ? (
         <div className="text-center py-12">
