@@ -24,13 +24,12 @@ interface AddWordModalProps {
 export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddWordModalProps) {
   
   const form = useForm<InsertVocabularyWord>({
-    resolver: zodResolver(insertVocabularyWordSchema.omit({ pronunciation: true })),
+    resolver: zodResolver(insertVocabularyWordSchema),
     defaultValues: {
       word: "",
       definition: "",
       category: "Academic",
       language: "en",
-      difficulty: undefined,
     },
   });
 

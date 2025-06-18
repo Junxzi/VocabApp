@@ -11,7 +11,7 @@ export const users = pgTable("users", {
 export const vocabularyWords = pgTable("vocabulary_words", {
   id: serial("id").primaryKey(),
   word: text("word").notNull(),
-  pronunciation: text("pronunciation").notNull(),
+  pronunciation: text("pronunciation").default(""),
   pronunciationUs: text("pronunciation_us"), // IPA for American English
   pronunciationUk: text("pronunciation_uk"), // IPA for British English
   pronunciationAu: text("pronunciation_au"), // IPA for Australian English
@@ -46,6 +46,14 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   exampleSentences: true,
   category: true,
   language: true,
+  difficulty: true,
+}).partial({
+  pronunciation: true,
+  pronunciationUs: true,
+  pronunciationUk: true,
+  pronunciationAu: true,
+  partOfSpeech: true,
+  exampleSentences: true,
   difficulty: true,
 });
 

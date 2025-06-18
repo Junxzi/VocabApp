@@ -56,9 +56,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVocabularyWord(insertWord: InsertVocabularyWord): Promise<VocabularyWord> {
+    const wordData = {
+      ...insertWord,
+      pronunciation: insertWord.pronunciation || ""
+    };
     const [word] = await db
       .insert(vocabularyWords)
-      .values(insertWord)
+      .values(wordData)
       .returning();
     return word;
   }
