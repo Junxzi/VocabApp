@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Volume2, Eye, EyeOff } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { getLocalizedPartOfSpeech } from "@/lib/utils";
 import type { VocabularyWord } from "@shared/schema";
 
 interface SwipeCardProps {
@@ -24,7 +25,7 @@ export function SwipeCard({
   isActive, 
   index 
 }: SwipeCardProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-150, 0, 150], [-30, 0, 30]);
@@ -107,7 +108,7 @@ export function SwipeCard({
                   <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
                   {word.partOfSpeech && (
                     <Badge variant="outline" className="text-sm mb-2">
-                      {word.partOfSpeech}
+                      {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
                     </Badge>
                   )}
                 </div>
@@ -181,7 +182,7 @@ export function SwipeCard({
                   <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
                   {word.partOfSpeech && (
                     <Badge variant="outline" className="text-sm mb-2">
-                      {word.partOfSpeech}
+                      {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
                     </Badge>
                   )}
                 </div>
