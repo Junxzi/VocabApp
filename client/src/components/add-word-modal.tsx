@@ -53,14 +53,21 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
     queryKey: ["/api/vocabulary"],
   });
 
-  // Extract available tags from existing vocabulary
+  // Extract available tags from existing vocabulary and include default categories
   const availableTags = useMemo(() => {
     const tagSet = new Set<string>();
+    
+    // Add default categories as always available tags
+    const defaultCategories = ["Academic", "Business", "Daily Life", "Technical", "TOEFL"];
+    defaultCategories.forEach(category => tagSet.add(category));
+    
+    // Add tags from existing vocabulary words
     allWords.forEach(word => {
       if (word.tags) {
         word.tags.forEach(tag => tagSet.add(tag));
       }
     });
+    
     return Array.from(tagSet).sort();
   }, [allWords]);
 

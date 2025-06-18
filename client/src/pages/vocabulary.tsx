@@ -99,14 +99,21 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     currentPage * itemsPerPage
   );
 
-  // Get all available tags from vocabulary words
+  // Get all available tags from vocabulary words and include default categories
   const availableTags = useMemo(() => {
     const tagSet = new Set<string>();
+    
+    // Add default categories as always available tags
+    const defaultCategories = ["Academic", "Business", "Daily Life", "Technical", "TOEFL"];
+    defaultCategories.forEach(category => tagSet.add(category));
+    
+    // Add tags from existing vocabulary words
     words.forEach(word => {
       if (word.tags) {
         word.tags.forEach(tag => tagSet.add(tag));
       }
     });
+    
     return Array.from(tagSet).sort();
   }, [words]);
 
