@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n";
 import { Globe, Volume2, Eye, RefreshCw, Trash2, Download, Bell, LogOut, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 export function SettingsPage() {
   const { language, setLanguage } = useLanguage();
@@ -35,6 +36,13 @@ export function SettingsPage() {
     return localStorage.getItem("notificationTime") || "09:00";
   });
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
+  // User authentication query
+  const { data: userAuth } = useQuery({
+    queryKey: ["/api/auth/user"],
+    enabled: true,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   // Check notification permission on mount and schedule if needed
   useEffect(() => {
@@ -223,6 +231,10 @@ export function SettingsPage() {
     });
   };
 
+  const handleLogout = () => {
+    window.location.href = "/auth/logout";
+  };
+
   const handleResetSettings = () => {
     localStorage.removeItem("autoplay");
     localStorage.removeItem("studyMode");
@@ -270,6 +282,53 @@ export function SettingsPage() {
             {language === "en" ? "Customize your learning experience" : "学習体験をカスタマイズ"}
           </p>
         </div>
+
+        {/* User Account Section */}
+        {userAuth?.authenticated && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5" />
+                {language === "en" ? "Account" : "アカウント"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{userAuth.userName || userAuth.user?.name || "User"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {userAuth.user?.email || `ID: ${userAuth.userId}`}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="px-3 py-1">
+                  {language === "en" ? "Google Account" : "Googleアカウント"}
+                </Badge>
+              </div>
+              
+              <Separator />
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium">
+                    {language === "en" ? "Authentication" : "認証"}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {language === "en" ? "Signed in with Google OAuth" : "Google OAuthでサインイン中"}
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {language === "en" ? "Sign Out" : "サインアウト"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Language Settings */}
         <Card>
