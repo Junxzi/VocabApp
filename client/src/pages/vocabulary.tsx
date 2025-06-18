@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { VocabularyCard } from "@/components/vocabulary-card";
-import { SearchFilter } from "@/components/search-filter";
+import { VocabularyListView } from "@/components/vocabulary-list-view";
+import { SearchFilter, type SortOption, type ViewMode } from "@/components/search-filter";
+import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -15,6 +17,10 @@ interface VocabularyPageProps {
 export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useState<SortOption>("date");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
@@ -43,21 +49,59 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     },
   });
 
-  const filteredWords = words.filter((word) => {
-    const matchesSearch = searchQuery === "" || 
-      word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      word.definition.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      word.category.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = selectedCategory === "all" || word.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
+  // Filter and sort words
+  const filteredAndSortedWords = useMemo(() => {
+    let filtered = words.filter((word) => {
+      const matchesSearch = searchQuery === "" || 
+        word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        word.definition.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        word.category.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "all" || word.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+
+    // Sort words
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'alphabetical':
+          return a.word.localeCompare(b.word);
+        case 'date':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'category':
+          return a.category.localeCompare(b.category);
+        case 'difficulty':
+          return (b.difficulty || 0) - (a.difficulty || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [words, searchQuery, selectedCategory, sortBy]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedWords.length / itemsPerPage);
+  const paginatedWords = filteredAndSortedWords.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to first page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, sortBy]);
 
   const handleDeleteWord = (id: number) => {
     if (window.confirm("Are you sure you want to delete this word?")) {
       deleteWordMutation.mutate(id);
     }
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
   };
 
   if (isLoading) {
@@ -86,18 +130,20 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
       <SearchFilter
         onSearch={setSearchQuery}
         onCategoryFilter={setSelectedCategory}
+        onSortChange={setSortBy}
+        onViewModeChange={setViewMode}
         searchQuery={searchQuery}
         selectedCategory={selectedCategory}
+        sortBy={sortBy}
+        viewMode={viewMode}
+        totalCount={filteredAndSortedWords.length}
       />
 
       <div className="flex items-center justify-between mb-4 md:mb-6">
         <h2 className="text-xl md:text-2xl font-semibold text-foreground">{t("vocab.title")}</h2>
-        <span className="text-sm text-muted-foreground">
-          {filteredWords.length} {filteredWords.length !== 1 ? t("vocab.count_plural") : t("vocab.count")}
-        </span>
       </div>
 
-      {filteredWords.length === 0 ? (
+      {filteredAndSortedWords.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
             {searchQuery || selectedCategory !== "all" 
@@ -114,16 +160,35 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           )}
         </div>
       ) : (
-        <div className="mobile-grid">
-          {filteredWords.map((word) => (
-            <VocabularyCard
-              key={word.id}
-              word={word}
+        <>
+          {viewMode === 'grid' ? (
+            <div className="mobile-grid">
+              {paginatedWords.map((word) => (
+                <VocabularyCard
+                  key={word.id}
+                  word={word}
+                  onEdit={onEditWord}
+                  onDelete={handleDeleteWord}
+                />
+              ))}
+            </div>
+          ) : (
+            <VocabularyListView
+              words={paginatedWords}
               onEdit={onEditWord}
               onDelete={handleDeleteWord}
             />
-          ))}
-        </div>
+          )}
+          
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredAndSortedWords.length}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
+        </>
       )}
     </main>
   );
