@@ -169,14 +169,12 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         </Card>
 
         {/* Back of card */}
-        <Card className={cn(
-          "absolute inset-0 bg-card border-2 rounded-2xl overflow-hidden shadow-xl transition-colors duration-100",
-          // Color-coded swipe feedback based on drag position
-          x.get() > 10 ? "border-green-500 shadow-green-500/20" : 
-          x.get() < -10 ? "border-red-500 shadow-red-500/20" : 
-          "border-border"
-        )} 
-              style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+        <Card className="absolute inset-0 bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl" 
+              style={{ 
+                backfaceVisibility: 'hidden', 
+                transform: 'rotateY(180deg)',
+                borderColor: x.get() > 10 ? '#22c55e' : x.get() < -10 ? '#ef4444' : undefined
+              }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
               <div className="mb-6">
@@ -559,6 +557,9 @@ export function SwipeStudyPage() {
 
       {/* Card Container - positioned lower for thumb accessibility */}
       <div className="max-w-md mx-auto h-[520px] relative mt-20">
+        {/* Background blank card frame for smoother transitions */}
+        <div className="absolute inset-0 bg-card border-2 border-border/30 rounded-2xl shadow-lg opacity-50 scale-95 z-0"></div>
+        
         {displayedWord && !isCardSwiping && (
           <StudyCard
             key={`card-${currentIndex}-${displayedWord.id}`}
@@ -568,6 +569,19 @@ export function SwipeStudyPage() {
             showAnswer={showAnswer}
             isVisible={true}
             zIndex={10}
+          />
+        )}
+        
+        {/* Show next word immediately when swiping */}
+        {isCardSwiping && currentIndex + 1 < studyWords.length && (
+          <StudyCard
+            key={`next-card-${currentIndex + 1}-${studyWords[currentIndex + 1].id}`}
+            word={studyWords[currentIndex + 1]}
+            onSwipe={() => {}}
+            onTap={() => {}}
+            showAnswer={false}
+            isVisible={true}
+            zIndex={5}
           />
         )}
       </div>
