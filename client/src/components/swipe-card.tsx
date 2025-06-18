@@ -45,10 +45,20 @@ export function SwipeCard({
     setIsDragging(true);
   };
 
-  const speakWord = () => {
+  const speakWord = (accent: 'us' | 'uk' | 'au' = 'us') => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.lang = 'en-US';
+      switch (accent) {
+        case 'us':
+          utterance.lang = 'en-US';
+          break;
+        case 'uk':
+          utterance.lang = 'en-GB';
+          break;
+        case 'au':
+          utterance.lang = 'en-AU';
+          break;
+      }
       speechSynthesis.speak(utterance);
     }
   };
@@ -84,17 +94,44 @@ export function SwipeCard({
         <CardContent className="p-6 h-full flex flex-col justify-between">
           {/* Word Header */}
           <div className="text-center mt-4">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <h2 className="text-3xl font-bold text-foreground">{word.word}</h2>
+            <div className="text-center mb-4">
+              <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
               {word.pronunciation && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={speakWord}
-                  className="h-8 w-8 p-0 hover:bg-muted"
-                >
-                  <Volume2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speakWord('us');
+                    }}
+                    className="h-8 px-2 hover:bg-muted text-xs"
+                  >
+                    🇺🇸 US
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speakWord('uk');
+                    }}
+                    className="h-8 px-2 hover:bg-muted text-xs"
+                  >
+                    🇬🇧 UK
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speakWord('au');
+                    }}
+                    className="h-8 px-2 hover:bg-muted text-xs"
+                  >
+                    🇦🇺 AU
+                  </Button>
+                </div>
               )}
             </div>
             
