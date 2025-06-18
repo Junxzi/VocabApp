@@ -35,6 +35,7 @@ export function WordDetailPage() {
       pronunciationUs?: string;
       pronunciationUk?: string;
       pronunciationAu?: string;
+      partOfSpeech?: string;
       exampleSentences?: string;
     }) => {
       const response = await fetch(`/api/vocabulary/${id}`, {
@@ -133,6 +134,11 @@ export function WordDetailPage() {
                 {word.word}
               </CardTitle>
               <div className="flex items-center space-x-2">
+                {word.partOfSpeech && (
+                  <Badge variant="secondary">
+                    {word.partOfSpeech}
+                  </Badge>
+                )}
                 <Badge className={`${getDifficultyColor(word.difficulty)} text-white`}>
                   Rank {word.difficulty || "?"}
                 </Badge>

@@ -64,6 +64,20 @@ export function EditEnrichmentModal({
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Part of Speech */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Part of Speech</h3>
+            <div>
+              <Label htmlFor="part-of-speech">Part of Speech</Label>
+              <Input
+                id="part-of-speech"
+                value={partOfSpeech}
+                onChange={(e) => setPartOfSpeech(e.target.value)}
+                placeholder="e.g., noun, verb, adjective"
+              />
+            </div>
+          </div>
+
           {/* Pronunciations */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Pronunciations (IPA)</h3>
