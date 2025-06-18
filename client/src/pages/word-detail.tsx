@@ -107,10 +107,10 @@ export function WordDetailPage() {
   if (!word) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
-        <h2 className="text-2xl font-bold">Word not found</h2>
+        <h2 className="text-2xl font-bold">{t('detail.not_found')}</h2>
         <Button onClick={() => setLocation("/")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Vocabulary
+          {t('detail.back_to_vocabulary')}
         </Button>
       </div>
     );
@@ -149,7 +149,7 @@ export function WordDetailPage() {
             onClick={() => setLocation("/")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            {t('detail.back')}
           </Button>
           
           <div className="flex items-center space-x-2">
@@ -164,7 +164,7 @@ export function WordDetailPage() {
                 ) : (
                   <Sparkles className="h-4 w-4 mr-2" />
                 )}
-                Enrich with AI
+{t('detail.enrich_with_ai')}
               </Button>
             )}
             
@@ -174,7 +174,7 @@ export function WordDetailPage() {
                 onClick={() => setEditModalOpen(true)}
               >
                 <Edit2 className="h-4 w-4 mr-2" />
-                Edit
+{t('detail.edit')}
               </Button>
             )}
           </div>
@@ -206,7 +206,7 @@ export function WordDetailPage() {
                 <Separator />
                 
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Pronunciations</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t('detail.pronunciations')}</h3>
                   <div className="space-y-2">
                     {word.pronunciationUs && (
                       <div className="flex items-center space-x-3">
@@ -284,7 +284,7 @@ export function WordDetailPage() {
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Example Sentences</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t('detail.example_sentences')}</h3>
                   <div className="space-y-3">
                     {exampleSentences.map((sentence: any, index: number) => (
                       <div key={index} className="p-3 bg-muted rounded-lg">
@@ -306,7 +306,7 @@ export function WordDetailPage() {
             {/* Study Stats */}
             <Separator />
             <div>
-              <h3 className="text-lg font-semibold mb-3">Study Progress</h3>
+              <h3 className="text-lg font-semibold mb-3">{t('detail.study_progress')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <div className="text-2xl font-bold">{word.studyCount ?? 0}</div>

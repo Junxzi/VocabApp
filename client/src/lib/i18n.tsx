@@ -203,6 +203,26 @@ const translations = {
     'nextReview': 'Next Review',
     'reviewNow': 'Review Now',
     
+    // Word Detail
+    'detail.back': 'Back',
+    'detail.not_found': 'Word not found',
+    'detail.back_to_vocabulary': 'Back to Vocabulary',
+    'detail.enrich_with_ai': 'Enrich with AI',
+    'detail.edit': 'Edit',
+    'detail.pronunciations': 'Pronunciations',
+    'detail.example_sentences': 'Example Sentences',
+    'detail.study_progress': 'Study Progress',
+    'detail.times_studied': 'Times Studied',
+    'detail.accuracy': 'Accuracy',
+    'detail.word_updated': 'Word updated successfully',
+    'detail.word_updated_desc': 'Enrichment data has been saved.',
+    'detail.word_enriched': 'Word enriched successfully',
+    'detail.word_enriched_desc': 'Enhanced with pronunciations, part of speech, and 2 example sentences with Japanese translations.',
+    'detail.update_failed': 'Failed to update word',
+    'detail.update_failed_desc': 'Please try again later.',
+    'detail.enrich_failed': 'Failed to enrich word',
+    'detail.enrich_failed_desc': 'Please try again later.',
+
     // Common
     'common.loading': 'Loading...',
     'common.error': 'Error',
@@ -407,6 +427,26 @@ const translations = {
     'nextReview': '次回復習',
     'reviewNow': '今すぐ復習',
     
+    // Word Detail
+    'detail.back': '戻る',
+    'detail.not_found': '単語が見つかりません',
+    'detail.back_to_vocabulary': '単語帳に戻る',
+    'detail.enrich_with_ai': 'AIで詳細情報を追加',
+    'detail.edit': '編集',
+    'detail.pronunciations': '発音',
+    'detail.example_sentences': '例文',
+    'detail.study_progress': '学習進捗',
+    'detail.times_studied': '学習回数',
+    'detail.accuracy': '正答率',
+    'detail.word_updated': '単語を更新しました',
+    'detail.word_updated_desc': '詳細情報が保存されました。',
+    'detail.word_enriched': '単語を強化しました',
+    'detail.word_enriched_desc': '発音、品詞、日本語翻訳付きの例文2つが追加されました。',
+    'detail.update_failed': '単語の更新に失敗しました',
+    'detail.update_failed_desc': '後でもう一度お試しください。',
+    'detail.enrich_failed': '単語の強化に失敗しました',
+    'detail.enrich_failed_desc': '後でもう一度お試しください。',
+
     // Common
     'common.loading': '読み込み中...',
     'common.error': 'エラー',
