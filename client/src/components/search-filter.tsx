@@ -49,9 +49,9 @@ export function SearchFilter({
 
   return (
     <div className="mb-6">
-      {/* Search and main controls */}
-      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-4">
-        <div className="relative flex-1 max-w-md">
+      {/* Search */}
+      <div className="mb-4">
+        <div className="relative w-full">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-muted-foreground" />
           </div>
@@ -59,15 +59,18 @@ export function SearchFilter({
             type="text"
             value={localSearch}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
             placeholder={t("vocab.search_placeholder")}
           />
         </div>
-        
-        <div className="flex items-center gap-2">
-          {/* Category Filter */}
+      </div>
+
+      {/* Filters - Mobile optimized */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        {/* Category Filter */}
+        <div className="flex-1 min-w-0">
           <Select value={selectedCategory} onValueChange={onCategoryFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={t("vocab.all_categories")} />
             </SelectTrigger>
             <SelectContent>
@@ -79,10 +82,12 @@ export function SearchFilter({
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          {/* Sort Options */}
+        {/* Sort Options */}
+        <div className="flex-1 min-w-0">
           <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full">
               <SortAsc className="w-4 h-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -94,26 +99,26 @@ export function SearchFilter({
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex border rounded-md">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => onViewModeChange('grid')}
-              className="rounded-r-none"
-            >
-              <Grid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => onViewModeChange('list')}
-              className="rounded-l-none"
-            >
-              <List className="w-4 h-4" />
-            </Button>
-          </div>
+        {/* View Mode Toggle */}
+        <div className="flex border rounded-md w-fit mx-auto sm:mx-0">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => onViewModeChange('grid')}
+            className="rounded-r-none"
+          >
+            <Grid className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => onViewModeChange('list')}
+            className="rounded-l-none"
+          >
+            <List className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
