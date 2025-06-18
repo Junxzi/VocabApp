@@ -116,8 +116,8 @@ function AppContent() {
     <div className="min-h-screen bg-background">
       {/* Settings icon in top right */}
       <Link href="/settings" className="fixed top-6 right-6 z-50">
-        <Button variant="ghost" size="lg" className="p-4 rounded-full hover:bg-muted/50 transition-colors shadow-md">
-          <Settings className="w-8 h-8" />
+        <Button variant="ghost" size="lg" className="p-5 rounded-full hover:bg-muted/50 transition-colors shadow-md">
+          <Settings className="w-10 h-10" />
         </Button>
       </Link>
       
