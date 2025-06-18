@@ -38,13 +38,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Setup categories automatically on server start
-  try {
-    await setupCategories();
-    log("✅ Categories setup completed");
-  } catch (error) {
-    log("❌ Categories setup failed:", error);
-  }
+  // Note: Category setup disabled to prevent startup issues during tag migration
+  // Use /api/admin/setup-categories endpoint if needed
+  log("📝 Category setup skipped - using tag-based system");
 
   const server = await registerRoutes(app);
 
