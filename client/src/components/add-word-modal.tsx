@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertVocabularyWordSchema } from "@shared/schema";
-import { CATEGORIES, detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/utils";
+import { CATEGORIES, detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage, cn } from "@/lib/utils";
 import { PhoneticKeyboard } from "@/components/phonetic-keyboard";
 import { Keyboard, Globe } from "lucide-react";
 import type { InsertVocabularyWord, VocabularyWord } from "@shared/schema";
@@ -53,7 +53,10 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md animate-scale-in">
+      <DialogContent className={cn(
+        "sm:max-w-md animate-scale-in",
+        showPhoneticKeyboard && "mb-80 md:mb-0"
+      )}>
         <DialogHeader>
           <DialogTitle>
             {editingWord ? "Edit Word" : "Add New Word"}
@@ -87,21 +90,28 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                 <FormItem>
                   <FormLabel>Pronunciation</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        placeholder="/pronunciation/"
-                        className="bg-muted font-mono pr-10"
-                        {...field}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                        onClick={() => setShowPhoneticKeyboard(!showPhoneticKeyboard)}
-                      >
-                        <Keyboard className="h-4 w-4" />
-                      </Button>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Input
+                          placeholder="/pronunciation/"
+                          className="bg-muted font-mono pr-10"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                          onClick={() => setShowPhoneticKeyboard(!showPhoneticKeyboard)}
+                        >
+                          <Keyboard className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {showPhoneticKeyboard && (
+                        <div className="p-2 bg-primary/5 rounded border text-sm font-mono">
+                          Preview: /{field.value || ''}/
+                        </div>
+                      )}
                     </div>
                   </FormControl>
                   <FormMessage />

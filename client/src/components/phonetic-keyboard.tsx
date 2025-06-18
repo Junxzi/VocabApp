@@ -55,7 +55,7 @@ export function PhoneticKeyboard({ onInsert, onClose, visible }: PhoneticKeyboar
   const others = PHONETIC_SYMBOLS.filter(s => s.category === "stress" || s.category === "length");
 
   return (
-    <Card className="fixed bottom-4 left-4 right-4 z-50 animate-slide-up shadow-xl">
+    <Card className="fixed bottom-20 md:bottom-4 left-4 right-4 z-50 animate-slide-up shadow-xl bg-background/95 backdrop-blur-lg border-2">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-foreground">Phonetic Symbols</h3>
