@@ -73,16 +73,12 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                {word.tags && word.tags.length > 0 ? (
+                {word.tags && word.tags.length > 0 && (
                   word.tags.map((tag, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>
                   ))
-                ) : (
-                  <Badge variant="secondary" className="text-xs">
-                    {word.category}
-                  </Badge>
                 )}
                 {word.difficulty && (
                   <Badge 
