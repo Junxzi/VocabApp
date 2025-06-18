@@ -20,12 +20,12 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
   ];
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50">
+    <nav className="bg-background border-b border-border sticky top-0 z-50 safe-area-inset-top">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
+        <div className="flex justify-between items-center h-14 md:h-16">
+          <div className="flex items-center space-x-2 md:space-x-4">
             <div className="flex-shrink-0">
-              <h1 className="text-xl font-bold text-foreground">VocabMaster</h1>
+              <h1 className="text-lg md:text-xl font-bold text-foreground">VocabMaster</h1>
             </div>
             <div className="hidden md:flex space-x-8">
               {navigationItems.map((item) => (
@@ -44,22 +44,22 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
               ))}
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Button onClick={onImportClick} variant="outline" className="font-medium">
-              <Upload className="w-4 h-4 mr-2" />
-              Import
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <Button onClick={onImportClick} variant="outline" size="sm" className="font-medium hidden sm:flex">
+              <Upload className="w-4 h-4 mr-1" />
+              <span className="hidden md:inline">Import</span>
             </Button>
-            <Button onClick={onAddWordClick} className="font-medium">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Word
+            <Button onClick={onAddWordClick} size="sm" className="font-medium">
+              <Plus className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Add</span>
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden"
+              className="md:hidden p-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <Menu className="w-4 h-4" />
+              <Menu className="w-5 h-5" />
             </Button>
           </div>
         </div>
@@ -74,16 +74,28 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "block px-3 py-2 font-medium transition-colors duration-200",
+                  "block px-3 py-3 font-medium transition-colors duration-200 rounded-md touch-manipulation",
                   location === item.href
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-foreground bg-muted"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
+            <div className="border-t border-border pt-2 mt-2 space-y-1">
+              <button
+                onClick={() => {
+                  onImportClick();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center w-full px-3 py-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors duration-200 touch-manipulation"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Import APKG
+              </button>
+            </div>
           </div>
         </div>
       )}
