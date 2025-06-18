@@ -11,8 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertVocabularyWordSchema } from "@shared/schema";
 import { CATEGORIES, detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { PhoneticKeyboard } from "@/components/phonetic-keyboard";
-import { Keyboard, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import type { InsertVocabularyWord, VocabularyWord } from "@shared/schema";
 
 interface AddWordModalProps {
@@ -23,13 +22,11 @@ interface AddWordModalProps {
 }
 
 export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddWordModalProps) {
-  const [showPhoneticKeyboard, setShowPhoneticKeyboard] = useState(false);
   
   const form = useForm<InsertVocabularyWord>({
-    resolver: zodResolver(insertVocabularyWordSchema),
+    resolver: zodResolver(insertVocabularyWordSchema.omit({ pronunciation: true })),
     defaultValues: {
       word: "",
-      pronunciation: "",
       definition: "",
       category: "Academic",
       language: "en",
@@ -42,7 +39,6 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
     if (editingWord) {
       form.reset({
         word: editingWord.word,
-        pronunciation: editingWord.pronunciation,
         definition: editingWord.definition,
         category: editingWord.category,
         language: editingWord.language,
@@ -51,7 +47,6 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
     } else {
       form.reset({
         word: "",
-        pronunciation: "",
         definition: "",
         category: "Academic",
         language: "en",
@@ -68,13 +63,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
 
   const handleClose = () => {
     form.reset();
-    setShowPhoneticKeyboard(false);
     onOpenChange(false);
-  };
-
-  const insertPhoneticSymbol = (symbol: string) => {
-    const currentValue = form.getValues("pronunciation");
-    form.setValue("pronunciation", currentValue + symbol);
   };
 
   return (
@@ -106,42 +95,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="pronunciation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pronunciation</FormLabel>
-                  <FormControl>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          placeholder="/pronunciation/"
-                          className="bg-muted font-mono pr-10"
-                          {...field}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                          onClick={() => setShowPhoneticKeyboard(!showPhoneticKeyboard)}
-                        >
-                          <Keyboard className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      {showPhoneticKeyboard && (
-                        <div className="p-2 bg-primary/5 rounded border text-sm font-mono">
-                          Preview: /{field.value || ''}/
-                        </div>
-                      )}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+
             <FormField
               control={form.control}
               name="definition"
@@ -227,11 +181,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
           </form>
         </Form>
         
-        <PhoneticKeyboard
-          visible={showPhoneticKeyboard}
-          onInsert={insertPhoneticSymbol}
-          onClose={() => setShowPhoneticKeyboard(false)}
-        />
+
       </DialogContent>
     </Dialog>
   );

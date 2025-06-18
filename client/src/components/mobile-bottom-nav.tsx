@@ -41,13 +41,7 @@ export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
           );
         })}
         
-        <button
-          onClick={onAddWordClick}
-          className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation text-primary bg-primary/10 hover:bg-primary/20"
-        >
-          <Plus className="w-5 h-5 mb-1" />
-          <span className="text-xs font-medium text-center leading-tight">{t("nav.add")}</span>
-        </button>
+
 
         {/* Settings on the far right */}
         <Link
