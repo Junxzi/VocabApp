@@ -42,16 +42,23 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   const userId = req.headers['x-replit-user-id'] as string;
   const userName = req.headers['x-replit-user-name'] as string;
 
-  if (!userId) {
-    return res.status(401).json({ 
-      message: "Authentication required",
-      authenticated: false 
-    });
+  if (userId) {
+    req.userId = userId;
+    req.userName = userName;
+    return next();
   }
 
-  req.userId = userId;
-  req.userName = userName;
-  next();
+  // Development fallback - allow guest access
+  if (process.env.NODE_ENV === 'development') {
+    req.userId = 'guest-user';
+    req.userName = 'Guest User';
+    return next();
+  }
+
+  return res.status(401).json({ 
+    message: "Authentication required",
+    authenticated: false 
+  });
 }
 
 export function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -70,6 +77,13 @@ export function optionalAuth(req: AuthenticatedRequest, res: Response, next: Nex
   if (userId) {
     req.userId = userId;
     req.userName = userName;
+    return next();
+  }
+
+  // Development fallback - allow guest access
+  if (process.env.NODE_ENV === 'development') {
+    req.userId = 'guest-user';
+    req.userName = 'Guest User';
   }
 
   next();
