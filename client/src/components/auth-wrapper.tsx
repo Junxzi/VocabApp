@@ -14,21 +14,24 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   const { language, t } = useLanguage();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Check authentication status by trying to fetch vocabulary
+  // Check authentication status using auth endpoint
   const { data: authCheck, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/vocabulary'],
+    queryKey: ['/api/auth/user'],
     queryFn: async () => {
-      const response = await fetch('/api/vocabulary');
-      if (response.status === 401) {
-        throw new Error('Not authenticated');
-      }
+      const response = await fetch('/api/auth/user');
       if (!response.ok) {
         throw new Error('Server error');
       }
-      return response.json();
+      const data = await response.json();
+      if (!data.authenticated) {
+        throw new Error('Not authenticated');
+      }
+      return data;
     },
     retry: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+    cacheTime: 0
   });
 
   useEffect(() => {
