@@ -98,11 +98,16 @@ function AppContent() {
     }
   };
 
-  // Listen for custom events to open modal
+  // Listen for custom events to open modals
   useEffect(() => {
     const handleOpenAddWord = () => handleAddWord();
+    const handleOpenImport = () => handleImport();
     window.addEventListener("openAddWord", handleOpenAddWord);
-    return () => window.removeEventListener("openAddWord", handleOpenAddWord);
+    window.addEventListener("openImport", handleOpenImport);
+    return () => {
+      window.removeEventListener("openAddWord", handleOpenAddWord);
+      window.removeEventListener("openImport", handleOpenImport);
+    };
   }, []);
 
   return (
