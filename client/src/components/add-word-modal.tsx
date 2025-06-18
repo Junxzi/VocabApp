@@ -28,12 +28,31 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
   const form = useForm<InsertVocabularyWord>({
     resolver: zodResolver(insertVocabularyWordSchema),
     defaultValues: {
-      word: editingWord?.word || "",
-      pronunciation: editingWord?.pronunciation || "",
-      definition: editingWord?.definition || "",
-      category: editingWord?.category || "Academic",
+      word: "",
+      pronunciation: "",
+      definition: "",
+      category: "Academic",
     },
   });
+
+  // Update form values when editingWord changes
+  useEffect(() => {
+    if (editingWord) {
+      form.reset({
+        word: editingWord.word,
+        pronunciation: editingWord.pronunciation,
+        definition: editingWord.definition,
+        category: editingWord.category,
+      });
+    } else {
+      form.reset({
+        word: "",
+        pronunciation: "",
+        definition: "",
+        category: "Academic",
+      });
+    }
+  }, [editingWord, form]);
 
   const handleSubmit = (data: InsertVocabularyWord) => {
     onSubmit(data);
