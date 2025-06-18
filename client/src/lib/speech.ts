@@ -93,7 +93,7 @@ function getCacheKey(text: string, accent: AccentType): string {
 }
 
 // Main speech function using stored audio data or API fallback
-export async function speakWithAccent(text: string, accent: AccentType, audioData?: string): Promise<void> {
+export async function speakWithAccent(text: string, accent: AccentType, audioData?: string | null): Promise<void> {
   try {
     let audioUrl: string;
 

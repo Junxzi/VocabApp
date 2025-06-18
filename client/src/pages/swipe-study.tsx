@@ -83,7 +83,8 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const speakWord = async (variant: 'us' | 'uk', e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await speakWithAccent(word.word, variant);
+      const audioData = variant === 'us' ? word.audioDataUs : word.audioDataUk;
+      await speakWithAccent(word.word, variant, audioData ?? undefined);
     } catch (error) {
       console.error('Speech synthesis error:', error);
     }
