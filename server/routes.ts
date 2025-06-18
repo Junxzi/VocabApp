@@ -108,7 +108,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single vocabulary word by ID
+  // Get daily challenge words (must come before :id route)
+  app.get("/api/vocabulary/daily-challenge", optionalAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const words = await storage.getDailyChallengeWords();
+      res.json(words);
+    } catch (error) {
+      console.error('Daily challenge error:', error);
+      res.status(500).json({ message: "Failed to fetch daily challenge words" });
+    }
+  });
+
+  // Check if daily challenge is completed
+  app.get("/api/vocabulary/daily-challenge/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.userId || 'guest';
+      const status = await storage.getDailyChallengeStatus(userId);
+      res.json(status);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check daily challenge status" });
+    }
+  });
+
+  // Get single vocabulary word by ID (must come after specific routes)
   app.get("/api/vocabulary/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -180,34 +202,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get daily challenge words
-  app.get("/api/vocabulary/daily-challenge", optionalAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const words = await storage.getDailyChallengeWords();
-      res.json(words);
-    } catch (error) {
-      console.error('Daily challenge error:', error);
-      res.status(500).json({ message: "Failed to fetch daily challenge words" });
-    }
-  });
-
-  // Check if daily challenge is completed
-  app.get("/api/vocabulary/daily-challenge/status", optionalAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      // Use a guest user ID if not authenticated
-      const userId = req.userId || 'guest';
-      const status = await storage.getDailyChallengeStatus(userId);
-      res.json(status);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to check daily challenge status" });
-    }
-  });
-
   // Complete daily challenge
   app.post("/api/vocabulary/daily-challenge/complete", optionalAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { stats } = req.body;
-      // Use a guest user ID if not authenticated
       const userId = req.userId || 'guest';
       await storage.completeDailyChallenge(userId, stats);
       res.json({ success: true });
