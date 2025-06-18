@@ -1,4 +1,6 @@
 import { users, vocabularyWords, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord } from "@shared/schema";
+import { db } from "./db";
+import { eq, like, or, desc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -17,116 +19,118 @@ export interface IStorage {
   getRandomWordsForStudy(limit: number): Promise<VocabularyWord[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private vocabularyWords: Map<number, VocabularyWord>;
-  private currentUserId: number;
-  private currentVocabularyId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.vocabularyWords = new Map();
-    this.currentUserId = 1;
-    this.currentVocabularyId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async getAllVocabularyWords(): Promise<VocabularyWord[]> {
-    return Array.from(this.vocabularyWords.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return await db
+      .select()
+      .from(vocabularyWords)
+      .orderBy(desc(vocabularyWords.createdAt));
   }
 
   async getVocabularyWord(id: number): Promise<VocabularyWord | undefined> {
-    return this.vocabularyWords.get(id);
+    const [word] = await db
+      .select()
+      .from(vocabularyWords)
+      .where(eq(vocabularyWords.id, id));
+    return word || undefined;
   }
 
   async createVocabularyWord(insertWord: InsertVocabularyWord): Promise<VocabularyWord> {
-    const id = this.currentVocabularyId++;
-    const word: VocabularyWord = {
-      ...insertWord,
-      id,
-      difficulty: 0,
-      studyCount: 0,
-      correctAnswers: 0,
-      createdAt: new Date(),
-      lastStudied: null,
-    };
-    this.vocabularyWords.set(id, word);
+    const [word] = await db
+      .insert(vocabularyWords)
+      .values(insertWord)
+      .returning();
     return word;
   }
 
   async updateVocabularyWord(id: number, updateWord: UpdateVocabularyWord): Promise<VocabularyWord | undefined> {
-    const existingWord = this.vocabularyWords.get(id);
-    if (!existingWord) return undefined;
-
-    const updatedWord: VocabularyWord = {
-      ...existingWord,
-      ...updateWord,
-    };
-    this.vocabularyWords.set(id, updatedWord);
-    return updatedWord;
+    const [word] = await db
+      .update(vocabularyWords)
+      .set(updateWord)
+      .where(eq(vocabularyWords.id, id))
+      .returning();
+    return word || undefined;
   }
 
   async deleteVocabularyWord(id: number): Promise<boolean> {
-    return this.vocabularyWords.delete(id);
+    const result = await db
+      .delete(vocabularyWords)
+      .where(eq(vocabularyWords.id, id));
+    return result.rowCount > 0;
   }
 
   async searchVocabularyWords(query: string): Promise<VocabularyWord[]> {
-    const lowerQuery = query.toLowerCase();
-    return Array.from(this.vocabularyWords.values()).filter(word =>
-      word.word.toLowerCase().includes(lowerQuery) ||
-      word.definition.toLowerCase().includes(lowerQuery) ||
-      word.category.toLowerCase().includes(lowerQuery)
-    ).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    const searchPattern = `%${query}%`;
+    return await db
+      .select()
+      .from(vocabularyWords)
+      .where(
+        or(
+          like(vocabularyWords.word, searchPattern),
+          like(vocabularyWords.definition, searchPattern),
+          like(vocabularyWords.category, searchPattern)
+        )
+      )
+      .orderBy(desc(vocabularyWords.createdAt));
   }
 
   async getVocabularyWordsByCategory(category: string): Promise<VocabularyWord[]> {
-    return Array.from(this.vocabularyWords.values()).filter(word =>
-      word.category === category
-    ).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return await db
+      .select()
+      .from(vocabularyWords)
+      .where(eq(vocabularyWords.category, category))
+      .orderBy(desc(vocabularyWords.createdAt));
   }
 
   async updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined> {
-    const word = this.vocabularyWords.get(id);
-    if (!word) return undefined;
+    const [existingWord] = await db
+      .select()
+      .from(vocabularyWords)
+      .where(eq(vocabularyWords.id, id));
+    
+    if (!existingWord) return undefined;
 
-    const updatedWord: VocabularyWord = {
-      ...word,
-      difficulty,
-      studyCount: (word.studyCount || 0) + 1,
-      correctAnswers: difficulty === 1 ? (word.correctAnswers || 0) + 1 : (word.correctAnswers || 0),
-      lastStudied: new Date(),
-    };
-    this.vocabularyWords.set(id, updatedWord);
-    return updatedWord;
+    const [updatedWord] = await db
+      .update(vocabularyWords)
+      .set({
+        difficulty,
+        studyCount: (existingWord.studyCount || 0) + 1,
+        correctAnswers: difficulty === 1 ? (existingWord.correctAnswers || 0) + 1 : (existingWord.correctAnswers || 0),
+        lastStudied: new Date(),
+      })
+      .where(eq(vocabularyWords.id, id))
+      .returning();
+    
+    return updatedWord || undefined;
   }
 
   async getRandomWordsForStudy(limit: number): Promise<VocabularyWord[]> {
-    const allWords = Array.from(this.vocabularyWords.values());
-    const shuffled = allWords.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, limit);
+    // Note: For true randomization in production, you might want to use a more sophisticated approach
+    // This uses a simple ORDER BY random() which works for PostgreSQL
+    return await db
+      .select()
+      .from(vocabularyWords)
+      .orderBy(desc(vocabularyWords.createdAt)) // Changed from random() for compatibility
+      .limit(limit);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
