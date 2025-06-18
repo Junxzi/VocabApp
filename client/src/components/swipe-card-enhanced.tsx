@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, PanInfo, useMotionValue, useTransform, animate } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,13 @@ export function SwipeCard({
   const [dragStarted, setDragStarted] = useState(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-30, 0, 30]);
-  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 0.5, 1, 0.5, 0]);
+  
+  // Reset position when word changes
+  useEffect(() => {
+    x.set(0);
+    setIsDragging(false);
+    setDragStarted(false);
+  }, [word.id, x]);
   
   // More fluid color transforms
   const leftSwipeIntensity = useTransform(x, [-200, -50, 0], [1, 0.6, 0]);
@@ -146,7 +152,7 @@ export function SwipeCard({
   return (
     <motion.div
       className="absolute inset-0"
-      style={{ x, rotate, opacity }}
+      style={{ x, rotate }}
       variants={cardVariants}
       animate={isActive ? "active" : "inactive"}
       drag={isActive ? "x" : false}
