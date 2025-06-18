@@ -215,6 +215,15 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 borderColor: getBorderColor()
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center relative">
+            {/* US pronunciation button in top-left corner */}
+            <button
+              onClick={(e) => speakWord('us', e)}
+              className="absolute top-4 left-4 p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-full transition-colors z-10 shadow-sm"
+              title="アメリカ英語で発音"
+            >
+              <Volume2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </button>
+
             {/* Content with fading opacity */}
             <div className="text-center" style={{ opacity: getContentOpacity() }}>
               <div className="mb-8">
