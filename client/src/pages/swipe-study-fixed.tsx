@@ -36,12 +36,12 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     
     if (Math.abs(distance) > threshold || velocity > 200) {
       const direction = distance > 0 ? 1 : -1;
-      const exitX = direction * window.innerWidth;
+      const exitX = direction * (window.innerWidth + 200); // Make sure card completely exits
       
       animate(x, exitX, {
         type: "spring",
-        stiffness: 300,
-        damping: 30,
+        stiffness: 400,
+        damping: 25,
         velocity: info.velocity.x
       }).then(() => {
         onSwipe(direction > 0 ? 'right' : 'left');
@@ -58,10 +58,10 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const handleCardTap = () => {
     if (isFlipping) return;
     setIsFlipping(true);
+    onTap();
     setTimeout(() => {
-      onTap();
       setIsFlipping(false);
-    }, 150);
+    }, 50);
   };
 
   const speakWord = (variant: 'us' | 'uk', e: React.MouseEvent) => {
@@ -418,15 +418,12 @@ export function SwipeStudyPage() {
         setCurrentIndex(nextIndex);
         setDisplayedWord(studyWords[nextIndex]);
         setShowAnswer(false);
-        // Delay before showing next card
-        setTimeout(() => {
-          setIsCardSwiping(false);
-        }, 150);
+        setIsCardSwiping(false); // Show next card immediately
       } else {
         setStudyMode('complete');
         setIsCardSwiping(false);
       }
-    }, 600);
+    }, 250); // Reduced timing for faster transitions
   };
 
   const handleCardTap = () => {
@@ -552,7 +549,7 @@ export function SwipeStudyPage() {
       </div>
 
       {/* Card Container - positioned lower for thumb accessibility */}
-      <div className="max-w-md mx-auto h-[450px] relative mt-20">
+      <div className="max-w-md mx-auto h-[520px] relative mt-20">
         {displayedWord && !isCardSwiping && (
           <StudyCard
             key={`card-${currentIndex}-${displayedWord.id}`}
