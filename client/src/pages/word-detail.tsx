@@ -18,6 +18,7 @@ export function WordDetailPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const { data: word, isLoading } = useQuery<VocabularyWord>({
     queryKey: ['/api/vocabulary', id],
@@ -29,27 +30,34 @@ export function WordDetailPage() {
     enabled: !!id
   });
 
-  const enrichMutation = useMutation({
-    mutationFn: async (wordId: string) => {
-      const response = await fetch(`/api/vocabulary/${wordId}/enrich`, {
-        method: 'POST',
+  const updateEnrichmentMutation = useMutation({
+    mutationFn: async (data: {
+      pronunciationUs?: string;
+      pronunciationUk?: string;
+      pronunciationAu?: string;
+      exampleSentences?: string;
+    }) => {
+      const response = await fetch(`/api/vocabulary/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      if (!response.ok) throw new Error('Failed to enrich word');
+      if (!response.ok) throw new Error('Failed to update word');
       return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vocabulary', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
       toast({
-        title: "Word enriched successfully",
-        description: "Pronunciation and example sentences have been added."
+        title: "Word updated successfully",
+        description: "Enrichment data has been saved."
       });
     },
     onError: () => {
       toast({
-        title: "Failed to enrich word",
+        title: "Failed to update word",
         description: "Please try again later.",
         variant: "destructive"
       });
@@ -105,6 +113,16 @@ export function WordDetailPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
+          
+          {(word.pronunciationUs || word.pronunciationUk || word.pronunciationAu || exampleSentences.length > 0) && (
+            <Button
+              variant="outline"
+              onClick={() => setEditModalOpen(true)}
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
         </div>
 
         {/* Word Card */}
@@ -207,6 +225,16 @@ export function WordDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Modal */}
+      {word && (
+        <EditEnrichmentModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          word={word}
+          onSave={(data) => updateEnrichmentMutation.mutate(data)}
+        />
+      )}
     </div>
   );
 }
