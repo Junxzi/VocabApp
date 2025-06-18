@@ -5,11 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
 import { getLocalizedPartOfSpeech } from "@/lib/utils";
-import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags, Play } from "lucide-react";
 import type { VocabularyWord } from "@shared/schema";
 
 interface StudyCardProps {
@@ -33,7 +34,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     const velocity = Math.abs(info.velocity.x);
     
     if (Math.abs(distance) > threshold || velocity > 200) {
-      // Animate card off screen
       const direction = distance > 0 ? 1 : -1;
       const exitX = direction * window.innerWidth;
       
@@ -46,7 +46,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         onSwipe(direction > 0 ? 'right' : 'left');
       });
     } else {
-      // Return to center
       animate(x, 0, {
         type: "spring",
         stiffness: 500,
@@ -83,7 +82,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
 
   return (
     <motion.div
-      className="absolute inset-0"
+      className="absolute inset-0 cursor-pointer"
       style={{ 
         x, 
         rotate, 
@@ -101,12 +100,10 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         transition: { duration: 0.1 }
       }}
       onClick={onTap}
-      className="cursor-pointer"
     >
       <Card className="h-full bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl">
         <CardContent className="p-6 h-full flex flex-col justify-between">
           {!showAnswer ? (
-            // Front of card
             <div className="text-center flex-1 flex flex-col justify-center">
               <div className="mb-6">
                 <h2 className="text-4xl font-bold text-foreground mb-4">{word.word}</h2>
@@ -149,7 +146,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
               </div>
             </div>
           ) : (
-            // Back of card
             <div className="text-center flex-1 flex flex-col justify-center">
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-foreground mb-4">{word.word}</h2>
@@ -202,7 +198,92 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   );
 }
 
+interface ModeSelectionProps {
+  onStartStudy: (mode: 'random' | 'tag', selectedTag?: string) => void;
+  availableTags: string[];
+}
+
+function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
+  const [selectedTag, setSelectedTag] = useState<string>("");
+  const { t } = useLanguage();
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-4">学習モード選択</h1>
+            <p className="text-muted-foreground">学習方法を選択してください</p>
+          </div>
+
+          <div className="space-y-4">
+            {/* Random Study Mode */}
+            <Button
+              onClick={() => onStartStudy('random')}
+              className="w-full h-auto p-6 flex flex-col items-center gap-3"
+              variant="outline"
+            >
+              <div className="flex items-center gap-3">
+                <Shuffle className="w-6 h-6" />
+                <div className="text-left">
+                  <div className="font-semibold">ランダム学習</div>
+                  <div className="text-sm text-muted-foreground">全語彙から30問出題</div>
+                </div>
+              </div>
+            </Button>
+
+            {/* Tag-based Study Mode */}
+            <div className="space-y-3">
+              <Button
+                onClick={() => selectedTag && onStartStudy('tag', selectedTag)}
+                disabled={!selectedTag}
+                className="w-full h-auto p-6 flex flex-col items-center gap-3"
+                variant="outline"
+              >
+                <div className="flex items-center gap-3">
+                  <Tags className="w-6 h-6" />
+                  <div className="text-left">
+                    <div className="font-semibold">タグ別学習</div>
+                    <div className="text-sm text-muted-foreground">特定のタグから出題</div>
+                  </div>
+                </div>
+              </Button>
+
+              <Select value={selectedTag} onValueChange={setSelectedTag}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="学習するタグを選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTags.map((tag) => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Button 
+              variant="ghost" 
+              onClick={() => window.location.href = '/vocabulary'}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              単語帳に戻る
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function SwipeStudyPage() {
+  const [studyMode, setStudyMode] = useState<'selection' | 'studying' | 'complete'>('selection');
+  const [currentMode, setCurrentMode] = useState<'random' | 'tag'>('random');
+  const [selectedTag, setSelectedTag] = useState<string>('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [sessionStats, setSessionStats] = useState({
@@ -211,14 +292,22 @@ export function SwipeStudyPage() {
     total: 0,
   });
   const [studyWords, setStudyWords] = useState<VocabularyWord[]>([]);
-  const [isSessionComplete, setIsSessionComplete] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
-  const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
-    queryKey: ["/api/vocabulary/review/50"],
+  // Get all vocabulary to extract available tags
+  const { data: allWords = [] } = useQuery<VocabularyWord[]>({
+    queryKey: ["/api/vocabulary"],
+  });
+
+  // Get study words based on selected mode
+  const { data: words = [], isLoading, refetch } = useQuery<VocabularyWord[]>({
+    queryKey: currentMode === 'random' 
+      ? ["/api/vocabulary/random/30"] 
+      : ["/api/vocabulary/tag", selectedTag],
+    enabled: studyMode === 'studying',
   });
 
   const updateWordSpacedRepetitionMutation = useMutation({
@@ -227,33 +316,55 @@ export function SwipeStudyPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/vocabulary"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary/review/50"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary/random/30"] });
     },
   });
 
+  // Extract available tags from all words
+  const availableTags = Array.from(
+    new Set(
+      allWords
+        .flatMap(word => word.tags || [])
+        .filter(tag => tag && tag.trim() !== '')
+    )
+  ).sort();
+
   useEffect(() => {
-    if (words.length > 0) {
+    if (words.length > 0 && studyMode === 'studying') {
       const shuffled = [...words].sort(() => Math.random() - 0.5);
       setStudyWords(shuffled);
       setSessionStats(prev => ({ ...prev, total: shuffled.length }));
       setCurrentIndex(0);
       setShowAnswer(false);
-      setIsSessionComplete(false);
     }
-  }, [words]);
+  }, [words, studyMode]);
 
-  // Disable scrolling
+  // Disable scrolling during study
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    document.body.style.height = '100vh';
-    document.documentElement.style.overflow = 'hidden';
+    if (studyMode === 'studying') {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100vh';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      document.documentElement.style.overflow = '';
+    }
     
     return () => {
       document.body.style.overflow = '';
       document.body.style.height = '';
       document.documentElement.style.overflow = '';
     };
-  }, []);
+  }, [studyMode]);
+
+  const handleStartStudy = (mode: 'random' | 'tag', tag?: string) => {
+    setCurrentMode(mode);
+    if (tag) setSelectedTag(tag);
+    setStudyMode('studying');
+    setSessionStats({ known: 0, needReview: 0, total: 0 });
+    refetch();
+  };
 
   const handleSwipe = (direction: 'left' | 'right') => {
     const currentWord = studyWords[currentIndex];
@@ -261,26 +372,23 @@ export function SwipeStudyPage() {
 
     const known = direction === 'right';
     
-    // Update stats
     setSessionStats(prev => ({
       ...prev,
       known: known ? prev.known + 1 : prev.known,
       needReview: known ? prev.needReview : prev.needReview + 1,
     }));
 
-    // Update word with spaced repetition
     updateWordSpacedRepetitionMutation.mutate({ 
       id: currentWord.id, 
       known 
     });
 
-    // Move to next word or complete session
     setTimeout(() => {
       if (currentIndex < studyWords.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {
-        setIsSessionComplete(true);
+        setStudyMode('complete');
       }
     }, 300);
   };
@@ -289,16 +397,17 @@ export function SwipeStudyPage() {
     setShowAnswer(!showAnswer);
   };
 
-  const resetSession = () => {
-    if (words.length > 0) {
-      const shuffled = [...words].sort(() => Math.random() - 0.5);
-      setStudyWords(shuffled);
-      setCurrentIndex(0);
-      setShowAnswer(false);
-      setIsSessionComplete(false);
-      setSessionStats({ known: 0, needReview: 0, total: shuffled.length });
-    }
+  const resetStudy = () => {
+    setStudyMode('selection');
+    setCurrentIndex(0);
+    setShowAnswer(false);
+    setSessionStats({ known: 0, needReview: 0, total: 0 });
+    setStudyWords([]);
   };
+
+  if (studyMode === 'selection') {
+    return <ModeSelection onStartStudy={handleStartStudy} availableTags={availableTags} />;
+  }
 
   if (isLoading) {
     return (
@@ -311,7 +420,7 @@ export function SwipeStudyPage() {
     );
   }
 
-  if (isSessionComplete) {
+  if (studyMode === 'complete') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -319,7 +428,9 @@ export function SwipeStudyPage() {
             <div className="mb-6">
               <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-2">学習完了！</h2>
-              <p className="text-muted-foreground">お疲れ様でした</p>
+              <p className="text-muted-foreground">
+                {currentMode === 'random' ? 'ランダム学習' : `${selectedTag}タグ学習`}が完了しました
+              </p>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -334,9 +445,9 @@ export function SwipeStudyPage() {
             </div>
             
             <div className="flex gap-2">
-              <Button onClick={resetSession} className="flex-1">
+              <Button onClick={resetStudy} className="flex-1">
                 <RotateCcw className="w-4 h-4 mr-2" />
-                もう一度
+                別の学習
               </Button>
               <Button 
                 variant="outline" 
@@ -358,9 +469,11 @@ export function SwipeStudyPage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">学習可能な単語がありません</p>
-            <Button onClick={() => window.location.href = '/vocabulary'}>
-              単語帳に戻る
+            <p className="text-muted-foreground mb-4">
+              {currentMode === 'random' ? '学習可能な単語がありません' : `${selectedTag}タグの単語が見つかりません`}
+            </p>
+            <Button onClick={resetStudy}>
+              モード選択に戻る
             </Button>
           </CardContent>
         </Card>
@@ -376,14 +489,22 @@ export function SwipeStudyPage() {
       {/* Header */}
       <div className="max-w-md mx-auto mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">{t('swipeStudy')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">
+              {currentMode === 'random' ? 'ランダム学習' : `${selectedTag}`}
+            </h1>
+            {currentMode === 'random' ? (
+              <Shuffle className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <Tags className="w-5 h-5 text-muted-foreground" />
+            )}
+          </div>
           <div className="text-sm text-muted-foreground">
             {currentIndex + 1} / {studyWords.length}
           </div>
         </div>
         <Progress value={progress} className="h-3 mb-4" />
         
-        {/* Stats */}
         <div className="flex justify-center gap-6 text-sm">
           <div className="flex items-center text-green-600">
             <CheckCircle2 className="w-4 h-4 mr-1" />

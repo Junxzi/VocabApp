@@ -409,6 +409,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get random vocabulary for study (SuperMemo-style spaced repetition)
+  app.get("/api/vocabulary/random/:count", async (req, res) => {
+    try {
+      const count = parseInt(req.params.count) || 30;
+      const words = await storage.getRandomWordsForStudy(count);
+      res.json(words);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch random vocabulary" });
+    }
+  });
+
+  // Get vocabulary by specific tag for study
+  app.get("/api/vocabulary/tag/:tagName", async (req, res) => {
+    try {
+      const tagName = req.params.tagName;
+      const words = await storage.getVocabularyWordsByTag(tagName);
+      res.json(words);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vocabulary by tag" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

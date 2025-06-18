@@ -24,6 +24,7 @@ export interface IStorage {
   deleteVocabularyWord(id: number): Promise<boolean>;
   searchVocabularyWords(query: string): Promise<VocabularyWord[]>;
   getVocabularyWordsByCategory(category: string): Promise<VocabularyWord[]>;
+  getVocabularyWordsByTag(tag: string): Promise<VocabularyWord[]>;
   updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined>;
   updateWordSpacedRepetition(id: number, known: boolean): Promise<VocabularyWord | undefined>;
   getWordsForReview(limit: number): Promise<VocabularyWord[]>;
@@ -166,6 +167,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(vocabularyWords.createdAt));
     
     return allWords.filter(word => word.tags && word.tags.includes(category));
+  }
+
+  async getVocabularyWordsByTag(tag: string): Promise<VocabularyWord[]> {
+    const allWords = await db
+      .select()
+      .from(vocabularyWords)
+      .orderBy(desc(vocabularyWords.createdAt));
+    
+    return allWords.filter(word => word.tags && word.tags.includes(tag));
   }
 
   async updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined> {
