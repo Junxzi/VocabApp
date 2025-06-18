@@ -16,6 +16,8 @@ export interface IStorage {
   searchVocabularyWords(query: string): Promise<VocabularyWord[]>;
   getVocabularyWordsByCategory(category: string): Promise<VocabularyWord[]>;
   updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined>;
+  updateWordSpacedRepetition(id: number, known: boolean): Promise<VocabularyWord | undefined>;
+  getWordsForReview(limit: number): Promise<VocabularyWord[]>;
   getRandomWordsForStudy(limit: number): Promise<VocabularyWord[]>;
 }
 

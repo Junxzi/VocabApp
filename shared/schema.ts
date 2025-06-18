@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -18,6 +18,9 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   difficulty: integer("difficulty").default(0), // 0 = not studied, 1 = easy, 2 = medium, 3 = hard
   studyCount: integer("study_count").default(0),
   correctAnswers: integer("correct_answers").default(0),
+  easeFactor: numeric("ease_factor", { precision: 3, scale: 2 }).default("2.5"), // SuperMemo algorithm ease factor
+  interval: integer("interval").default(1), // Days until next review
+  nextReview: timestamp("next_review"), // When to show this word next
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastStudied: timestamp("last_studied"),
 });
