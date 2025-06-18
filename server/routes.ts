@@ -7,6 +7,7 @@ import { enrichWordData, generatePronunciation } from "./openai";
 import { calculateNextReview, swipeToQuality, isDueForReview } from "./spaced-repetition";
 import { syncCategoriesFromNotion, initializeDefaultCategories, syncVocabularyWordsFromNotion } from "./setup-categories";
 import { generateWordsForCategory, getSampleWordsForCategory } from "./word-generator";
+import { generateWordGacha, getSampleGachaCategories } from "./word-gacha";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize categories on startup
@@ -328,6 +329,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ sampleWords });
     } catch (error) {
       res.status(500).json({ message: "Failed to get sample words" });
+    }
+  });
+
+  // Word Gacha - Generate custom category words
+  app.post("/api/word-gacha/generate", async (req, res) => {
+    try {
+      const { categoryName, selectedCategories, count = 50 } = req.body;
+      
+      if (!categoryName || !selectedCategories || selectedCategories.length === 0) {
+        return res.status(400).json({ message: "Category name and selected categories are required" });
+      }
+
+      // Generate words using GPT with full enrichment
+      const generatedWords = await generateWordGacha(categoryName, count);
+      
+      // Add generated words to database with multiple categories
+      const addedWords = [];
+      for (const wordData of generatedWords) {
+        try {
+          const newWord = await storage.createVocabularyWord({
+            word: wordData.word,
+            definition: wordData.definition,
+            pronunciationUs: wordData.pronunciationUs,
+            pronunciationUk: wordData.pronunciationUk,
+            pronunciationAu: wordData.pronunciationAu,
+            partOfSpeech: wordData.partOfSpeech,
+            exampleSentences: JSON.stringify(wordData.exampleSentences),
+            category: selectedCategories[0], // Primary category
+            categories: selectedCategories, // Multiple categories
+            language: "en"
+          });
+          addedWords.push(newWord);
+        } catch (error) {
+          console.warn(`Failed to add word: ${wordData.word}`, error);
+        }
+      }
+
+      res.json({
+        message: `Successfully generated ${addedWords.length} words for "${categoryName}"`,
+        words: addedWords,
+        totalGenerated: generatedWords.length,
+        totalAdded: addedWords.length,
+        categoryName,
+        selectedCategories
+      });
+    } catch (error) {
+      console.error("Error generating word gacha:", error);
+      res.status(500).json({ message: "Failed to generate word gacha" });
+    }
+  });
+
+  // Get sample gacha categories for inspiration
+  app.get("/api/word-gacha/sample-categories", async (req, res) => {
+    try {
+      const sampleCategories = getSampleGachaCategories();
+      res.json({ sampleCategories });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get sample categories" });
     }
   });
 
