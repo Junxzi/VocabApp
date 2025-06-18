@@ -75,13 +75,14 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       const direction = distance > 0 ? 1 : -1;
       const exitX = direction * (window.innerWidth + 200); // Make sure card completely exits
       
+      // Trigger word change immediately when finger lifts
+      onSwipe(direction > 0 ? 'right' : 'left');
+      
       animate(x, exitX, {
         type: "spring",
         stiffness: 400,
         damping: 25,
         velocity: info.velocity.x
-      }).then(() => {
-        onSwipe(direction > 0 ? 'right' : 'left');
       });
     } else {
       animate(x, 0, {
