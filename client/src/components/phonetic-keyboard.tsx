@@ -55,8 +55,8 @@ export function PhoneticKeyboard({ onInsert, onClose, visible }: PhoneticKeyboar
   const others = PHONETIC_SYMBOLS.filter(s => s.category === "stress" || s.category === "length");
 
   return (
-    <Card className="fixed bottom-20 md:bottom-4 left-4 right-4 z-50 animate-slide-up shadow-xl bg-background/95 backdrop-blur-lg border-2">
-      <CardContent className="p-4">
+    <Card className="fixed top-4 left-4 right-4 z-50 animate-slide-up shadow-xl bg-background/95 backdrop-blur-lg border-2">
+      <CardContent className="p-3">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-foreground">Phonetic Symbols</h3>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -64,16 +64,16 @@ export function PhoneticKeyboard({ onInsert, onClose, visible }: PhoneticKeyboar
           </Button>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div>
-            <h4 className="text-xs text-muted-foreground mb-2">Vowels</h4>
-            <div className="grid grid-cols-8 gap-1">
+            <h4 className="text-xs text-muted-foreground mb-1">Vowels</h4>
+            <div className="grid grid-cols-10 gap-1">
               {vowels.map((item) => (
                 <Button
                   key={item.symbol}
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 font-mono text-sm hover:bg-primary hover:text-primary-foreground"
+                  className="h-6 w-6 p-0 font-mono text-xs hover:bg-primary hover:text-primary-foreground"
                   onClick={() => onInsert(item.symbol)}
                 >
                   {item.label}
@@ -83,14 +83,14 @@ export function PhoneticKeyboard({ onInsert, onClose, visible }: PhoneticKeyboar
           </div>
           
           <div>
-            <h4 className="text-xs text-muted-foreground mb-2">Consonants</h4>
-            <div className="grid grid-cols-8 gap-1">
+            <h4 className="text-xs text-muted-foreground mb-1">Consonants</h4>
+            <div className="grid grid-cols-10 gap-1">
               {consonants.map((item) => (
                 <Button
                   key={item.symbol}
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 font-mono text-sm hover:bg-primary hover:text-primary-foreground"
+                  className="h-6 w-6 p-0 font-mono text-xs hover:bg-primary hover:text-primary-foreground"
                   onClick={() => onInsert(item.symbol)}
                 >
                   {item.label}
@@ -100,14 +100,14 @@ export function PhoneticKeyboard({ onInsert, onClose, visible }: PhoneticKeyboar
           </div>
           
           <div>
-            <h4 className="text-xs text-muted-foreground mb-2">Stress & Length</h4>
-            <div className="grid grid-cols-8 gap-1">
+            <h4 className="text-xs text-muted-foreground mb-1">Stress & Length</h4>
+            <div className="grid grid-cols-10 gap-1">
               {others.map((item) => (
                 <Button
                   key={item.symbol}
                   variant="outline"
                   size="sm"
-                  className="h-8 w-8 p-0 font-mono text-sm hover:bg-primary hover:text-primary-foreground"
+                  className="h-6 w-6 p-0 font-mono text-xs hover:bg-primary hover:text-primary-foreground"
                   onClick={() => onInsert(item.symbol)}
                 >
                   {item.label}

@@ -56,7 +56,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
         "sm:max-w-md animate-scale-in",
-        showPhoneticKeyboard && "mb-80 md:mb-0"
+        showPhoneticKeyboard && "mt-48 md:mt-0"
       )}>
         <DialogHeader>
           <DialogTitle>
