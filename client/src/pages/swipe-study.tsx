@@ -73,6 +73,10 @@ export function SwipeStudyPage() {
     }
 
     const currentWord = studyWords[currentIndex];
+    if (!currentWord) {
+      return; // Safety check to prevent undefined error
+    }
+
     const known = direction === 'right';
     
     // Update stats
@@ -196,6 +200,22 @@ export function SwipeStudyPage() {
     );
   }
 
+  // Safety check to prevent undefined errors
+  if (!studyWords || studyWords.length === 0 || currentIndex >= studyWords.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">No words available for study</p>
+            <Button onClick={() => window.location.href = '/vocabulary'} className="mt-4">
+              Go to Vocabulary
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const progress = ((currentIndex + 1) / studyWords.length) * 100;
   const currentWord = studyWords[currentIndex];
   const nextWord = studyWords[currentIndex + 1];
@@ -241,15 +261,17 @@ export function SwipeStudyPage() {
         )}
 
         {/* Current card */}
-        <SwipeCard
-          key={`${currentWord.id}-current`}
-          word={currentWord}
-          onSwipe={handleSwipe}
-          onShowAnswer={() => setShowAnswer(!showAnswer)}
-          showAnswer={showAnswer}
-          isActive={true}
-          index={0}
-        />
+        {currentWord && (
+          <SwipeCard
+            key={`${currentWord.id}-current`}
+            word={currentWord}
+            onSwipe={handleSwipe}
+            onShowAnswer={() => setShowAnswer(!showAnswer)}
+            showAnswer={showAnswer}
+            isActive={true}
+            index={0}
+          />
+        )}
       </div>
 
       {/* Instructions */}
