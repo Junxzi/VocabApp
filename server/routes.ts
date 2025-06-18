@@ -143,6 +143,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get daily challenge words
+  app.get("/api/vocabulary/daily-challenge", async (req, res) => {
+    try {
+      const words = await storage.getDailyChallengeWords();
+      res.json(words);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch daily challenge words" });
+    }
+  });
+
+  // Check if daily challenge is completed
+  app.get("/api/vocabulary/daily-challenge/status", async (req, res) => {
+    try {
+      const status = await storage.getDailyChallengeStatus();
+      res.json(status);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check daily challenge status" });
+    }
+  });
+
+  // Complete daily challenge
+  app.post("/api/vocabulary/daily-challenge/complete", async (req, res) => {
+    try {
+      const { stats } = req.body;
+      await storage.completeDailyChallenge(stats);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to complete daily challenge" });
+    }
+  });
+
   // Update word with spaced repetition algorithm
   app.put("/api/vocabulary/:id/spaced-repetition", async (req, res) => {
     try {

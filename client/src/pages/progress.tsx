@@ -188,11 +188,10 @@ export function ProgressPage() {
         <h1 className="text-3xl font-bold text-foreground mb-2">
           {t('learningProgress')}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mt-[30px] mb-[30px] pt-[0px] pb-[0px]">
           {t('progress.description')}
         </p>
       </div>
-
       {/* Today's Progress Dashboard */}
       <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
         <CardHeader>
@@ -231,7 +230,6 @@ export function ProgressPage() {
           </div>
         </CardContent>
       </Card>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Achievements & Badges */}
         <Card>
@@ -350,7 +348,6 @@ export function ProgressPage() {
           </CardContent>
         </Card>
       </div>
-
       {/* Learning Statistics */}
       <Card>
         <CardHeader>

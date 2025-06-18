@@ -372,16 +372,7 @@ function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
             </div>
           </div>
 
-          <div className="mt-8 text-center">
-            <Button 
-              variant="ghost" 
-              onClick={() => window.location.href = '/vocabulary'}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              単語帳に戻る
-            </Button>
-          </div>
+          
         </CardContent>
       </Card>
     </div>
