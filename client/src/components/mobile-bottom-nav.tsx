@@ -13,6 +13,13 @@ export function MobileBottomNav() {
     { label: t("nav.progress"), href: "/progress", icon: TrendingUp },
   ];
 
+  const scrollToTop = () => {
+    window.scrollTo({ 
+      top: 0, 
+      behavior: 'smooth' 
+    });
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border safe-area-inset-bottom z-50 md:hidden">
       <div className="flex items-center py-2">
@@ -24,6 +31,12 @@ export function MobileBottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={(e) => {
+                if (isActive) {
+                  e.preventDefault();
+                  scrollToTop();
+                }
+              }}
               className={cn(
                 "flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation",
                 isActive
@@ -42,6 +55,12 @@ export function MobileBottomNav() {
         {/* Settings on the far right */}
         <Link
           href="/settings"
+          onClick={(e) => {
+            if (location === "/settings") {
+              e.preventDefault();
+              scrollToTop();
+            }
+          }}
           className={cn(
             "flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation",
             location === "/settings"
