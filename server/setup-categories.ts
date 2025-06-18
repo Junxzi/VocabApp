@@ -107,16 +107,15 @@ async function syncVocabularyWordsFromNotion() {
                 const existing = await db.select().from(vocabularyWords)
                     .where(eq(vocabularyWords.word, notionWord.word));
                 
-                // Find category ID from relation
-                let categoryId = null;
-                let categoryName = "Academic"; // Default category
+                // Convert category relation to tags
+                let tags = ["Academic"]; // Default tag
                 if (notionWord.categoryRelation.length > 0) {
                     const relationId = notionWord.categoryRelation[0].id;
-                    categoryId = categoryMap.get(relationId);
+                    const categoryId = categoryMap.get(relationId);
                     if (categoryId) {
                         const category = allCategories.find(cat => cat.id === categoryId);
                         if (category) {
-                            categoryName = category.name;
+                            tags = [category.name];
                         }
                     }
                 }
@@ -131,9 +130,7 @@ async function syncVocabularyWordsFromNotion() {
                             pronunciationUk: notionWord.pronunciationUk,
                             exampleSentences: notionWord.exampleSentences,
                             difficulty: notionWord.difficulty,
-                            categoryId: categoryId,
-                            category: categoryName,
-                            updatedAt: new Date()
+                            tags: tags
                         })
                         .where(eq(vocabularyWords.word, notionWord.word));
                     console.log(`✓ Updated word: ${notionWord.word}`);
@@ -147,8 +144,7 @@ async function syncVocabularyWordsFromNotion() {
                         pronunciationUk: notionWord.pronunciationUk,
                         exampleSentences: notionWord.exampleSentences,
                         difficulty: notionWord.difficulty,
-                        categoryId: categoryId,
-                        category: categoryName,
+                        tags: tags,
                         language: "en"
                     });
                     console.log(`✓ Created word from Notion: ${notionWord.word}`);

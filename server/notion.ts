@@ -39,7 +39,7 @@ export async function getNotionDatabases() {
             });
 
             for (const block of response.results) {
-                if (block.type === "child_database") {
+                if ((block as any).type === "child_database") {
                     const databaseId = block.id;
 
                     try {
@@ -71,8 +71,8 @@ export async function findDatabaseByTitle(title: string) {
     const databases = await getNotionDatabases();
 
     for (const db of databases) {
-        if (db.title && Array.isArray(db.title) && db.title.length > 0) {
-            const dbTitle = db.title[0]?.plain_text?.toLowerCase() || "";
+        if ((db as any).title && Array.isArray((db as any).title) && (db as any).title.length > 0) {
+            const dbTitle = (db as any).title[0]?.plain_text?.toLowerCase() || "";
             if (dbTitle === title.toLowerCase()) {
                 return db;
             }
