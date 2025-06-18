@@ -623,7 +623,7 @@ export function SwipeStudyPage() {
         </div>
       </div>
       {/* Card Container - positioned with Dynamic Island consideration */}
-      <div className="max-w-md mx-auto h-[520px] relative mt-8">
+      <div className="max-w-md mx-auto h-[580px] relative mt-8">
         {/* Large counters in upper corners */}
         <div className="absolute -top-20 left-0 z-20">
           <div className="flex items-center justify-center w-16 h-16 bg-red-500 text-white rounded-full shadow-lg mt-[705px] mb-[705px]">
