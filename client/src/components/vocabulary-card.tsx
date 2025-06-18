@@ -15,11 +15,14 @@ const cleanPronunciation = (pronunciation: string): string => {
 
 interface VocabularyCardProps {
   word: VocabularyWord;
-  onEdit: (word: VocabularyWord) => void;
-  onDelete: (id: number) => void;
+  onEdit?: (word: VocabularyWord) => void;
+  onDelete?: (id: number) => void;
+  onEnrich?: (id: number) => void;
+  isEnriching?: boolean;
+  className?: string;
 }
 
-export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) {
+export function VocabularyCard({ word, onEdit, onDelete, className }: VocabularyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const { language } = useLanguage();
 
@@ -27,7 +30,8 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
     <Card
       className={cn(
         "transition-all duration-300 hover:shadow-lg md:hover:scale-105 animate-fade-in touch-manipulation",
-        isHovered && "shadow-lg"
+        isHovered && "shadow-lg",
+        className
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -46,7 +50,7 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
                   </span>
                 )}
               </h3>
-              
+
             </div>
             {word.partOfSpeech && (
               <div className="mb-2">
@@ -95,11 +99,11 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
             </Button>
           </div>
         </div>
-        
+
         <p className="text-foreground mb-3 leading-relaxed text-sm md:text-base">
           {word.definition}
         </p>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             {word.tags && word.tags.length > 0 && (

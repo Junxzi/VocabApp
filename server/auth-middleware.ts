@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
@@ -44,7 +43,10 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   const userName = req.headers['x-replit-user-name'] as string;
 
   if (!userId) {
-    return res.status(401).json({ message: 'Authentication required' });
+    return res.status(401).json({ 
+      message: "Authentication required",
+      authenticated: false 
+    });
   }
 
   req.userId = userId;
