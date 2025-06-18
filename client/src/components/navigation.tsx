@@ -48,11 +48,6 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
             </div>
           </div>
           <div className="flex items-center space-x-3 md:space-x-5">
-            <Link href="/settings">
-              <Button variant="ghost" size="lg" className="p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                <Settings className="w-5 h-5" />
-              </Button>
-            </Link>
             <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
               <SelectTrigger className="w-20 h-10 p-2 border border-border/50 bg-background/50 rounded-lg hover:bg-muted/50 transition-colors">
                 <Globe className="w-5 h-5" />
@@ -70,6 +65,11 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
               <Plus className="w-5 h-5 mr-2" />
               <span className="hidden sm:inline text-base">{t("nav.add")}</span>
             </Button>
+            <Link href="/settings">
+              <Button variant="ghost" size="lg" className="p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="lg"
