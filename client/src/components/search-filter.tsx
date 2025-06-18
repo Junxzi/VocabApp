@@ -38,8 +38,8 @@ export function SearchFilter({
   totalCount 
 }: SearchFilterProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
-  const [newTagInput, setNewTagInput] = useState("");
-  const { t } = useLanguage();
+  const [tagSelectionOpen, setTagSelectionOpen] = useState(false);
+  const { t, language } = useLanguage();
 
   const handleSearchChange = (value: string) => {
     setLocalSearch(value);
@@ -52,24 +52,6 @@ export function SearchFilter({
     { value: 'tags', label: t('sort.tags') },
     { value: 'difficulty', label: t('sort.difficulty') }
   ];
-
-  const addTag = (tag: string) => {
-    if (tag && !selectedTags.includes(tag)) {
-      onTagFilter([...selectedTags, tag]);
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    onTagFilter(selectedTags.filter(tag => tag !== tagToRemove));
-  };
-
-  const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTagInput.trim()) {
-      e.preventDefault();
-      addTag(newTagInput.trim());
-      setNewTagInput("");
-    }
-  };
 
   return (
     <div className="mb-6">
@@ -91,44 +73,23 @@ export function SearchFilter({
 
       {/* Tag Filter */}
       <div className="mb-4">
-        <div className="flex gap-2 mb-2">
-          <Input
-            placeholder="Add tag to filter"
-            value={newTagInput}
-            onChange={(e) => setNewTagInput(e.target.value)}
-            onKeyDown={handleTagInputKeyDown}
-            className="flex-1"
-          />
+        <div className="flex items-center gap-2 mb-2">
           <Button 
-            type="button" 
-            onClick={() => {
-              if (newTagInput.trim()) {
-                addTag(newTagInput.trim());
-                setNewTagInput("");
-              }
-            }}
-            size="sm"
+            variant="outline"
+            onClick={() => setTagSelectionOpen(true)}
+            className="flex items-center gap-2"
           >
-            <Filter className="w-4 h-4" />
+            <Tags className="w-4 h-4" />
+            {language === 'ja' ? 'タグ選択' : 'Select Tags'}
+            {selectedTags.length > 0 && (
+              <Badge variant="secondary" className="ml-1">
+                {selectedTags.length}
+              </Badge>
+            )}
           </Button>
         </div>
 
-        {/* Available Tags */}
-        <div className="flex flex-wrap gap-2 mb-2">
-          {availableTags.map((tag) => (
-            <Button
-              key={tag}
-              variant={selectedTags.includes(tag) ? "default" : "outline"}
-              size="sm"
-              onClick={() => selectedTags.includes(tag) ? removeTag(tag) : addTag(tag)}
-              className="text-xs"
-            >
-              {tag}
-            </Button>
-          ))}
-        </div>
-
-        {/* Selected Tags */}
+        {/* Selected Tags Display */}
         {selectedTags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {selectedTags.map((tag) => (
@@ -136,7 +97,7 @@ export function SearchFilter({
                 {tag}
                 <button
                   type="button"
-                  onClick={() => removeTag(tag)}
+                  onClick={() => onTagFilter(selectedTags.filter(t => t !== tag))}
                   className="ml-1 hover:text-destructive"
                 >
                   <X className="w-3 h-3" />
@@ -212,6 +173,15 @@ export function SearchFilter({
       <div className="text-sm text-muted-foreground">
         {totalCount} {totalCount !== 1 ? t("vocab.count_plural") : t("vocab.count")} を表示中
       </div>
+
+      {/* Tag Selection Popup */}
+      <TagSelectionPopup
+        open={tagSelectionOpen}
+        onOpenChange={setTagSelectionOpen}
+        availableTags={availableTags}
+        selectedTags={selectedTags}
+        onApply={onTagFilter}
+      />
     </div>
   );
 }

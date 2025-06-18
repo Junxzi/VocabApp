@@ -28,8 +28,12 @@ export function SwipeCard({
   const { t, language } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-150, 0, 150], [-30, 0, 30]);
+  const rotate = useTransform(x, [-150, 0, 150], [-15, 0, 15]);
   const opacity = useTransform(x, [-150, -100, 0, 100, 150], [0, 1, 1, 1, 0]);
+  
+  // Color transforms for swipe feedback
+  const leftSwipeIntensity = useTransform(x, [-150, -50, 0], [1, 0.8, 0]);
+  const rightSwipeIntensity = useTransform(x, [0, 50, 150], [0, 0.8, 1]);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
@@ -99,10 +103,21 @@ export function SwipeCard({
           onClick={onShowAnswer}
         >
           {/* Front of card */}
-          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden card-front ${
-            isDragging ? 'border-primary' : 'border-border'
-          } bg-card`}>
-            <CardContent className="p-6 h-full flex flex-col justify-between">
+          <motion.div
+            className="absolute inset-0 backface-hidden card-front rounded-lg shadow-xl"
+            style={{
+              backgroundColor: isDragging 
+                ? `rgba(${rightSwipeIntensity.get() > 0 ? '34, 197, 94' : leftSwipeIntensity.get() > 0 ? '239, 68, 68' : '255, 255, 255'}, ${Math.max(rightSwipeIntensity.get(), leftSwipeIntensity.get()) * 0.1 + 0.9})`
+                : 'hsl(var(--card))',
+              borderColor: isDragging 
+                ? rightSwipeIntensity.get() > 0 ? '#22c55e' : leftSwipeIntensity.get() > 0 ? '#ef4444' : 'hsl(var(--border))'
+                : 'hsl(var(--border))',
+              borderWidth: '2px',
+              borderStyle: 'solid'
+            }}
+          >
+            <Card className="h-full border-0 bg-transparent shadow-none">
+              <CardContent className="p-6 h-full flex flex-col justify-between">
               <div className="text-center mt-12">
                 <div className="text-center mb-4">
                   <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
@@ -171,13 +186,25 @@ export function SwipeCard({
               </div>
 
               <div className="h-4"></div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Back of card */}
-          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden rotate-y-180 card-back ${
-            isDragging ? 'border-primary' : 'border-border'
-          } bg-card`}>
+          <motion.div
+            className="absolute inset-0 backface-hidden rotate-y-180 card-back rounded-lg shadow-xl"
+            style={{
+              backgroundColor: isDragging 
+                ? `rgba(${rightSwipeIntensity.get() > 0 ? '34, 197, 94' : leftSwipeIntensity.get() > 0 ? '239, 68, 68' : '255, 255, 255'}, ${Math.max(rightSwipeIntensity.get(), leftSwipeIntensity.get()) * 0.1 + 0.9})`
+                : 'hsl(var(--card))',
+              borderColor: isDragging 
+                ? rightSwipeIntensity.get() > 0 ? '#22c55e' : leftSwipeIntensity.get() > 0 ? '#ef4444' : 'hsl(var(--border))'
+                : 'hsl(var(--border))',
+              borderWidth: '2px',
+              borderStyle: 'solid'
+            }}
+          >
+            <Card className="h-full border-0 bg-transparent shadow-none">
             <CardContent className="p-6 h-full flex flex-col justify-between">
               <div className="text-center mt-12">
                 <div className="text-center mb-4">
