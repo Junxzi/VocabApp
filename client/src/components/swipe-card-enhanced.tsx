@@ -56,15 +56,16 @@ export function SwipeCard({
     
     if (!isActive) return;
 
+    const threshold = 100; // Threshold for auto-swipe
+    const distance = info.offset.x;
     const velocity = Math.abs(info.velocity.x);
-    const distance = Math.abs(info.offset.x);
     
-    // Detect if it's a swipe gesture vs just dragging
-    const isSwipe = velocity > 200 || distance > 80;
+    // Auto-swipe if past threshold or high velocity
+    const shouldAutoSwipe = Math.abs(distance) > threshold || velocity > 200;
     
-    if (isSwipe) {
-      // Animate card flying off screen before triggering swipe
-      const direction = info.offset.x > 0 ? 1 : -1;
+    if (shouldAutoSwipe) {
+      // Animate card flying off screen
+      const direction = distance > 0 ? 1 : -1;
       const exitX = direction * window.innerWidth * 1.2;
       
       animate(x, exitX, {
@@ -74,14 +75,14 @@ export function SwipeCard({
         velocity: info.velocity.x
       });
       
-      // Trigger swipe callback immediately to start next card transition
-      if (info.offset.x > 0) {
+      // Trigger swipe callback immediately
+      if (distance > 0) {
         onSwipe('right');
       } else {
         onSwipe('left');
       }
     } else {
-      // Always return to center if not a complete swipe
+      // Return to center if not past threshold
       animate(x, 0, {
         type: "spring",
         stiffness: 500,
