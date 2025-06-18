@@ -228,7 +228,6 @@ interface ModeSelectionProps {
 
 function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
   const [selectedTag, setSelectedTag] = useState<string>("");
-  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -400,6 +399,7 @@ export function SwipeStudyPage() {
       known 
     });
 
+    // Move to next word without removing from array
     setTimeout(() => {
       if (currentIndex < studyWords.length - 1) {
         setCurrentIndex(prev => prev + 1);
