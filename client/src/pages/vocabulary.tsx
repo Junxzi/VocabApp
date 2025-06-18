@@ -167,7 +167,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
             className="h-10 px-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border-purple-300 dark:border-purple-700"
           >
             <Sparkles className="w-5 h-5 mr-2" />
-            {language === 'ja' ? 'AI生成+' : 'AI Gen+'}
+{language === 'ja' ? 'タグ生成+' : 'Tag Gen+'}
           </Button>
           <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="lg" className="h-10 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
             <Plus className="w-5 h-5 mr-2" />

@@ -47,3 +47,65 @@ export function getLanguageLabel(lang: SupportedLanguage): string {
     default: return "English";
   }
 }
+
+// Map English part of speech to Japanese
+const partOfSpeechMap: Record<string, string> = {
+  "noun": "名詞",
+  "verb": "動詞", 
+  "adjective": "形容詞",
+  "adverb": "副詞",
+  "preposition": "前置詞",
+  "conjunction": "接続詞",
+  "pronoun": "代名詞",
+  "interjection": "感嘆詞",
+  "article": "冠詞",
+  "determiner": "限定詞",
+  "modal": "助動詞",
+  "auxiliary": "助動詞",
+  "particle": "助詞",
+  "名詞": "名詞",
+  "動詞": "動詞",
+  "形容詞": "形容詞", 
+  "副詞": "副詞",
+  "前置詞": "前置詞",
+  "接続詞": "接続詞",
+  "代名詞": "代名詞",
+  "感嘆詞": "感嘆詞",
+  "冠詞": "冠詞",
+  "限定詞": "限定詞",
+  "助動詞": "助動詞",
+  "助詞": "助詞"
+};
+
+export function getLocalizedPartOfSpeech(partOfSpeech: string | null, language: SupportedLanguage): string {
+  if (!partOfSpeech) return "";
+  
+  const normalized = partOfSpeech.toLowerCase().trim();
+  
+  if (language === "ja") {
+    // If already in Japanese, return as is
+    if (partOfSpeechMap[partOfSpeech]) {
+      return partOfSpeechMap[partOfSpeech];
+    }
+    // Try to map from English to Japanese
+    return partOfSpeechMap[normalized] || partOfSpeech;
+  } else {
+    // For English, convert Japanese to English or return English as is
+    const reverseMap: Record<string, string> = {
+      "名詞": "noun",
+      "動詞": "verb",
+      "形容詞": "adjective",
+      "副詞": "adverb",
+      "前置詞": "preposition",
+      "接続詞": "conjunction", 
+      "代名詞": "pronoun",
+      "感嘆詞": "interjection",
+      "冠詞": "article",
+      "限定詞": "determiner",
+      "助動詞": "modal",
+      "助詞": "particle"
+    };
+    
+    return reverseMap[partOfSpeech] || partOfSpeech;
+  }
+}
