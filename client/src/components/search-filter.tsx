@@ -1,22 +1,23 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Grid, List, SortAsc, SortDesc, Sparkles } from "lucide-react";
-import { CATEGORIES } from "@/lib/utils";
+import { Search, Filter, Grid, List, SortAsc, SortDesc, Sparkles, X } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
-export type SortOption = 'alphabetical' | 'date' | 'category' | 'difficulty';
+export type SortOption = 'alphabetical' | 'date' | 'tags' | 'difficulty';
 export type ViewMode = 'grid' | 'list';
 
 interface SearchFilterProps {
   onSearch: (query: string) => void;
-  onCategoryFilter: (category: string) => void;
+  onTagFilter: (tags: string[]) => void;
   onSortChange: (sort: SortOption) => void;
   onViewModeChange: (mode: ViewMode) => void;
-  onGenerateWords?: (category: string) => void;
+  onGenerateWords?: (tagName: string) => void;
   searchQuery: string;
-  selectedCategory: string;
+  selectedTags: string[];
+  availableTags: string[];
   sortBy: SortOption;
   viewMode: ViewMode;
   totalCount: number;
@@ -24,17 +25,19 @@ interface SearchFilterProps {
 
 export function SearchFilter({ 
   onSearch, 
-  onCategoryFilter, 
+  onTagFilter, 
   onSortChange, 
   onViewModeChange, 
   onGenerateWords,
   searchQuery, 
-  selectedCategory, 
+  selectedTags, 
+  availableTags,
   sortBy, 
   viewMode, 
   totalCount 
 }: SearchFilterProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
+  const [newTagInput, setNewTagInput] = useState("");
   const { t } = useLanguage();
 
   const handleSearchChange = (value: string) => {
@@ -45,9 +48,27 @@ export function SearchFilter({
   const sortOptions = [
     { value: 'alphabetical', label: t('sort.alphabetical') },
     { value: 'date', label: t('sort.date') },
-    { value: 'category', label: t('sort.category') },
+    { value: 'tags', label: t('sort.tags') },
     { value: 'difficulty', label: t('sort.difficulty') }
   ];
+
+  const addTag = (tag: string) => {
+    if (tag && !selectedTags.includes(tag)) {
+      onTagFilter([...selectedTags, tag]);
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    onTagFilter(selectedTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && newTagInput.trim()) {
+      e.preventDefault();
+      addTag(newTagInput.trim());
+      setNewTagInput("");
+    }
+  };
 
   return (
     <div className="mb-6">
@@ -67,24 +88,66 @@ export function SearchFilter({
         </div>
       </div>
 
+      {/* Tag Filter */}
+      <div className="mb-4">
+        <div className="flex gap-2 mb-2">
+          <Input
+            placeholder="Add tag to filter"
+            value={newTagInput}
+            onChange={(e) => setNewTagInput(e.target.value)}
+            onKeyDown={handleTagInputKeyDown}
+            className="flex-1"
+          />
+          <Button 
+            type="button" 
+            onClick={() => {
+              if (newTagInput.trim()) {
+                addTag(newTagInput.trim());
+                setNewTagInput("");
+              }
+            }}
+            size="sm"
+          >
+            <Filter className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Available Tags */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          {availableTags.map((tag) => (
+            <Button
+              key={tag}
+              variant={selectedTags.includes(tag) ? "default" : "outline"}
+              size="sm"
+              onClick={() => selectedTags.includes(tag) ? removeTag(tag) : addTag(tag)}
+              className="text-xs"
+            >
+              {tag}
+            </Button>
+          ))}
+        </div>
+
+        {/* Selected Tags */}
+        {selectedTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedTags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="ml-1 hover:text-destructive"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Filters - Mobile optimized */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        {/* Category Filter */}
-        <div className="flex-1 min-w-0">
-          <Select value={selectedCategory} onValueChange={onCategoryFilter}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={t("vocab.all_categories")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("vocab.all_categories")}</SelectItem>
-              {CATEGORIES.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         {/* Sort Options */}
         <div className="flex-1 min-w-0">
@@ -124,15 +187,22 @@ export function SearchFilter({
         </div>
 
         {/* Generate Words Button */}
-        {onGenerateWords && selectedCategory && selectedCategory !== "All" && selectedCategory !== "TOEFL" && (
+        {onGenerateWords && (
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onGenerateWords(selectedCategory)}
+            onClick={() => {
+              const tagName = prompt("Enter tag name (max 10 characters):", "");
+              if (tagName && tagName.trim().length <= 10) {
+                onGenerateWords(tagName.trim());
+              } else if (tagName) {
+                alert("Tag name must be 10 characters or less");
+              }
+            }}
             className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border-purple-300 dark:border-purple-700"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            {t("vocab.generate")}
+            Generate 30 Words
           </Button>
         )}
       </div>

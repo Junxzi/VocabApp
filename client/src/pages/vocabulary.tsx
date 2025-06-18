@@ -20,13 +20,13 @@ interface VocabularyPageProps {
 
 export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>("date");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [wordGeneratorModalOpen, setWordGeneratorModalOpen] = useState(false);
-  const [generatorCategory, setGeneratorCategory] = useState("");
+  const [generatorTagName, setGeneratorTagName] = useState("");
   const [wordGachaModalOpen, setWordGachaModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -64,10 +64,10 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         word.definition.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (word.tags && word.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
       
-      const matchesCategory = selectedCategory === "all" || 
-        (word.tags && word.tags.includes(selectedCategory));
+      const matchesTags = selectedTags.length === 0 || 
+        (word.tags && selectedTags.every(selectedTag => word.tags.includes(selectedTag)));
       
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesTags;
     });
 
     // Sort words
@@ -77,7 +77,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           return a.word.localeCompare(b.word);
         case 'date':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'category':
+        case 'tags':
           // Sort by first tag or empty string if no tags
           const aTag = a.tags && a.tags.length > 0 ? a.tags[0] : '';
           const bTag = b.tags && b.tags.length > 0 ? b.tags[0] : '';
@@ -90,7 +90,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     });
 
     return filtered;
-  }, [words, searchQuery, selectedCategory, sortBy]);
+  }, [words, searchQuery, selectedTags, sortBy]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedWords.length / itemsPerPage);
