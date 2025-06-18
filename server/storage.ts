@@ -327,13 +327,13 @@ export class DatabaseStorage implements IStorage {
     return selectedWords.slice(0, DAILY_CHALLENGE_COUNT);
   }
 
-  async getDailyChallengeStatus(): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }> {
+  async getDailyChallengeStatus(userId: string): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }> {
     const today = new Date().toISOString().split('T')[0];
 
     const [todaysChallenge] = await db
       .select()
       .from(dailyChallenges)
-      .where(eq(dailyChallenges.date, today));
+      .where(and(eq(dailyChallenges.date, today), eq(dailyChallenges.userId, userId)));
 
     return {
       completed: !!todaysChallenge?.completedAt,
@@ -342,13 +342,14 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async completeDailyChallenge(stats: { totalWords: number; correctWords: number; accuracy: number }): Promise<void> {
+  async completeDailyChallenge(userId: string, stats: { totalWords: number; correctWords: number; accuracy: number }): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
 
     // Insert or update today's challenge record
     await db
       .insert(dailyChallenges)
       .values({
+        userId: userId,
         date: today,
         completedAt: new Date(),
         totalWords: stats.totalWords,
@@ -356,7 +357,7 @@ export class DatabaseStorage implements IStorage {
         accuracy: stats.accuracy.toString()
       })
       .onConflictDoUpdate({
-        target: dailyChallenges.date,
+        target: [dailyChallenges.userId, dailyChallenges.date],
         set: {
           completedAt: new Date(),
           totalWords: stats.totalWords,

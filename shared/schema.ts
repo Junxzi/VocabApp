@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, timestamp, numeric } from "drizzle-orm/pg-core";
+import { uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -54,7 +55,9 @@ export const dailyChallenges = pgTable("daily_challenges", {
   correctWords: integer("correct_words").default(0),
   accuracy: numeric("accuracy", { precision: 5, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userDateUnique: uniqueIndex("daily_challenges_user_date_unique").on(table.userId, table.date),
+}));
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,

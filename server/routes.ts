@@ -191,9 +191,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check if daily challenge is completed
-  app.get("/api/vocabulary/daily-challenge/status", async (req, res) => {
+  app.get("/api/vocabulary/daily-challenge/status", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const status = await storage.getDailyChallengeStatus();
+      const status = await storage.getDailyChallengeStatus(req.userId!);
       res.json(status);
     } catch (error) {
       res.status(500).json({ message: "Failed to check daily challenge status" });
@@ -201,10 +201,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Complete daily challenge
-  app.post("/api/vocabulary/daily-challenge/complete", async (req, res) => {
+  app.post("/api/vocabulary/daily-challenge/complete", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { stats } = req.body;
-      await storage.completeDailyChallenge(stats);
+      await storage.completeDailyChallenge(req.userId!, stats);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Failed to complete daily challenge" });
