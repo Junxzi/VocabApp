@@ -34,10 +34,14 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.open(`https://www.oxfordlearnersdictionaries.com/us/definition/english/${word.word}`, '_blank');
+                        if ('speechSynthesis' in window) {
+                          const utterance = new SpeechSynthesisUtterance(word.word);
+                          utterance.lang = 'en-US';
+                          speechSynthesis.speak(utterance);
+                        }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"
-                      title="Oxford US pronunciation"
+                      title="US pronunciation"
                     >
                       🇺🇸
                     </Button>
@@ -46,10 +50,14 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.open(`https://www.oxfordlearnersdictionaries.com/definition/english/${word.word}`, '_blank');
+                        if ('speechSynthesis' in window) {
+                          const utterance = new SpeechSynthesisUtterance(word.word);
+                          utterance.lang = 'en-GB';
+                          speechSynthesis.speak(utterance);
+                        }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"
-                      title="Oxford UK pronunciation"
+                      title="UK pronunciation"
                     >
                       🇬🇧
                     </Button>

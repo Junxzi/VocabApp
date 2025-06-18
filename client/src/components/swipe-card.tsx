@@ -88,95 +88,148 @@ export function SwipeCard({
       onDragEnd={handleDragEnd}
       whileDrag={{ cursor: "grabbing" }}
     >
-      <Card className={`h-full shadow-xl border-2 ${
-        isDragging ? 'border-primary' : 'border-border'
-      } bg-card`}>
-        <CardContent className="p-6 h-full flex flex-col justify-between">
-          {/* Word Header */}
-          <div className="text-center mt-4">
-            <div className="text-center mb-4">
-              <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
-            </div>
-            
-            {word.pronunciation && (
-              <p className="text-lg text-muted-foreground font-mono">
-                /{word.pronunciation}/
-              </p>
-            )}
-            
-            <div className="flex items-center justify-center gap-2 mt-2">
-              {word.category && (
-                <Badge variant="secondary">
-                  {word.category}
-                </Badge>
-              )}
-              {word.difficulty && (
-                <Badge 
-                  variant={word.difficulty >= 3 ? "destructive" : "default"}
-                >
-                  Rank {word.difficulty}
-                </Badge>
-              )}
-            </div>
-          </div>
+      <div className="relative w-full h-full perspective-1000">
+        <motion.div
+          className="relative w-full h-full transform-style-preserve-3d cursor-pointer"
+          animate={{ rotateY: showAnswer ? 180 : 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          onClick={onShowAnswer}
+        >
+          {/* Front of card */}
+          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden ${
+            isDragging ? 'border-primary' : 'border-border'
+          } bg-card`}>
+            <CardContent className="p-6 h-full flex flex-col justify-between">
+              <div className="text-center mt-4">
+                <div className="text-center mb-4">
+                  <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
+                </div>
+                
+                {word.pronunciation && (
+                  <div className="mb-4">
+                    <p className="text-lg text-muted-foreground font-mono mb-2">
+                      /{word.pronunciation}/
+                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          speakWord('us');
+                        }}
+                        className="px-3 py-1 bg-muted rounded text-xs hover:bg-muted/80 transition-colors"
+                      >
+                        🇺🇸 US
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          speakWord('uk');
+                        }}
+                        className="px-3 py-1 bg-muted rounded text-xs hover:bg-muted/80 transition-colors"
+                      >
+                        🇬🇧 UK
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  {word.category && (
+                    <Badge variant="secondary">
+                      {word.category}
+                    </Badge>
+                  )}
+                  {word.difficulty && (
+                    <Badge 
+                      variant={word.difficulty >= 3 ? "destructive" : "default"}
+                    >
+                      Rank {word.difficulty}
+                    </Badge>
+                  )}
+                </div>
+              </div>
 
-          {/* Answer Section */}
-          <div className="flex-1 flex flex-col justify-center my-8">
-            {!showAnswer ? (
-              <div 
-                className="text-center cursor-pointer"
-                onClick={onShowAnswer}
-              >
-                <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20 hover:bg-muted/70 transition-colors">
-                  <EyeOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">
-                    Tap to see meaning...
+              <div className="flex-1 flex flex-col justify-center my-8">
+                <div className="text-center">
+                  <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                    <EyeOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      Tap to see meaning...
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-4"></div>
+            </CardContent>
+          </Card>
+
+          {/* Back of card */}
+          <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden rotate-y-180 ${
+            isDragging ? 'border-primary' : 'border-border'
+          } bg-card`}>
+            <CardContent className="p-6 h-full flex flex-col justify-between">
+              <div className="text-center mt-4">
+                <h2 className="text-2xl font-bold text-foreground mb-4">{word.word}</h2>
+                <div className="flex items-center justify-center gap-2">
+                  {word.category && (
+                    <Badge variant="secondary">
+                      {word.category}
+                    </Badge>
+                  )}
+                  {word.difficulty && (
+                    <Badge 
+                      variant={word.difficulty >= 3 ? "destructive" : "default"}
+                    >
+                      Rank {word.difficulty}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 flex flex-col justify-center my-8">
+                <div className="text-center">
+                  <div className="mb-6 p-6 bg-primary/5 rounded-lg border border-primary/20">
+                    <h3 className="text-xl font-semibold mb-3 text-foreground">
+                      Meaning
+                    </h3>
+                    <p className="text-lg text-foreground leading-relaxed">
+                      {word.definition}
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Tap again to flip back
                   </p>
                 </div>
               </div>
-            ) : (
-              <div 
-                className="text-center cursor-pointer"
-                onClick={() => onShowAnswer()}
-              >
-                <div className="mb-6 p-6 bg-primary/5 rounded-lg border border-primary/20 hover:bg-primary/10 transition-colors">
-                  <h3 className="text-xl font-semibold mb-3 text-foreground">
-                    Meaning
-                  </h3>
-                  <p className="text-lg text-foreground leading-relaxed">
-                    {word.definition}
-                  </p>
-                </div>
-              </div>
-            )}
+
+              <div className="h-4"></div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Swipe Indicators (only show when dragging) */}
+      {isDragging && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute top-1/2 left-8 transform -translate-y-1/2 text-red-500 font-bold text-2xl"
+            style={{
+              opacity: isDragging && x.get() < -50 ? Math.min(1, Math.abs(x.get()) / 100) : 0
+            }}
+          >
+            REVIEW
           </div>
-
-          {/* Bottom spacing for thumb reach */}
-          <div className="h-4"></div>
-
-          {/* Swipe Indicators (only show when dragging) */}
-          {isDragging && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div
-                className="absolute top-1/2 left-8 transform -translate-y-1/2 text-red-500 font-bold text-2xl"
-                style={{
-                  opacity: isDragging && x.get() < -50 ? Math.min(1, Math.abs(x.get()) / 100) : 0
-                }}
-              >
-                REVIEW
-              </div>
-              <div
-                className="absolute top-1/2 right-8 transform -translate-y-1/2 text-green-500 font-bold text-2xl"
-                style={{
-                  opacity: isDragging && x.get() > 50 ? Math.min(1, x.get() / 100) : 0
-                }}
-              >
-                KNOW
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          <div
+            className="absolute top-1/2 right-8 transform -translate-y-1/2 text-green-500 font-bold text-2xl"
+            style={{
+              opacity: isDragging && x.get() > 50 ? Math.min(1, x.get() / 100) : 0
+            }}
+          >
+            KNOW
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
