@@ -1,4 +1,4 @@
-import { users, vocabularyWords, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord } from "@shared/schema";
+import { users, vocabularyWords, categories, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord, type Category, type InsertCategory } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
 
@@ -6,6 +6,14 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Category operations
+  getAllCategories(): Promise<Category[]>;
+  getCategory(id: number): Promise<Category | undefined>;
+  getCategoryByName(name: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  deleteCategory(id: number): Promise<boolean>;
   
   // Vocabulary operations
   getAllVocabularyWords(): Promise<VocabularyWord[]>;
