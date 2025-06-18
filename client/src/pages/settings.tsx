@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n";
-import { Globe, Volume2, Eye, RefreshCw, Trash2, Download, Bell } from "lucide-react";
+import { Globe, Volume2, Eye, RefreshCw, Trash2, Download, Bell, LogOut, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export function SettingsPage() {

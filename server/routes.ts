@@ -33,6 +33,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.redirect("/");
     });
   });
+
+  // User authentication status endpoint
+  app.get("/api/auth/user", optionalAuth, (req: AuthenticatedRequest, res) => {
+    if (req.userId) {
+      res.json({
+        authenticated: true,
+        userId: req.userId,
+        userName: req.userName,
+        user: req.user
+      });
+    } else {
+      res.json({ authenticated: false });
+    }
+  });
   // Initialize categories on startup
   try {
     await initializeDefaultCategories();

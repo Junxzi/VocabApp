@@ -13,7 +13,7 @@ export interface AuthenticatedRequest extends Request {
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  callbackURL: "/api/auth/google/callback"
+  callbackURL: "/auth/google/callback"
 }, (accessToken, refreshToken, profile, done) => {
   return done(null, {
     id: profile.id,
@@ -31,6 +31,15 @@ passport.deserializeUser((user: any, done) => {
 });
 
 export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  // Check for Google OAuth session first
+  if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+    req.userId = req.user.id;
+    req.userName = req.user.name;
+    req.user = req.user;
+    return next();
+  }
+
+  // Fallback to Replit auth headers
   const userId = req.headers['x-replit-user-id'] as string;
   const userName = req.headers['x-replit-user-name'] as string;
 
@@ -44,6 +53,15 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 }
 
 export function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  // Check for Google OAuth session first
+  if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+    req.userId = req.user.id;
+    req.userName = req.user.name;
+    req.user = req.user;
+    return next();
+  }
+
+  // Fallback to Replit auth headers
   const userId = req.headers['x-replit-user-id'] as string;
   const userName = req.headers['x-replit-user-name'] as string;
 
