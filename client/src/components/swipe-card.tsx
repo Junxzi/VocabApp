@@ -104,11 +104,20 @@ export function SwipeCard({
               </p>
             )}
             
-            {word.category && (
-              <Badge variant="secondary" className="mt-2">
-                {word.category}
-              </Badge>
-            )}
+            <div className="flex items-center justify-center gap-2 mt-2">
+              {word.category && (
+                <Badge variant="secondary">
+                  {word.category}
+                </Badge>
+              )}
+              {word.difficulty && (
+                <Badge 
+                  variant={word.difficulty >= 3 ? "destructive" : "default"}
+                >
+                  Rank {word.difficulty}
+                </Badge>
+              )}
+            </div>
           </div>
 
           {/* Answer Section */}

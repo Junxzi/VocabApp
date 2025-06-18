@@ -40,6 +40,14 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                 <Badge variant="secondary" className="text-xs">
                   {word.category}
                 </Badge>
+                {word.difficulty && (
+                  <Badge 
+                    variant={word.difficulty >= 3 ? "destructive" : "default"} 
+                    className="text-xs"
+                  >
+                    Rank {word.difficulty}
+                  </Badge>
+                )}
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   {formatRelativeTime(new Date(word.createdAt))}
                 </span>
