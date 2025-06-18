@@ -38,6 +38,30 @@ export async function generateTTS(text: string, accent: AccentType): Promise<Buf
   }
 }
 
+// Generate TTS audio for all accents and return as base64 strings
+export async function generateAllAccentsTTS(text: string): Promise<{
+  audioDataUs: string;
+  audioDataUk: string;
+  audioDataAu: string;
+}> {
+  try {
+    const [usBuffer, ukBuffer, auBuffer] = await Promise.all([
+      generateTTS(text, 'us'),
+      generateTTS(text, 'uk'),
+      generateTTS(text, 'au')
+    ]);
+
+    return {
+      audioDataUs: usBuffer.toString('base64'),
+      audioDataUk: ukBuffer.toString('base64'),
+      audioDataAu: auBuffer.toString('base64')
+    };
+  } catch (error) {
+    console.error('Failed to generate TTS for all accents:', error);
+    throw error;
+  }
+}
+
 export async function generateTTSWithCustomVoice(text: string, voice: TTSVoice): Promise<Buffer> {
   try {
     const response = await openai.audio.speech.create({

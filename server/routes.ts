@@ -234,16 +234,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertVocabularyWordSchema.parse(req.body);
 
-      // Automatically enrich new words with GPT-4o data
+      // Automatically enrich new words with GPT-4o data and TTS audio
       let enrichedData = validatedData;
       if (validatedData.word) {
         try {
-          const gptEnrichment = await enrichWordData(validatedData.word);
+          const [gptEnrichment, ttsAudio] = await Promise.all([
+            enrichWordData(validatedData.word),
+            import('./tts').then(tts => tts.generateAllAccentsTTS(validatedData.word))
+          ]);
+          
           enrichedData = {
             ...validatedData,
             pronunciationUs: gptEnrichment.pronunciations.us,
             pronunciationUk: gptEnrichment.pronunciations.uk,
             pronunciationAu: gptEnrichment.pronunciations.au,
+            audioDataUs: ttsAudio.audioDataUs,
+            audioDataUk: ttsAudio.audioDataUk,
+            audioDataAu: ttsAudio.audioDataAu,
             partOfSpeech: gptEnrichment.primaryPartOfSpeech,
             exampleSentences: JSON.stringify(gptEnrichment.exampleSentences)
           };

@@ -31,6 +31,10 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   pronunciationUs: text("pronunciation_us"), // IPA for American English
   pronunciationUk: text("pronunciation_uk"), // IPA for British English
   pronunciationAu: text("pronunciation_au"), // IPA for Australian English
+  // TTS audio data stored as base64 encoded strings
+  audioDataUs: text("audio_data_us"),
+  audioDataUk: text("audio_data_uk"),
+  audioDataAu: text("audio_data_au"),
   partOfSpeech: text("part_of_speech"), // noun, verb, adjective, etc.
   definition: text("definition").notNull(),
   exampleSentences: text("example_sentences"), // JSON array of example sentences

@@ -92,34 +92,47 @@ function getCacheKey(text: string, accent: AccentType): string {
   return `${text}-${accent}`;
 }
 
-// Main speech function using OpenAI TTS API
-export async function speakWithAccent(text: string, accent: AccentType): Promise<void> {
+// Main speech function using stored audio data or API fallback
+export async function speakWithAccent(text: string, accent: AccentType, audioData?: string): Promise<void> {
   try {
-    const cacheKey = getCacheKey(text, accent);
-    
-    // Check cache first
-    let audioUrl = audioCache.get(cacheKey);
-    
-    if (!audioUrl) {
-      // Generate TTS audio via API
-      const response = await fetch('/api/tts/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text, accent }),
+    let audioUrl: string;
+
+    if (audioData) {
+      // Use stored audio data (base64 encoded MP3)
+      const audioBlob = new Blob([Uint8Array.from(atob(audioData), c => c.charCodeAt(0))], {
+        type: 'audio/mpeg'
       });
-
-      if (!response.ok) {
-        throw new Error(`TTS API error: ${response.status}`);
-      }
-
-      // Create blob URL for audio playback
-      const audioBlob = await response.blob();
       audioUrl = URL.createObjectURL(audioBlob);
+    } else {
+      // Fallback to API if no stored audio data
+      const cacheKey = getCacheKey(text, accent);
       
-      // Cache the audio URL
-      audioCache.set(cacheKey, audioUrl);
+      // Check cache first
+      let cachedUrl = audioCache.get(cacheKey);
+      
+      if (!cachedUrl) {
+        // Generate TTS audio via API
+        const response = await fetch('/api/tts/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text, accent }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`TTS API error: ${response.status}`);
+        }
+
+        // Create blob URL for audio playback
+        const audioBlob = await response.blob();
+        cachedUrl = URL.createObjectURL(audioBlob);
+        
+        // Cache the audio URL
+        audioCache.set(cacheKey, cachedUrl);
+      }
+      
+      audioUrl = cachedUrl;
     }
 
     // Play the audio
@@ -127,12 +140,24 @@ export async function speakWithAccent(text: string, accent: AccentType): Promise
     audio.volume = 0.8;
     
     return new Promise((resolve, reject) => {
-      audio.onended = () => resolve();
-      audio.onerror = () => reject(new Error('Audio playback error'));
+      audio.onended = () => {
+        // Clean up blob URL if it was created from stored data
+        if (audioData) {
+          URL.revokeObjectURL(audioUrl);
+        }
+        resolve();
+      };
+      audio.onerror = () => {
+        // Clean up blob URL if it was created from stored data
+        if (audioData) {
+          URL.revokeObjectURL(audioUrl);
+        }
+        reject(new Error('Audio playback error'));
+      };
       audio.play().catch(reject);
     });
   } catch (error) {
-    console.error('OpenAI TTS error:', error);
+    console.error('Audio playback error:', error);
     // Fallback to browser speech synthesis
     return fallbackToWebSpeech(text, accent);
   }
