@@ -59,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // For Replit Auth, we can redirect to clear session
-    window.location.href = '/api/auth/logout';
+    // Handle both Google OAuth and Replit Auth logout
+    window.location.href = '/auth/logout';
   };
 
   return (
