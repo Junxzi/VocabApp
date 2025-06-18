@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { calculateAccuracy, formatRelativeTime } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord } from "@shared/schema";
 
 export function ProgressPage() {

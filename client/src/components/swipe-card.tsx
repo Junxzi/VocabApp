@@ -103,6 +103,11 @@ export function SwipeCard({
               <div className="text-center mt-12">
                 <div className="text-center mb-4">
                   <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
+                  {word.partOfSpeech && (
+                    <Badge variant="outline" className="text-sm mb-2">
+                      {word.partOfSpeech}
+                    </Badge>
+                  )}
                 </div>
                 
                 {word.pronunciation && (

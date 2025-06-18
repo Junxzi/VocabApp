@@ -99,7 +99,7 @@ export function SwipeStudyPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading study session...</p>
+          <p className="text-muted-foreground">{t('loadingStudySession')}</p>
         </div>
       </div>
     );
@@ -111,12 +111,12 @@ export function SwipeStudyPage() {
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-4">All Caught Up!</h2>
+            <h2 className="text-2xl font-bold mb-4">{t('allCaughtUp')}</h2>
             <p className="text-muted-foreground mb-6">
-              No words are due for review right now. Come back later or add new words to study.
+              {t('noWordsForReview')}
             </p>
             <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}>
-              Add New Words
+              {t('addNewWords')}
             </Button>
           </CardContent>
         </Card>
@@ -135,9 +135,9 @@ export function SwipeStudyPage() {
           <CardContent className="p-8 text-center">
             <div className="mb-6">
               <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Session Complete!</h2>
+              <h2 className="text-2xl font-bold mb-2">{t('sessionComplete')}</h2>
               <p className="text-muted-foreground">
-                Great job! You've completed your swipe study session.
+                {t('sessionCompleteMessage')}
               </p>
             </div>
 
@@ -145,21 +145,21 @@ export function SwipeStudyPage() {
               <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                 <span className="flex items-center">
                   <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
-                  Known Words
+                  {t('knownWords')}
                 </span>
                 <span className="font-bold">{sessionStats.known}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                 <span className="flex items-center">
                   <XCircle className="w-5 h-5 text-red-500 mr-2" />
-                  Need Review
+                  {t('needReview')}
                 </span>
                 <span className="font-bold">{sessionStats.needReview}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
                 <span className="flex items-center">
                   <TrendingUp className="w-5 h-5 text-primary mr-2" />
-                  Accuracy
+                  {t('accuracy')}
                 </span>
                 <span className="font-bold">{accuracy}%</span>
               </div>
@@ -167,7 +167,7 @@ export function SwipeStudyPage() {
 
             <Button onClick={resetSession} size="lg" className="w-full">
               <RotateCcw className="w-4 h-4 mr-2" />
-              Start New Session
+              {t('startNewSession')}
             </Button>
           </CardContent>
         </Card>
@@ -184,7 +184,7 @@ export function SwipeStudyPage() {
       {/* Header */}
       <div className="max-w-md mx-auto mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Swipe Study</h1>
+          <h1 className="text-2xl font-bold">{t('swipeStudy')}</h1>
           <div className="text-sm text-muted-foreground">
             {currentIndex + 1} / {studyWords.length}
           </div>
