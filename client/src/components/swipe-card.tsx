@@ -81,9 +81,9 @@ export function SwipeCard({
       <Card className={`h-full shadow-xl border-2 ${
         isDragging ? 'border-primary' : 'border-border'
       } bg-card`}>
-        <CardContent className="p-8 h-full flex flex-col justify-center pt-[32px] pb-[32px]">
+        <CardContent className="p-6 h-full flex flex-col justify-between">
           {/* Word Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mt-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <h2 className="text-3xl font-bold text-foreground">{word.word}</h2>
               {word.pronunciation && (
@@ -112,7 +112,7 @@ export function SwipeCard({
           </div>
 
           {/* Answer Section */}
-          <div className="flex-1 flex flex-col justify-center">
+          <div className="flex-1 flex flex-col justify-center my-8">
             {!showAnswer ? (
               <div className="text-center">
                 <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20">
@@ -147,6 +147,9 @@ export function SwipeCard({
               </div>
             )}
           </div>
+
+          {/* Bottom spacing for thumb reach */}
+          <div className="h-4"></div>
 
           {/* Swipe Indicators (only show when dragging) */}
           {isDragging && (

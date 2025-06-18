@@ -204,7 +204,7 @@ export function SwipeStudyPage() {
       </div>
 
       {/* Cards Container */}
-      <div className="max-w-md mx-auto h-96 relative">
+      <div className="max-w-md mx-auto h-[500px] relative">
         {/* Next card (background) */}
         {nextWord && (
           <SwipeCard
@@ -230,25 +230,25 @@ export function SwipeStudyPage() {
         />
       </div>
 
-      {/* Manual Controls */}
-      <div className="max-w-md mx-auto mt-8 flex justify-center gap-4">
+      {/* Manual Controls - Thumb-friendly */}
+      <div className="max-w-md mx-auto mt-8 flex justify-center gap-6 px-4">
         <Button
           variant="outline"
           size="lg"
           onClick={() => handleManualSwipe('left')}
-          className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+          className="flex-1 h-14 border-red-200 text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors touch-manipulation"
         >
-          <XCircle className="w-5 h-5 mr-2" />
-          Need Review
+          <XCircle className="w-6 h-6 mr-2" />
+          <span className="text-base font-medium">Need Review</span>
         </Button>
         <Button
           variant="outline"
           size="lg"
           onClick={() => handleManualSwipe('right')}
-          className="flex-1 border-green-200 text-green-600 hover:bg-green-50"
+          className="flex-1 h-14 border-green-200 text-green-600 hover:bg-green-50 active:bg-green-100 transition-colors touch-manipulation"
         >
-          <CheckCircle2 className="w-5 h-5 mr-2" />
-          Know It!
+          <CheckCircle2 className="w-6 h-6 mr-2" />
+          <span className="text-base font-medium">Know It!</span>
         </Button>
       </div>
 
