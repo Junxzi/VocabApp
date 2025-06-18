@@ -92,7 +92,7 @@ export function SwipeCard({
         <motion.div
           className="relative w-full h-full transform-style-preserve-3d cursor-pointer"
           animate={{ rotateY: showAnswer ? 180 : 0 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           onClick={onShowAnswer}
         >
           {/* Front of card */}
