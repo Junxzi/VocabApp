@@ -14,25 +14,11 @@
   
   .backface-hidden {
     backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
   }
   
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
-}
-
-/* Improve 3D rendering and reduce blur */
-.transform-style-preserve-3d * {
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-}
-
-/* Anti-aliasing for smoother text and shapes */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 /* Hide scrollbars */

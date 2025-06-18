@@ -96,9 +96,6 @@ export function SwipeCard({
           animate={{ rotateY: showAnswer ? 180 : 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           onClick={onShowAnswer}
-          style={{
-            transformOrigin: 'center center'
-          }}
         >
           {/* Front of card */}
           <Card className={`absolute inset-0 shadow-xl border-2 backface-hidden ${
