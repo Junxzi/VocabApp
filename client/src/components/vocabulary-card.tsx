@@ -67,9 +67,19 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
         </p>
         
         <div className="flex items-center justify-between">
-          <Badge variant="secondary" className="text-xs">
-            {word.category}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {word.category}
+            </Badge>
+            {word.difficulty && (
+              <Badge 
+                variant={word.difficulty >= 3 ? "destructive" : "default"} 
+                className="text-xs"
+              >
+                Rank {word.difficulty}
+              </Badge>
+            )}
+          </div>
           <span className="text-xs text-muted-foreground">
             Added {formatRelativeTime(new Date(word.createdAt))}
           </span>

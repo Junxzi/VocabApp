@@ -160,6 +160,31 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="difficulty"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Difficulty Rank</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(value === "unset" ? null : parseInt(value))} defaultValue={field.value ? field.value.toString() : "unset"}>
+                    <FormControl>
+                      <SelectTrigger className="bg-muted">
+                        <SelectValue placeholder="Select difficulty" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unset">未設定 (Unset)</SelectItem>
+                      <SelectItem value="1">Rank 1 (Easiest)</SelectItem>
+                      <SelectItem value="2">Rank 2 (Easy)</SelectItem>
+                      <SelectItem value="3">Rank 3 (Hard)</SelectItem>
+                      <SelectItem value="4">Rank 4 (Hardest)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <div className="flex space-x-4 pt-4">
               <Button

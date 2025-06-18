@@ -15,7 +15,7 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   definition: text("definition").notNull(),
   category: text("category").notNull(),
   language: text("language").notNull().default("en"), // 'en' for English, 'ja' for Japanese
-  difficulty: integer("difficulty").default(0), // 0 = not studied, 1 = easy, 2 = medium, 3 = hard
+  difficulty: integer("difficulty"), // Rank 1-4 (4 = hardest), null = unset
   studyCount: integer("study_count").default(0),
   correctAnswers: integer("correct_answers").default(0),
   easeFactor: numeric("ease_factor", { precision: 3, scale: 2 }).default("2.5"), // SuperMemo algorithm ease factor
@@ -36,6 +36,7 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   definition: true,
   category: true,
   language: true,
+  difficulty: true,
 });
 
 export const updateVocabularyWordSchema = createInsertSchema(vocabularyWords).pick({
@@ -44,6 +45,7 @@ export const updateVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   definition: true,
   category: true,
   language: true,
+  difficulty: true,
 }).partial();
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
