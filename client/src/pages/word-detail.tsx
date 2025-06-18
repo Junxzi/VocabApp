@@ -21,6 +21,7 @@ export function WordDetailPage() {
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [isRegeneratingAudio, setIsRegeneratingAudio] = useState(false);
 
   // Scroll to top when word detail page opens
   useEffect(() => {

@@ -48,7 +48,7 @@ export async function generateTTS(text: string, accent: AccentType): Promise<Buf
     try {
       const fallbackResponse = await openai.audio.speech.create({
         model: "tts-1",
-        voice: voice,
+        voice: ACCENT_VOICE_MAP[accent],
         input: text,
         response_format: "mp3",
         speed: 1.0
