@@ -58,14 +58,14 @@ export function WordDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
       toast({
-        title: "Word updated successfully",
-        description: "Enrichment data has been saved."
+        title: t('detail.word_updated'),
+        description: t('detail.word_updated_desc')
       });
     },
     onError: () => {
       toast({
-        title: "Failed to update word",
-        description: "Please try again later.",
+        title: t('detail.update_failed'),
+        description: t('detail.update_failed_desc'),
         variant: "destructive"
       });
     }
@@ -310,13 +310,13 @@ export function WordDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <div className="text-2xl font-bold">{word.studyCount ?? 0}</div>
-                  <div className="text-sm text-muted-foreground">Times Studied</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.times_studied')}</div>
                 </div>
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <div className="text-2xl font-bold">
                     {(word.studyCount ?? 0) > 0 ? Math.round(((word.correctAnswers ?? 0) / (word.studyCount ?? 1)) * 100) : 0}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Accuracy</div>
+                  <div className="text-sm text-muted-foreground">{t('detail.accuracy')}</div>
                 </div>
               </div>
             </div>
