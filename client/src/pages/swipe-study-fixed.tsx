@@ -443,6 +443,8 @@ export function SwipeStudyPage() {
   const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
     queryKey: currentMode === 'random' 
       ? ["/api/vocabulary/random/30"] 
+      : currentMode === 'daily'
+      ? ["/api/vocabulary/daily-challenge"]
       : ["/api/vocabulary/tag", selectedTag],
     enabled: studyMode === 'studying' && studyWords.length === 0,
   });
@@ -452,6 +454,15 @@ export function SwipeStudyPage() {
       await apiRequest("PUT", `/api/vocabulary/${id}/spaced-repetition`, { known });
     },
     // Don't invalidate queries during study session to prevent refetching
+  });
+
+  const completeDailyChallengeMutation = useMutation({
+    mutationFn: async (stats: { totalWords: number; correctWords: number; accuracy: number }) => {
+      await apiRequest("POST", "/api/vocabulary/daily-challenge/complete", stats);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary/daily-challenge/status"] });
+    },
   });
 
   const availableTags = Array.from(
@@ -499,7 +510,7 @@ export function SwipeStudyPage() {
     };
   }, [studyMode]);
 
-  const handleStartStudy = (mode: 'random' | 'tag', tag?: string) => {
+  const handleStartStudy = (mode: 'random' | 'tag' | 'daily', tag?: string) => {
     setCurrentMode(mode);
     if (tag) setSelectedTag(tag);
     setStudyMode('studying');
@@ -521,6 +532,7 @@ export function SwipeStudyPage() {
       ...prev,
       known: known ? prev.known + 1 : prev.known,
       needReview: known ? prev.needReview : prev.needReview + 1,
+      total: prev.total + 1,
     }));
 
     updateWordSpacedRepetitionMutation.mutate({ 
@@ -534,6 +546,15 @@ export function SwipeStudyPage() {
       setDisplayedWord(studyWords[nextIndex]);
       setShowAnswer(false);
     } else {
+      // Complete daily challenge if it's daily mode
+      if (currentMode === 'daily') {
+        const accuracy = sessionStats.total > 0 ? (sessionStats.known / sessionStats.total) * 100 : 0;
+        completeDailyChallengeMutation.mutate({
+          totalWords: sessionStats.total,
+          correctWords: sessionStats.known,
+          accuracy
+        });
+      }
       setStudyMode('complete');
     }
   };
@@ -574,7 +595,9 @@ export function SwipeStudyPage() {
               <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-2">学習完了！</h2>
               <p className="text-muted-foreground">
-                {currentMode === 'random' ? 'ランダム学習' : `${selectedTag}タグ学習`}が完了しました
+                {currentMode === 'random' ? 'ランダム学習' : 
+                 currentMode === 'daily' ? '今日の問題' : 
+                 `${selectedTag}タグ学習`}が完了しました
               </p>
             </div>
             
@@ -615,7 +638,9 @@ export function SwipeStudyPage() {
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <p className="text-muted-foreground mb-4">
-              {currentMode === 'random' ? '学習可能な単語がありません' : `${selectedTag}タグの単語が見つかりません`}
+              {currentMode === 'random' ? '学習可能な単語がありません' : 
+               currentMode === 'daily' ? '今日の問題が準備できませんでした' :
+               `${selectedTag}タグの単語が見つかりません`}
             </p>
             <Button onClick={resetStudy}>
               モード選択に戻る
@@ -636,10 +661,14 @@ export function SwipeStudyPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">
-                {currentMode === 'random' ? 'ランダム学習' : `${selectedTag}`}
+                {currentMode === 'random' ? 'ランダム学習' : 
+                 currentMode === 'daily' ? '今日の問題' : 
+                 `${selectedTag}`}
               </h1>
               {currentMode === 'random' ? (
                 <Shuffle className="w-5 h-5 text-muted-foreground" />
+              ) : currentMode === 'daily' ? (
+                <Calendar className="w-5 h-5 text-muted-foreground" />
               ) : (
                 <Tags className="w-5 h-5 text-muted-foreground" />
               )}
