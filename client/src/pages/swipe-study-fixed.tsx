@@ -378,7 +378,7 @@ function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
                   <div className={`text-sm ${dailyStatus?.completed ? "text-muted-foreground" : "text-white/90 drop-shadow"}`}>
                     {dailyStatus?.completed 
                       ? `本日は完了済み (${dailyStatus.stats?.correctWords || 0}/${dailyStatus.stats?.totalWords || 0})`
-                      : "SuperMemoアルゴリズムで選ばれた15問"
+                      : "SuperMemoアルゴリズムで選ばれた30問"
                     }
                   </div>
                 </div>

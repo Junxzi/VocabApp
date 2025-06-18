@@ -250,7 +250,7 @@ export class DatabaseStorage implements IStorage {
 
   async getDailyChallengeWords(): Promise<VocabularyWord[]> {
     const today = new Date().toISOString().split('T')[0];
-    const DAILY_CHALLENGE_COUNT = 15; // Fixed number of words per day
+    const DAILY_CHALLENGE_COUNT = 30; // Fixed number of words per day
     
     // Get all words that are due for review or haven't been studied recently
     const allWords = await db
