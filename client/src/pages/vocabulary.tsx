@@ -5,6 +5,7 @@ import { SearchFilter } from "@/components/search-filter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord, InsertVocabularyWord } from "@shared/schema";
 
 interface VocabularyPageProps {
@@ -16,6 +17,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
     queryKey: ["/api/vocabulary"],
@@ -89,9 +91,9 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
       />
 
       <div className="flex items-center justify-between mb-4 md:mb-6">
-        <h2 className="text-xl md:text-2xl font-semibold text-foreground">Your Vocabulary</h2>
+        <h2 className="text-xl md:text-2xl font-semibold text-foreground">{t("vocab.title")}</h2>
         <span className="text-sm text-muted-foreground">
-          {filteredWords.length} word{filteredWords.length !== 1 ? 's' : ''}
+          {filteredWords.length} {filteredWords.length !== 1 ? t("vocab.count_plural") : t("vocab.count")}
         </span>
       </div>
 
@@ -99,15 +101,15 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
             {searchQuery || selectedCategory !== "all" 
-              ? "No words match your search criteria." 
-              : "No vocabulary words yet. Start by adding your first word!"}
+              ? t("vocab.no_results")
+              : t("vocab.empty")}
           </p>
           {!searchQuery && selectedCategory === "all" && (
             <Button 
               onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}
               className="touch-manipulation"
             >
-              Add Your First Word
+              {t("vocab.add_first")}
             </Button>
           )}
         </div>
