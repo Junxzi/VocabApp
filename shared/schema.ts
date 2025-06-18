@@ -44,6 +44,16 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   lastStudied: timestamp("last_studied"),
 });
 
+export const dailyChallenges = pgTable("daily_challenges", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull().unique(), // YYYY-MM-DD format
+  completedAt: timestamp("completed_at"),
+  totalWords: integer("total_words").default(0),
+  correctWords: integer("correct_words").default(0),
+  accuracy: numeric("accuracy", { precision: 5, scale: 2 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -110,3 +120,5 @@ export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type VocabularyWord = typeof vocabularyWords.$inferSelect;
 export type InsertVocabularyWord = z.infer<typeof insertVocabularyWordSchema>;
 export type UpdateVocabularyWord = z.infer<typeof updateVocabularyWordSchema>;
+export type DailyChallenge = typeof dailyChallenges.$inferSelect;
+export type InsertDailyChallenge = typeof dailyChallenges.$inferInsert;

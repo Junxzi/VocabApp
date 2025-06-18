@@ -1,4 +1,4 @@
-import { users, vocabularyWords, categories, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord, type Category, type InsertCategory } from "@shared/schema";
+import { users, vocabularyWords, categories, dailyChallenges, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord, type Category, type InsertCategory, type DailyChallenge, type InsertDailyChallenge } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
 
