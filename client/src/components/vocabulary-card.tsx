@@ -81,22 +81,26 @@ export function VocabularyCard({ word, onEdit, onDelete, className }: Vocabulary
                 <Eye className="h-4 w-4" />
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(word)}
-              className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(word.id)}
-              className="h-8 w-8 p-0 hover:text-destructive touch-manipulation"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(word)}
+                className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(word.id)}
+                className="h-8 w-8 p-0 hover:text-destructive touch-manipulation"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
 

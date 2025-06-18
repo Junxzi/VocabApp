@@ -135,8 +135,9 @@ async function syncVocabularyWordsFromNotion() {
                         .where(eq(vocabularyWords.word, notionWord.word));
                     console.log(`✓ Updated word: ${notionWord.word}`);
                 } else {
-                    // Create new word
+                    // Create new word with default system user
                     await db.insert(vocabularyWords).values({
+                        userId: "system", // System-created words available to all users
                         word: notionWord.word,
                         definition: notionWord.definition,
                         partOfSpeech: notionWord.partOfSpeech,

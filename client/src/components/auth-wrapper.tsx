@@ -31,7 +31,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     retry: false,
     refetchOnWindowFocus: false,
     staleTime: 0,
-    cacheTime: 0
+    gcTime: 0
   });
 
   useEffect(() => {

@@ -38,7 +38,15 @@ export function SettingsPage() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
   // User authentication query
-  const { data: userAuth } = useQuery({
+  const { data: userAuth } = useQuery<{
+    authenticated: boolean;
+    userId?: string;
+    userName?: string;
+    user?: {
+      name?: string;
+      email?: string;
+    };
+  }>({
     queryKey: ["/api/auth/user"],
     enabled: true,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -295,9 +303,9 @@ export function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{userAuth.userName || userAuth.user?.name || "User"}</p>
+                  <p className="font-medium">{userAuth?.userName || userAuth?.user?.name || "User"}</p>
                   <p className="text-sm text-muted-foreground">
-                    {userAuth.user?.email || `ID: ${userAuth.userId}`}
+                    {userAuth?.user?.email || `ID: ${userAuth?.userId}`}
                   </p>
                 </div>
                 <Badge variant="secondary" className="px-3 py-1">
