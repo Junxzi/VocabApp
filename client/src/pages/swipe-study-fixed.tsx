@@ -135,7 +135,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         rotate, 
         opacity,
         zIndex,
-        scale: isVisible ? 1 : 0.95
+        scale: 1
       }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
@@ -613,15 +613,17 @@ export function SwipeStudyPage() {
         
         {/* Show next word immediately when swiping */}
         {isCardSwiping && currentIndex + 1 < studyWords.length && (
-          <StudyCard
-            key={`next-card-${currentIndex + 1}-${studyWords[currentIndex + 1].id}`}
-            word={studyWords[currentIndex + 1]}
-            onSwipe={() => {}}
-            onTap={() => {}}
-            showAnswer={false}
-            isVisible={true}
-            zIndex={5}
-          />
+          <div className="absolute inset-0" style={{ zIndex: 5 }}>
+            <StudyCard
+              key={`next-card-${currentIndex + 1}-${studyWords[currentIndex + 1].id}`}
+              word={studyWords[currentIndex + 1]}
+              onSwipe={() => {}}
+              onTap={() => {}}
+              showAnswer={false}
+              isVisible={true}
+              zIndex={5}
+            />
+          </div>
         )}
       </div>
     </div>
