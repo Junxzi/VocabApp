@@ -250,27 +250,6 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="language"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('add.language')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-muted">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="en">{language === 'ja' ? '英語' : 'English'}</SelectItem>
-                      <SelectItem value="ja">{language === 'ja' ? '日本語' : 'Japanese'}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
