@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertVocabularyWordSchema, updateVocabularyWordSchema } from "@shared/schema";
 import { z } from "zod";
+import { enrichWordData, generatePronunciation } from "./openai";
+import { calculateNextReview, swipeToQuality, isDueForReview } from "./spaced-repetition";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all vocabulary words

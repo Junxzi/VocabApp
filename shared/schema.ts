@@ -12,7 +12,11 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   id: serial("id").primaryKey(),
   word: text("word").notNull(),
   pronunciation: text("pronunciation").notNull(),
+  pronunciationUs: text("pronunciation_us"), // IPA for American English
+  pronunciationUk: text("pronunciation_uk"), // IPA for British English
+  pronunciationAu: text("pronunciation_au"), // IPA for Australian English
   definition: text("definition").notNull(),
+  exampleSentences: text("example_sentences"), // JSON array of example sentences
   category: text("category").notNull(),
   language: text("language").notNull().default("en"), // 'en' for English, 'ja' for Japanese
   difficulty: integer("difficulty"), // Rank 1-4 (4 = hardest), null = unset
@@ -33,7 +37,11 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pick({
   word: true,
   pronunciation: true,
+  pronunciationUs: true,
+  pronunciationUk: true,
+  pronunciationAu: true,
   definition: true,
+  exampleSentences: true,
   category: true,
   language: true,
   difficulty: true,
@@ -42,7 +50,11 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
 export const updateVocabularyWordSchema = createInsertSchema(vocabularyWords).pick({
   word: true,
   pronunciation: true,
+  pronunciationUs: true,
+  pronunciationUk: true,
+  pronunciationAu: true,
   definition: true,
+  exampleSentences: true,
   category: true,
   language: true,
   difficulty: true,
