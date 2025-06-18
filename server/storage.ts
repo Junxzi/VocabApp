@@ -28,8 +28,8 @@ export interface IStorage {
 
   // Daily challenge operations
   getDailyChallengeWords(): Promise<VocabularyWord[]>;
-  getDailyChallengeStatus(): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }>;
-  completeDailyChallenge(stats: { totalWords: number; correctWords: number; accuracy: number }): Promise<void>;
+  getDailyChallengeStatus(userId: string): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }>;
+  completeDailyChallenge(userId: string, stats: { totalWords: number; correctWords: number; accuracy: number }): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {

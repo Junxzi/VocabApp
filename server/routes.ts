@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/vocabulary/sync", async (req, res) => {
     try {
       await syncVocabularyWordsFromNotion();
-      const words = await storage.getAllVocabularyWords();
+      const words = await storage.getVocabularyWords();
       res.json({ message: "Vocabulary words synced from Notion", count: words.length });
     } catch (error) {
       res.status(500).json({ message: "Failed to sync vocabulary from Notion" });
@@ -230,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create vocabulary word
-  app.post("/api/vocabulary", async (req, res) => {
+  app.post("/api/vocabulary", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const validatedData = insertVocabularyWordSchema.parse(req.body);
 
@@ -252,9 +252,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const word = await storage.createVocabularyWord(enrichedData);
+      const word = await storage.createVocabularyWord({ ...enrichedData, userId: req.userId! });
       res.status(201).json(word);
     } catch (error) {
+      console.error("Error creating vocabulary word:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: "Invalid input data", errors: error.errors });
       } else {
@@ -350,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate words for category
-  app.post("/api/categories/:categoryName/generate-words", async (req, res) => {
+  app.post("/api/categories/:categoryName/generate-words", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const categoryName = req.params.categoryName;
       const { count = 10 } = req.body;
@@ -377,7 +378,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             word: wordData.word,
             definition: wordData.definition,
             tags: [wordData.category],
-            language: "en"
+            language: "en",
+            userId: req.userId!
           });
           addedWords.push(newWord);
         } catch (error) {
@@ -414,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Word Gacha - Generate custom tag words
-  app.post("/api/word-gacha/generate", async (req, res) => {
+  app.post("/api/word-gacha/generate", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { tagName, selectedTags = [], count = 30 } = req.body;
 
@@ -440,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const wordData of generatedWords) {
         try {
           const newWord = await storage.createVocabularyWord({
-            word: wordData.word,
+            ...wordData,
             definition: wordData.definition,
             pronunciationUs: wordData.pronunciationUs,
             pronunciationUk: wordData.pronunciationUk,
@@ -448,7 +450,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             partOfSpeech: wordData.partOfSpeech,
             exampleSentences: JSON.stringify(wordData.exampleSentences),
             tags: allTags, // Multiple tags using new tags column
-            language: "en"
+            language: "en",
+            userId: req.userId!
           });
           addedWords.push(newWord);
         } catch (error) {
