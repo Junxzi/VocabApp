@@ -81,9 +81,7 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
                 </Badge>
               </div>
             )}
-            <p className="text-muted-foreground font-mono text-sm break-words">
-              {word.pronunciation}
-            </p>
+
           </div>
           <div
             className={cn(
