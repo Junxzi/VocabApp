@@ -77,11 +77,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           return a.word.localeCompare(b.word);
         case 'date':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'tags':
-          // Sort by first tag or empty string if no tags
-          const aTag = a.tags && a.tags.length > 0 ? a.tags[0] : '';
-          const bTag = b.tags && b.tags.length > 0 ? b.tags[0] : '';
-          return aTag.localeCompare(bTag);
+
         case 'difficulty':
           return (b.difficulty || 0) - (a.difficulty || 0);
         default:

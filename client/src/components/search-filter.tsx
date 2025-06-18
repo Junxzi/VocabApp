@@ -7,7 +7,7 @@ import { Search, Filter, Grid, List, SortAsc, SortDesc, Sparkles, X, Tags } from
 import { useLanguage } from "@/lib/i18n";
 import { TagSelectionPopup } from "./tag-selection-popup";
 
-export type SortOption = 'alphabetical' | 'date' | 'tags' | 'difficulty';
+export type SortOption = 'alphabetical' | 'date' | 'difficulty';
 export type ViewMode = 'grid' | 'list';
 
 interface SearchFilterProps {
@@ -49,7 +49,6 @@ export function SearchFilter({
   const sortOptions = [
     { value: 'alphabetical', label: t('sort.alphabetical') },
     { value: 'date', label: t('sort.date') },
-    { value: 'tags', label: t('sort.tags') },
     { value: 'difficulty', label: t('sort.difficulty') }
   ];
 
