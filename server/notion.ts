@@ -196,6 +196,9 @@ export async function getCategoriesFromNotion() {
  * Setup the Vocabulary Words database in Notion
  */
 export async function setupVocabularyDatabase() {
+    const categoriesDb = await setupCategoriesDatabase();
+    const categoriesDbId = categoriesDb.id;
+
     return await createDatabaseIfNotExists("VocabMaster Words", {
         Word: {
             title: {}
@@ -218,9 +221,10 @@ export async function setupVocabularyDatabase() {
         },
         Category: {
             relation: {
-                database_id: "" // Will be set dynamically
+              database_id: categoriesDbId,
+              single_property: {}
             }
-        },
+          },
         PronunciationUS: {
             rich_text: {}
         },
@@ -440,6 +444,3 @@ export async function createDefaultCategories() {
         }
     }
 }
-
-
-

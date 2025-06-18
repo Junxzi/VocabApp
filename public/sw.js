@@ -1,9 +1,11 @@
-const CACHE_NAME = 'vocabmaster-v1';
+const CACHE_NAME = 'vocabmaster-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/icon-192.svg',
-  '/icon-512.svg'
+  '/icon-512.svg',
+  '/api/vocabulary',
+  '/api/categories'
 ];
 
 self.addEventListener('install', event => {

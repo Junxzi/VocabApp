@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AddWordModal } from "@/components/add-word-modal";
 import { ApkgImport } from "@/components/apkg-import";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { VocabularyPage } from "@/pages/vocabulary";
 import { LanguageProvider } from "@/lib/i18n";
 import { Settings } from "lucide-react";
@@ -117,7 +118,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background">
 
-      
+
       <div className="pb-20 md:pb-0">
         <Switch>
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
@@ -141,8 +142,9 @@ function AppContent() {
           <ApkgImport onClose={() => setImportModalOpen(false)} />
         </DialogContent>
       </Dialog>
-      
+
       <MobileBottomNav />
+      <PWAInstallPrompt />
     </div>
   );
 }
