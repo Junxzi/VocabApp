@@ -7,6 +7,11 @@ import { cn, formatRelativeTime } from "@/lib/utils";
 import { Link } from "wouter";
 import type { VocabularyWord } from "@shared/schema";
 
+// Utility function to clean pronunciation by removing slashes
+const cleanPronunciation = (pronunciation: string): string => {
+  return pronunciation.replace(/^\/|\/$/g, '');
+};
+
 interface VocabularyCardProps {
   word: VocabularyWord;
   onEdit: (word: VocabularyWord) => void;
@@ -35,44 +40,11 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
                 {word.word}
                 {word.pronunciationUs && (
                   <span className="text-sm text-muted-foreground font-mono ml-2">
-                    [{word.pronunciationUs}]
+                    [{cleanPronunciation(word.pronunciationUs)}]
                   </span>
                 )}
               </h3>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if ('speechSynthesis' in window) {
-                      const utterance = new SpeechSynthesisUtterance(word.word);
-                      utterance.lang = 'en-US';
-                      speechSynthesis.speak(utterance);
-                    }
-                  }}
-                  className="h-6 px-2 text-xs hover:bg-muted"
-                  title="US pronunciation"
-                >
-                  🇺🇸
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if ('speechSynthesis' in window) {
-                      const utterance = new SpeechSynthesisUtterance(word.word);
-                      utterance.lang = 'en-GB';
-                      speechSynthesis.speak(utterance);
-                    }
-                  }}
-                  className="h-6 px-2 text-xs hover:bg-muted"
-                  title="UK pronunciation"
-                >
-                  🇬🇧
-                </Button>
-              </div>
+              
             </div>
             {word.partOfSpeech && (
               <div className="mb-2">

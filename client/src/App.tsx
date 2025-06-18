@@ -9,6 +9,7 @@ import { AddWordModal } from "@/components/add-word-modal";
 import { ApkgImport } from "@/components/apkg-import";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { VocabularyPage } from "@/pages/vocabulary";
+import { LanguageProvider } from "@/lib/i18n";
 import { Settings } from "lucide-react";
 
 import { SwipeStudyPage } from "@/pages/swipe-study";
@@ -149,10 +150,12 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <AppContent />
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <AppContent />
+        </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

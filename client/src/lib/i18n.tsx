@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 
 export type Language = 'en' | 'ja';
@@ -175,7 +175,23 @@ const translations = {
   }
 };
 
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
 export function useLanguage() {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('vocabmaster-language');
     return (saved as Language) || 'en';
@@ -190,9 +206,11 @@ export function useLanguage() {
     return (languageTranslations as any)[key] || key;
   };
 
-  return { language, setLanguage, t };
-}
+  const value = { language, setLanguage, t };
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  return children;
+  return (
+    <LanguageContext.Provider value={value}>
+      {children}
+    </LanguageContext.Provider>
+  );
 }
