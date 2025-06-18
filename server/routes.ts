@@ -365,8 +365,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             pronunciationAu: wordData.pronunciationAu,
             partOfSpeech: wordData.partOfSpeech,
             exampleSentences: JSON.stringify(wordData.exampleSentences),
-            category: tagName, // Primary tag
-            categories: allTags, // Multiple tags
+            category: tagName, // Primary tag for backward compatibility
+            tags: allTags, // Multiple tags using new tags column
             language: "en"
           });
           addedWords.push(newWord);
