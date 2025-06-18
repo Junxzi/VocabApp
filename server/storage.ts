@@ -136,19 +136,20 @@ export class DatabaseStorage implements IStorage {
       .where(
         or(
           like(vocabularyWords.word, searchPattern),
-          like(vocabularyWords.definition, searchPattern),
-          like(vocabularyWords.category, searchPattern)
+          like(vocabularyWords.definition, searchPattern)
         )
       )
       .orderBy(desc(vocabularyWords.createdAt));
   }
 
   async getVocabularyWordsByCategory(category: string): Promise<VocabularyWord[]> {
-    return await db
+    // Filter by tags instead of category
+    const allWords = await db
       .select()
       .from(vocabularyWords)
-      .where(eq(vocabularyWords.category, category))
       .orderBy(desc(vocabularyWords.createdAt));
+    
+    return allWords.filter(word => word.tags && word.tags.includes(category));
   }
 
   async updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined> {

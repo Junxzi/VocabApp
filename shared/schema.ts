@@ -86,7 +86,6 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   pronunciationAu: true,
   partOfSpeech: true,
   exampleSentences: true,
-  categoryId: true,
   difficulty: true,
 });
 
@@ -99,8 +98,7 @@ export const updateVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   partOfSpeech: true,
   definition: true,
   exampleSentences: true,
-  categoryId: true,
-  category: true,
+  tags: true,
   language: true,
   difficulty: true,
 }).partial();

@@ -157,18 +157,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Automatically enrich new words with GPT-4o data
       let enrichedData = validatedData;
-      try {
-        const gptEnrichment = await enrichWordData(validatedData.word);
-        enrichedData = {
-          ...validatedData,
-          pronunciationUs: gptEnrichment.pronunciations.us,
-          pronunciationUk: gptEnrichment.pronunciations.uk,
-          pronunciationAu: gptEnrichment.pronunciations.au,
-          partOfSpeech: gptEnrichment.primaryPartOfSpeech,
-          exampleSentences: JSON.stringify(gptEnrichment.exampleSentences)
-        };
-      } catch (enrichError) {
-        console.warn("Failed to enrich word, proceeding without enrichment:", enrichError);
+      if (validatedData.word) {
+        try {
+          const gptEnrichment = await enrichWordData(validatedData.word);
+          enrichedData = {
+            ...validatedData,
+            pronunciationUs: gptEnrichment.pronunciations.us,
+            pronunciationUk: gptEnrichment.pronunciations.uk,
+            pronunciationAu: gptEnrichment.pronunciations.au,
+            partOfSpeech: gptEnrichment.primaryPartOfSpeech,
+            exampleSentences: JSON.stringify(gptEnrichment.exampleSentences)
+          };
+        } catch (enrichError) {
+          console.warn("Failed to enrich word, proceeding without enrichment:", enrichError);
+        }
       }
       
       const word = await storage.createVocabularyWord(enrichedData);
@@ -295,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const newWord = await storage.createVocabularyWord({
             word: wordData.word,
             definition: wordData.definition,
-            category: wordData.category,
+            tags: [wordData.category],
             language: "en"
           });
           addedWords.push(newWord);
@@ -365,7 +367,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             pronunciationAu: wordData.pronunciationAu,
             partOfSpeech: wordData.partOfSpeech,
             exampleSentences: JSON.stringify(wordData.exampleSentences),
-            category: tagName, // Primary tag for backward compatibility
             tags: allTags, // Multiple tags using new tags column
             language: "en"
           });
