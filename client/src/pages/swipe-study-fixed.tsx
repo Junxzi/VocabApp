@@ -25,6 +25,7 @@ interface StudyCardProps {
 function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: StudyCardProps) {
   const { t, language } = useLanguage();
   const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-25, 0, 25]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -73,7 +74,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     
     if (Math.abs(distance) > threshold || velocity > 200) {
       const direction = distance > 0 ? 1 : -1;
-      const exitX = direction * (window.innerWidth + 200); // Make sure card completely exits
+      const exitX = direction * (window.innerWidth + 200);
       
       // Trigger word change immediately when finger lifts
       onSwipe(direction > 0 ? 'right' : 'left');
@@ -85,7 +86,13 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         velocity: info.velocity.x
       });
     } else {
+      // Return to center position for both x and y
       animate(x, 0, {
+        type: "spring",
+        stiffness: 500,
+        damping: 35
+      });
+      animate(y, 0, {
         type: "spring",
         stiffness: 500,
         damping: 35
@@ -133,13 +140,14 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       className="absolute inset-0 cursor-pointer"
       style={{ 
         x, 
+        y,
         rotate, 
         opacity,
         zIndex,
         scale: 1
       }}
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
+      drag
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.7}
       onDragStart={handleDragStart}
       onDrag={handleDrag}
