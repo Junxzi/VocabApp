@@ -74,7 +74,9 @@ function AppContent() {
           <Route path="/swipe-study" component={SwipeStudyPage} />
           <Route path="/progress" component={ProgressPage} />
           <Route path="/settings" component={SettingsPage} />
-          <Route path="/" exact component={() => <VocabularyPage onEditWord={handleEditWord} />} />
+          <Route path="/">
+            <VocabularyPage onEditWord={handleEditWord} />
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </div>
