@@ -40,12 +40,16 @@ export function SwipeCard({
     
     if (!isActive) return;
 
-    const threshold = 60; // Reduced from 120 for lighter swipes
     const velocity = Math.abs(info.velocity.x);
     const distance = Math.abs(info.offset.x);
     
-    // Trigger swipe with lighter movement or lower velocity
-    if (distance > threshold || (velocity > 300 && distance > 30)) {
+    // Very sensitive detection for light "シュッ" gestures
+    const shouldSwipe = 
+      distance > 40 || // Light distance
+      (velocity > 200 && distance > 20) || // Quick flick with minimal distance
+      (velocity > 100 && distance > 30); // Medium flick
+    
+    if (shouldSwipe) {
       if (info.offset.x > 0) {
         onSwipe('right');
       } else {
@@ -131,9 +135,16 @@ export function SwipeCard({
       animate={isActive ? "active" : "inactive"}
       drag={isActive ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.1}
+      dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
+      whileDrag={{ 
+        scale: 1.02, 
+        cursor: "grabbing",
+        boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.2)",
+        transition: { duration: 0.1 }
+      }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      whileDrag={{ cursor: "grabbing" }}
     >
       <div className="relative w-full h-full perspective-1000">
         <motion.div
