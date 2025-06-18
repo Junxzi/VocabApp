@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, Plus, Upload, Globe } from "lucide-react";
+import { Menu, Plus, Upload, Globe, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage, type Language } from "@/lib/i18n";
 
@@ -48,6 +48,11 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
             </div>
           </div>
           <div className="flex items-center space-x-3 md:space-x-5">
+            <Link href="/settings">
+              <Button variant="ghost" size="lg" className="p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </Link>
             <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
               <SelectTrigger className="w-20 h-10 p-2 border border-border/50 bg-background/50 rounded-lg hover:bg-muted/50 transition-colors">
                 <Globe className="w-5 h-5" />

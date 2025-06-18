@@ -15,7 +15,6 @@ export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
     { label: t("nav.vocabulary"), href: "/", icon: Home },
     { label: t("nav.study"), href: "/swipe-study", icon: BookOpen },
     { label: t("nav.progress"), href: "/progress", icon: TrendingUp },
-    { label: t("nav.settings"), href: "/settings", icon: Settings },
   ];
 
   return (

@@ -11,6 +11,7 @@ const translations = {
     'nav.progress': 'Progress',
     'nav.add': 'Add',
     'nav.import': 'Import',
+    'nav.settings': 'Settings',
     'nav.title': 'VocabMaster',
     
     // Vocabulary Page
@@ -85,6 +86,7 @@ const translations = {
     'nav.progress': '進捗',
     'nav.add': '追加',
     'nav.import': 'インポート',
+    'nav.settings': '設定',
     'nav.title': 'VocabMaster',
     
     // Vocabulary Page

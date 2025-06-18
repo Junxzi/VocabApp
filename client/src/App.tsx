@@ -12,6 +12,7 @@ import { VocabularyPage } from "@/pages/vocabulary";
 
 import { SwipeStudyPage } from "@/pages/swipe-study";
 import { ProgressPage } from "@/pages/progress";
+import { SettingsPage } from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -117,6 +118,7 @@ function AppContent() {
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
           <Route path="/swipe-study" component={SwipeStudyPage} />
           <Route path="/progress" component={ProgressPage} />
+          <Route path="/settings" component={SettingsPage} />
           <Route component={NotFound} />
         </Switch>
       </div>
