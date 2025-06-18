@@ -27,5 +27,23 @@ export function calculateAccuracy(correct: number, total: number): number {
   return Math.round((correct / total) * 100);
 }
 
-export const CATEGORIES = ["Academic", "Business", "Daily Life", "Technical", "TOEFL"] as const;
+export const CATEGORIES = ["Academic", "Business", "Daily Life", "Technical", "TOEFL", "JLPT N5", "JLPT N4", "JLPT N3", "JLPT N2", "JLPT N1"] as const;
 export type Category = typeof CATEGORIES[number];
+
+// Language detection and support
+export const SUPPORTED_LANGUAGES = ["en", "ja"] as const;
+export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
+
+export function detectLanguage(text: string): SupportedLanguage {
+  // Simple Japanese detection (hiragana, katakana, kanji)
+  const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+  return japaneseRegex.test(text) ? "ja" : "en";
+}
+
+export function getLanguageLabel(lang: SupportedLanguage): string {
+  switch (lang) {
+    case "ja": return "日本語";
+    case "en": return "English";
+    default: return "English";
+  }
+}

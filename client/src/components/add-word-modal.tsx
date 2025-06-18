@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertVocabularyWordSchema } from "@shared/schema";
-import { CATEGORIES } from "@/lib/utils";
+import { CATEGORIES, detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/utils";
 import { PhoneticKeyboard } from "@/components/phonetic-keyboard";
-import { Keyboard } from "lucide-react";
+import { Keyboard, Globe } from "lucide-react";
 import type { InsertVocabularyWord, VocabularyWord } from "@shared/schema";
 
 interface AddWordModalProps {

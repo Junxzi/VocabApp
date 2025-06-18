@@ -14,6 +14,7 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   pronunciation: text("pronunciation").notNull(),
   definition: text("definition").notNull(),
   category: text("category").notNull(),
+  language: text("language").notNull().default("en"), // 'en' for English, 'ja' for Japanese
   difficulty: integer("difficulty").default(0), // 0 = not studied, 1 = easy, 2 = medium, 3 = hard
   studyCount: integer("study_count").default(0),
   correctAnswers: integer("correct_answers").default(0),
@@ -31,6 +32,7 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   pronunciation: true,
   definition: true,
   category: true,
+  language: true,
 });
 
 export const updateVocabularyWordSchema = createInsertSchema(vocabularyWords).pick({
@@ -38,6 +40,7 @@ export const updateVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   pronunciation: true,
   definition: true,
   category: true,
+  language: true,
 }).partial();
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
