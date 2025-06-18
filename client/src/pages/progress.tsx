@@ -146,16 +146,16 @@ export function ProgressPage() {
       icon: Award,
       color: 'text-pink-500',
       requirement: (words) => {
-        const studiedCategories = new Set(
-          words.filter(w => (w.studyCount || 0) > 0).map(w => w.category)
+        const studiedTags = new Set(
+          words.filter(w => (w.studyCount || 0) > 0).flatMap(w => w.tags || [])
         );
-        return studiedCategories.size >= CATEGORIES.length;
+        return studiedTags.size >= CATEGORIES.length;
       },
       progress: (words) => {
-        const studiedCategories = new Set(
-          words.filter(w => (w.studyCount || 0) > 0).map(w => w.category)
+        const studiedTags = new Set(
+          words.filter(w => (w.studyCount || 0) > 0).flatMap(w => w.tags || [])
         );
-        return Math.min(studiedCategories.size, CATEGORIES.length);
+        return Math.min(studiedTags.size, CATEGORIES.length);
       },
       max: CATEGORIES.length
     }
@@ -164,18 +164,19 @@ export function ProgressPage() {
   const unlockedBadges = badges.filter(badge => badge.requirement(words, streak));
   const lockedBadges = badges.filter(badge => !badge.requirement(words, streak));
 
-  // Category breakdown
-  const categoryStats = CATEGORIES.map(category => {
-    const categoryWords = words.filter(w => w.category === category);
-    const studiedInCategory = categoryWords.filter(w => (w.studyCount || 0) > 0);
+  // Tag breakdown
+  const allTags = Array.from(new Set(words.flatMap(w => w.tags || [])));
+  const tagStats = allTags.map(tag => {
+    const tagWords = words.filter(w => w.tags?.includes(tag));
+    const studiedInTag = tagWords.filter(w => (w.studyCount || 0) > 0);
     return {
-      name: category,
-      total: categoryWords.length,
-      studied: studiedInCategory.length,
-      accuracy: categoryWords.length > 0 ? 
+      name: tag,
+      total: tagWords.length,
+      studied: studiedInTag.length,
+      accuracy: tagWords.length > 0 ? 
         calculateAccuracy(
-          categoryWords.reduce((sum, w) => sum + (w.correctAnswers || 0), 0),
-          categoryWords.reduce((sum, w) => sum + (w.studyCount || 0), 0)
+          tagWords.reduce((sum, w) => sum + (w.correctAnswers || 0), 0),
+          tagWords.reduce((sum, w) => sum + (w.studyCount || 0), 0)
         ) : 0
     };
   }).filter(stat => stat.total > 0);
@@ -383,7 +384,7 @@ export function ProgressPage() {
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">{t('categoryBreakdown')}</h3>
               <div className="space-y-3">
-                {categoryStats.map(stat => (
+                {tagStats.map(stat => (
                   <div key={stat.name} className="space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">{stat.name}</span>
