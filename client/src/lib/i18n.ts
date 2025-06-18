@@ -38,6 +38,7 @@ const translations = {
     
     // Study Mode
     'study.title': 'Study Mode',
+    'study.swipe_title': 'Swipe Study',
     'study.description': 'Test your vocabulary knowledge with flashcards',
     'study.ready_title': 'Ready to Study?',
     'study.ready_description': "We'll show you random words from your vocabulary. Try to recall their meanings!",
