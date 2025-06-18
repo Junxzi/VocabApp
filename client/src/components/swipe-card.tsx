@@ -81,7 +81,7 @@ export function SwipeCard({
       <Card className={`h-full shadow-xl border-2 ${
         isDragging ? 'border-primary' : 'border-border'
       } bg-card`}>
-        <CardContent className="p-8 h-full flex flex-col justify-center pt-[48px] pb-[48px]">
+        <CardContent className="p-8 h-full flex flex-col justify-center pt-[32px] pb-[32px]">
           {/* Word Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
