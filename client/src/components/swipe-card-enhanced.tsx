@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, PanInfo, useMotionValue, useTransform } from "framer-motion";
+import { motion, PanInfo, useMotionValue, useTransform, animate } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Volume2, Eye, EyeOff } from "lucide-react";
@@ -43,18 +43,35 @@ export function SwipeCard({
     const velocity = Math.abs(info.velocity.x);
     const distance = Math.abs(info.offset.x);
     
-    // Super sensitive detection - any meaningful movement triggers swipe
-    const shouldSwipe = 
-      distance > 25 || // Very light distance
-      (velocity > 150 && distance > 15) || // Minimal flick
-      (velocity > 80 && distance > 20); // Gentle movement
+    // Detect if it's a swipe gesture vs just dragging
+    const isSwipe = velocity > 200 || distance > 80;
     
-    if (shouldSwipe) {
-      if (info.offset.x > 0) {
-        onSwipe('right');
-      } else {
-        onSwipe('left');
-      }
+    if (isSwipe) {
+      // Animate card flying off screen before triggering swipe
+      const direction = info.offset.x > 0 ? 1 : -1;
+      const exitX = direction * window.innerWidth;
+      
+      animate(x, exitX, {
+        type: "spring",
+        stiffness: 300,
+        damping: 20
+      });
+      
+      // Trigger swipe callback after animation starts
+      setTimeout(() => {
+        if (info.offset.x > 0) {
+          onSwipe('right');
+        } else {
+          onSwipe('left');
+        }
+      }, 100);
+    } else {
+      // Return to original position smoothly
+      animate(x, 0, {
+        type: "spring",
+        stiffness: 400,
+        damping: 30
+      });
     }
     
     setTimeout(() => setDragStarted(false), 100);
@@ -134,13 +151,19 @@ export function SwipeCard({
       animate={isActive ? "active" : "inactive"}
       drag={isActive ? "x" : false}
       dragConstraints={false}
-      dragElastic={0.3}
+      dragElastic={0.1}
       dragMomentum={false}
+      dragPropagation={false}
       whileDrag={{ 
-        scale: 1.05, 
+        scale: 1.08, 
         cursor: "grabbing",
-        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-        transition: { duration: 0.05 }
+        boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.3)",
+        transition: { duration: 0.1, ease: "easeOut" }
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 500,
+        damping: 30
       }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
