@@ -6,11 +6,11 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 export type TTSVoice = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
 export type AccentType = 'us' | 'uk' | 'au';
 
-// Map accents to appropriate TTS voices with better accent matching
+// Map accents to appropriate TTS voices - using different voices that have more distinct characteristics
 const ACCENT_VOICE_MAP: Record<AccentType, TTSVoice> = {
-  us: 'alloy',    // Clear, natural American accent
-  uk: 'shimmer',  // More sophisticated voice suitable for British accent
-  au: 'onyx'      // Deeper, more audible voice for Australian variant
+  us: 'alloy',    // Standard American voice
+  uk: 'echo',     // More formal voice that works better for British accent
+  au: 'fable'     // Different voice with clearer articulation for Australian variant
 };
 
 export interface TTSRequest {
@@ -22,19 +22,43 @@ export async function generateTTS(text: string, accent: AccentType): Promise<Buf
   try {
     const voice = ACCENT_VOICE_MAP[accent];
     
+    // Create accent-specific prompts to encourage proper pronunciation
+    let inputText = text;
+    if (accent === 'uk') {
+      inputText = `[Speaking in British English accent] ${text}`;
+    } else if (accent === 'au') {
+      inputText = `[Speaking in Australian English accent] ${text}`;
+    } else {
+      inputText = `[Speaking in American English accent] ${text}`;
+    }
+    
     const response = await openai.audio.speech.create({
-      model: "tts-1",
+      model: "tts-1-hd", // Use HD model for better quality
       voice: voice,
-      input: text,
+      input: inputText,
       response_format: "mp3",
-      speed: 1.0
+      speed: 0.95 // Slightly slower for clearer pronunciation
     });
 
     const buffer = Buffer.from(await response.arrayBuffer());
     return buffer;
   } catch (error) {
     console.error('OpenAI TTS error:', error);
-    throw new Error('Failed to generate TTS audio');
+    // Fallback to regular model if HD fails
+    try {
+      const fallbackResponse = await openai.audio.speech.create({
+        model: "tts-1",
+        voice: voice,
+        input: text,
+        response_format: "mp3",
+        speed: 1.0
+      });
+      const fallbackBuffer = Buffer.from(await fallbackResponse.arrayBuffer());
+      return fallbackBuffer;
+    } catch (fallbackError) {
+      console.error('OpenAI TTS fallback error:', fallbackError);
+      throw new Error('Failed to generate TTS audio');
+    }
   }
 }
 
