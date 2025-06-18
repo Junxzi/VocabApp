@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,22 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [newTagName, setNewTagName] = useState("");
+  
+  // Get all vocabulary words to extract existing tags
+  const { data: allWords = [] } = useQuery<VocabularyWord[]>({
+    queryKey: ["/api/vocabulary"],
+  });
+
+  // Extract available tags from existing vocabulary
+  const availableTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    allWords.forEach(word => {
+      if (word.tags) {
+        word.tags.forEach(tag => tagSet.add(tag));
+      }
+    });
+    return Array.from(tagSet).sort();
+  }, [allWords]);
   
   const form = useForm<InsertVocabularyWord>({
     resolver: zodResolver(insertVocabularyWordSchema),
@@ -162,6 +178,33 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                           <Plus className="w-4 h-4" />
                         </Button>
                       </div>
+                      {/* Existing tags selection */}
+                      {availableTags.length > 0 && (
+                        <div className="mb-3">
+                          <Label className="text-sm text-muted-foreground mb-2 block">
+                            Existing tags (click to add):
+                          </Label>
+                          <div className="flex flex-wrap gap-2">
+                            {availableTags
+                              .filter(tag => !field.value?.includes(tag))
+                              .map((tag) => (
+                                <Badge 
+                                  key={tag} 
+                                  variant="outline" 
+                                  className="cursor-pointer hover:bg-muted text-xs"
+                                  onClick={() => {
+                                    const currentTags = field.value || [];
+                                    field.onChange([...currentTags, tag]);
+                                  }}
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Selected tags */}
                       <div className="flex flex-wrap gap-2">
                         {field.value?.map((tag, index) => (
                           <Badge key={index} variant="secondary" className="flex items-center gap-1">
