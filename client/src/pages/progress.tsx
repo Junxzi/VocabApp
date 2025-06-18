@@ -6,6 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord } from "@shared/schema";
 
 export function ProgressPage() {
+  const { t } = useLanguage();
   const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
     queryKey: ["/api/vocabulary"],
   });
@@ -27,14 +28,14 @@ export function ProgressPage() {
   }
 
   const totalWords = words.length;
-  const studiedWords = words.filter(word => word.studyCount > 0);
+  const studiedWords = words.filter(word => (word.studyCount || 0) > 0);
   const studiedToday = words.filter(word => 
     word.lastStudied && 
     new Date(word.lastStudied).toDateString() === new Date().toDateString()
   ).length;
 
-  const totalStudyCount = words.reduce((sum, word) => sum + word.studyCount, 0);
-  const totalCorrectAnswers = words.reduce((sum, word) => sum + word.correctAnswers, 0);
+  const totalStudyCount = words.reduce((sum, word) => sum + (word.studyCount || 0), 0);
+  const totalCorrectAnswers = words.reduce((sum, word) => sum + (word.correctAnswers || 0), 0);
   const averageAccuracy = calculateAccuracy(totalCorrectAnswers, totalStudyCount);
 
   // Calculate streak (simplified - just count consecutive days with study activity)
@@ -49,7 +50,7 @@ export function ProgressPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-foreground mb-6">Learning Progress</h2>
+        <h2 className="text-2xl font-semibold text-foreground mb-6">{t('learningProgress')}</h2>
         
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -58,7 +59,7 @@ export function ProgressPage() {
               <div className="text-3xl font-bold text-foreground mb-2">
                 {totalWords}
               </div>
-              <div className="text-muted-foreground text-sm">Total Words</div>
+              <div className="text-muted-foreground text-sm">{t('totalWords')}</div>
             </CardContent>
           </Card>
           
@@ -67,7 +68,7 @@ export function ProgressPage() {
               <div className="text-3xl font-bold text-foreground mb-2">
                 {studiedToday}
               </div>
-              <div className="text-muted-foreground text-sm">Studied Today</div>
+              <div className="text-muted-foreground text-sm">{t('studiedToday')}</div>
             </CardContent>
           </Card>
           
@@ -76,7 +77,7 @@ export function ProgressPage() {
               <div className="text-3xl font-bold text-foreground mb-2">
                 {averageAccuracy}%
               </div>
-              <div className="text-muted-foreground text-sm">Average Accuracy</div>
+              <div className="text-muted-foreground text-sm">{t('averageAccuracy')}</div>
             </CardContent>
           </Card>
           
@@ -85,7 +86,7 @@ export function ProgressPage() {
               <div className="text-3xl font-bold text-foreground mb-2">
                 {streak}
               </div>
-              <div className="text-muted-foreground text-sm">Day Streak</div>
+              <div className="text-muted-foreground text-sm">{t('dayStreak')}</div>
             </CardContent>
           </Card>
         </div>
@@ -95,7 +96,7 @@ export function ProgressPage() {
           <Card>
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">
-                Words by Category
+                {t('wordsByCategory')}
               </h3>
               <div className="space-y-3">
                 {["Academic", "Business", "Daily Life", "Technical"].map(category => {
@@ -178,9 +179,9 @@ export function ProgressPage() {
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {word.studyCount > 0 && (
+                      {(word.studyCount || 0) > 0 && (
                         <span>
-                          {calculateAccuracy(word.correctAnswers, word.studyCount)}% accuracy
+                          {calculateAccuracy(word.correctAnswers || 0, word.studyCount || 0)}% accuracy
                         </span>
                       )}
                     </div>

@@ -81,6 +81,27 @@ const translations = {
     'pagination.items': 'items',
     'pagination.per_page': 'Items per page',
     
+    // Study Mode - Swipe Study
+    'swipeStudy': 'Swipe Study',
+    'loadingStudySession': 'Loading study session...',
+    'allCaughtUp': 'All Caught Up!',
+    'noWordsForReview': 'No words are due for review right now. Come back later or add new words to study.',
+    'addNewWords': 'Add New Words',
+    'sessionComplete': 'Session Complete!',
+    'sessionCompleteMessage': 'Great job! You\'ve completed your swipe study session.',
+    'knownWords': 'Known Words',
+    'needReview': 'Need Review',
+    'accuracy': 'Accuracy',
+    'startNewSession': 'Start New Session',
+    
+    // Progress Page
+    'learningProgress': 'Learning Progress',
+    'totalWords': 'Total Words',
+    'studiedToday': 'Studied Today',
+    'averageAccuracy': 'Average Accuracy',
+    'dayStreak': 'Day Streak',
+    'wordsByCategory': 'Words by Category',
+    
     // Common
     'common.loading': 'Loading...',
     'common.error': 'Error',
@@ -164,6 +185,27 @@ const translations = {
     // Pagination
     'pagination.items': '件',
     'pagination.per_page': '表示件数',
+    
+    // Study Mode - Swipe Study
+    'swipeStudy': 'スワイプ学習',
+    'loadingStudySession': '学習セッションを読み込み中...',
+    'allCaughtUp': '全て完了！',
+    'noWordsForReview': '現在復習が必要な単語はありません。後でもう一度確認するか、新しい単語を追加してください。',
+    'addNewWords': '新しい単語を追加',
+    'sessionComplete': 'セッション完了！',
+    'sessionCompleteMessage': 'お疲れ様でした！スワイプ学習セッションが完了しました。',
+    'knownWords': '覚えた単語',
+    'needReview': '復習が必要',
+    'accuracy': '正答率',
+    'startNewSession': '新しいセッションを開始',
+    
+    // Progress Page
+    'learningProgress': '学習進捗',
+    'totalWords': '総単語数',
+    'studiedToday': '今日の学習',
+    'averageAccuracy': '平均正答率',
+    'dayStreak': '連続日数',
+    'wordsByCategory': 'カテゴリ別単語数',
     
     // Common
     'common.loading': '読み込み中...',
