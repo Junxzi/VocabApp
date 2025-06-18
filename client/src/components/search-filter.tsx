@@ -3,8 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Grid, List, SortAsc, SortDesc, Sparkles, X } from "lucide-react";
+import { Search, Filter, Grid, List, SortAsc, SortDesc, Sparkles, X, Tags } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { TagSelectionPopup } from "./tag-selection-popup";
 
 export type SortOption = 'alphabetical' | 'date' | 'tags' | 'difficulty';
 export type ViewMode = 'grid' | 'list';

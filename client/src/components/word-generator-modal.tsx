@@ -23,7 +23,7 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
 
   const generateWordsMutation = useMutation({
     mutationFn: async (data: { tagName: string }) => {
-      const response = await fetch(`/api/gacha/generate`, {
+      const response = await fetch(`/api/word-gacha/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tagName: data.tagName, count: 30 })
@@ -53,15 +53,7 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
     }
   });
 
-  const getSampleWords = () => {
-    const samples = {
-      "Academic": ["hypothesis", "analyze", "synthesize", "methodology", "criterion"],
-      "Business": ["negotiate", "stakeholder", "revenue", "strategy", "efficiency"],
-      "Daily Life": ["grocery", "laundry", "commute", "neighborhood", "routine"],
-      "Technical": ["algorithm", "database", "framework", "debugging", "optimization"]
-    };
-    return samples[category as keyof typeof samples] || [];
-  };
+
 
   const handleGenerate = () => {
     if (!tagName.trim()) {
@@ -83,37 +75,22 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
     generateWordsMutation.mutate({ tagName: tagName.trim() });
   };
 
-  const sampleWords = getSampleWords();
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-yellow-500" />
-            {language === 'ja' ? `${category}カテゴリの単語を自動生成` : `Generate ${category} Words`}
+            <Sparkles className="h-5 w-5 text-purple-500" />
+            {language === 'ja' ? "AI単語生成" : "AI Word Generation"}
           </DialogTitle>
           <DialogDescription>
             {language === 'ja' 
-              ? "AIが適切な英単語を生成し、日本語の意味を付けて追加します。"
-              : "AI will generate appropriate English words with Japanese definitions."}
+              ? "任意のタグで30個の英単語と日本語訳を生成します"
+              : "Generate 30 English words with Japanese translations for any tag"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Sample words preview */}
-          <div>
-            <Label className="text-sm font-medium">
-              {language === 'ja' ? "例:" : "Examples:"}
-            </Label>
-            <div className="flex flex-wrap gap-1 mt-2">
-              {sampleWords.map((word) => (
-                <Badge key={word} variant="outline" className="text-xs">
-                  {word}
-                </Badge>
-              ))}
-            </div>
-          </div>
 
           {/* Tag name input */}
           <div>
