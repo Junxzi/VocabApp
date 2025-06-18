@@ -601,28 +601,29 @@ export function SwipeStudyPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 overflow-hidden">
-      <div className="max-w-md mx-auto mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">
-              {currentMode === 'random' ? 'ランダム学習' : `${selectedTag}`}
-            </h1>
-            {currentMode === 'random' ? (
-              <Shuffle className="w-5 h-5 text-muted-foreground" />
-            ) : (
-              <Tags className="w-5 h-5 text-muted-foreground" />
-            )}
+      {/* Safe area spacing for Dynamic Island */}
+      <div className="pt-12 sm:pt-8">
+        <div className="max-w-md mx-auto mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold">
+                {currentMode === 'random' ? 'ランダム学習' : `${selectedTag}`}
+              </h1>
+              {currentMode === 'random' ? (
+                <Shuffle className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <Tags className="w-5 h-5 text-muted-foreground" />
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {currentIndex + 1} / {studyWords.length}
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {currentIndex + 1} / {studyWords.length}
-          </div>
+          <Progress value={progress} className="h-3 mb-4" />
         </div>
-        <Progress value={progress} className="h-3 mb-4" />
-        
-
       </div>
-      {/* Card Container - positioned lower for thumb accessibility */}
-      <div className="max-w-md mx-auto h-[600px] relative mt-20">
+      {/* Card Container - positioned with Dynamic Island consideration */}
+      <div className="max-w-md mx-auto h-[520px] relative mt-8">
         {/* Large counters in upper corners */}
         <div className="absolute -top-20 left-0 z-20">
           <div className="flex items-center justify-center w-16 h-16 bg-red-500 text-white rounded-full shadow-lg mt-[8px] mb-[8px]">
