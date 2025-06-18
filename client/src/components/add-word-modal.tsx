@@ -42,7 +42,7 @@ interface AddWordModalProps {
 }
 
 export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddWordModalProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const [newTagName, setNewTagName] = useState("");
   
@@ -231,18 +231,18 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="difficulty"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Difficulty Rank</FormLabel>
+                  <FormLabel>{t('add.difficulty')}</FormLabel>
                   <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger className="bg-muted">
-                        <SelectValue placeholder="Select difficulty (optional)" />
+                        <SelectValue placeholder={t('add.selectDifficulty')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Rank 1 (Easy)</SelectItem>
-                      <SelectItem value="2">Rank 2</SelectItem>
-                      <SelectItem value="3">Rank 3</SelectItem>
-                      <SelectItem value="4">Rank 4 (Hard)</SelectItem>
+                      <SelectItem value="1">{t('add.difficulty1')}</SelectItem>
+                      <SelectItem value="2">{t('add.difficulty2')}</SelectItem>
+                      <SelectItem value="3">{t('add.difficulty3')}</SelectItem>
+                      <SelectItem value="4">{t('add.difficulty4')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -255,7 +255,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="language"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Language</FormLabel>
+                  <FormLabel>{t('add.language')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="bg-muted">
@@ -263,8 +263,8 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="ja">Japanese</SelectItem>
+                      <SelectItem value="en">{language === 'ja' ? '英語' : 'English'}</SelectItem>
+                      <SelectItem value="ja">{language === 'ja' ? '日本語' : 'Japanese'}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -274,10 +274,10 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('add.cancel')}
               </Button>
               <Button type="submit">
-                {editingWord ? "Update Word" : "Add Word"}
+                {editingWord ? t('add.update') : t('add.save')}
               </Button>
             </div>
           </form>
