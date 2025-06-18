@@ -65,6 +65,49 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     return undefined;
   };
 
+  // Calculate content opacity and overlay intensity
+  const getContentOpacity = () => {
+    if (!isDragging) return 1;
+    
+    const threshold = 30;
+    const maxDistance = 150;
+    
+    if (Math.abs(dragX) <= threshold) {
+      return 1; // Full opacity in center zone
+    }
+    
+    const distance = Math.abs(dragX) - threshold;
+    const fadeIntensity = Math.min(distance / (maxDistance - threshold), 1);
+    
+    return 1 - (fadeIntensity * 0.7); // Fade out to 30% opacity
+  };
+
+  const getOverlayOpacity = () => {
+    if (!isDragging) return 0;
+    
+    const threshold = 30;
+    const maxDistance = 150;
+    
+    if (Math.abs(dragX) <= threshold) {
+      return 0; // No overlay in center zone
+    }
+    
+    const distance = Math.abs(dragX) - threshold;
+    return Math.min(distance / (maxDistance - threshold), 1);
+  };
+
+  const getOverlayText = () => {
+    if (dragX > 30) return "Know it!";
+    if (dragX < -30) return "Still learning";
+    return "";
+  };
+
+  const getOverlayColor = () => {
+    if (dragX > 30) return "text-green-500";
+    if (dragX < -30) return "text-red-500";
+    return "";
+  };
+
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
     setDragX(0);
@@ -171,8 +214,9 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 backfaceVisibility: 'hidden',
                 borderColor: getBorderColor()
               }}>
-          <CardContent className="p-6 h-full flex flex-col justify-center">
-            <div className="text-center">
+          <CardContent className="p-6 h-full flex flex-col justify-center relative">
+            {/* Content with fading opacity */}
+            <div className="text-center" style={{ opacity: getContentOpacity() }}>
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-foreground mb-4">{word.word}</h2>
                 {word.partOfSpeech && (
@@ -213,6 +257,18 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 </Badge>
               </div>
             </div>
+            
+            {/* Overlay text that appears when dragging */}
+            {getOverlayText() && (
+              <div 
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ opacity: getOverlayOpacity() }}
+              >
+                <h1 className={`text-4xl font-black ${getOverlayColor()}`}>
+                  {getOverlayText()}
+                </h1>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -223,8 +279,9 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 transform: 'rotateY(180deg)',
                 borderColor: getBorderColor()
               }}>
-          <CardContent className="p-6 h-full flex flex-col justify-center">
-            <div className="text-center">
+          <CardContent className="p-6 h-full flex flex-col justify-center relative">
+            {/* Content with fading opacity */}
+            <div className="text-center" style={{ opacity: getContentOpacity() }}>
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-foreground mb-4">{word.word}</h2>
                 {word.partOfSpeech && (
@@ -269,6 +326,18 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 </Badge>
               </div>
             </div>
+            
+            {/* Overlay text that appears when dragging */}
+            {getOverlayText() && (
+              <div 
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ opacity: getOverlayOpacity() }}
+              >
+                <h1 className={`text-4xl font-black ${getOverlayColor()}`}>
+                  {getOverlayText()}
+                </h1>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
