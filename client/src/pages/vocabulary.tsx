@@ -24,6 +24,8 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [wordGeneratorModalOpen, setWordGeneratorModalOpen] = useState(false);
+  const [generatorCategory, setGeneratorCategory] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language, setLanguage } = useLanguage();
@@ -168,6 +170,10 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         onCategoryFilter={setSelectedCategory}
         onSortChange={setSortBy}
         onViewModeChange={setViewMode}
+        onGenerateWords={(category) => {
+          setGeneratorCategory(category);
+          setWordGeneratorModalOpen(true);
+        }}
         searchQuery={searchQuery}
         selectedCategory={selectedCategory}
         sortBy={sortBy}
@@ -222,6 +228,13 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           />
         </>
       )}
+
+      {/* Word Generator Modal */}
+      <WordGeneratorModal
+        open={wordGeneratorModalOpen}
+        onOpenChange={setWordGeneratorModalOpen}
+        category={generatorCategory}
+      />
     </main>
   );
 }

@@ -177,7 +177,14 @@ export function SwipeCard({
           } bg-card`}>
             <CardContent className="p-6 h-full flex flex-col justify-between">
               <div className="text-center mt-12">
-                <h2 className="text-2xl font-bold text-foreground mb-4">{word.word}</h2>
+                <div className="text-center mb-4">
+                  <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
+                  {word.partOfSpeech && (
+                    <Badge variant="outline" className="text-sm mb-2">
+                      {word.partOfSpeech}
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex items-center justify-center gap-2">
                   {word.category && (
                     <Badge variant="secondary">
