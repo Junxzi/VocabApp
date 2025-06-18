@@ -157,7 +157,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           <Button 
             onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} 
             size="icon" 
-            className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 text-white"
+            className="h-12 w-12 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0"
           >
             <Plus className="w-6 h-6" />
           </Button>
@@ -190,7 +190,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           <Button 
             onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} 
             size="icon" 
-            className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 text-white"
+            className="h-12 w-12 rounded-full bg-black dark:bg-white text-white dark:text-black shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0"
           >
             <Plus className="w-6 h-6" />
           </Button>
