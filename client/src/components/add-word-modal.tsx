@@ -9,7 +9,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertVocabularyWordSchema } from "@shared/schema";
-import { CATEGORIES, detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage, cn } from "@/lib/utils";
+import { CATEGORIES, detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { PhoneticKeyboard } from "@/components/phonetic-keyboard";
 import { Keyboard, Globe } from "lucide-react";
 import type { InsertVocabularyWord, VocabularyWord } from "@shared/schema";
