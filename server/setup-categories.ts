@@ -78,8 +78,13 @@ async function initializeDefaultCategories() {
  * Sync categories from Notion to database
  */
 async function syncCategoriesFromNotion() {
+    console.log("🔍 Checking Notion configuration...");
+    console.log("  NOTION_INTEGRATION_SECRET:", process.env.NOTION_INTEGRATION_SECRET ? "Set" : "Not set");
+    console.log("  NOTION_PAGE_URL:", process.env.NOTION_PAGE_URL ? "Set" : "Not set");
+    
     if (!process.env.NOTION_INTEGRATION_SECRET || !process.env.NOTION_PAGE_URL) {
         console.log("⚠ Notion integration not configured - skipping Notion sync");
+        console.log("  Please set NOTION_INTEGRATION_SECRET and NOTION_PAGE_URL in Secrets");
         return;
     }
 
