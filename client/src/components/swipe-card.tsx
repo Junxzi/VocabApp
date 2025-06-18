@@ -97,9 +97,7 @@ export function SwipeCard({
           transition={{ duration: 0.3, ease: "easeInOut" }}
           onClick={onShowAnswer}
           style={{
-            transformOrigin: 'center center',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden'
+            transformOrigin: 'center center'
           }}
         >
           {/* Front of card */}
