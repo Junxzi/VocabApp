@@ -1,6 +1,6 @@
 
 const config = {
-  appId: 'com.vocabmaster.app',
+  appId: 'com.junxzi.app',
   appName: 'VocabMaster',
   webDir: 'dist/public',
   server: {
