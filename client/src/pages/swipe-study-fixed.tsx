@@ -28,8 +28,14 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const rotate = useTransform(x, [-200, 0, 200], [-25, 0, 25]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
   const [isFlipping, setIsFlipping] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
 
   const handleDragEnd = (event: any, info: PanInfo) => {
+    setIsDragging(false);
     const threshold = 100;
     const distance = info.offset.x;
     const velocity = Math.abs(info.velocity.x);
@@ -103,6 +109,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.7}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       whileDrag={{ 
         scale: 1.05,
@@ -121,7 +128,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         <Card className="absolute inset-0 bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl" 
               style={{ 
                 backfaceVisibility: 'hidden',
-                borderColor: x.get() > 10 ? '#22c55e' : x.get() < -10 ? '#ef4444' : undefined
+                borderColor: isDragging ? (x.get() > 0 ? '#22c55e' : x.get() < 0 ? '#ef4444' : undefined) : undefined
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
@@ -173,7 +180,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
               style={{ 
                 backfaceVisibility: 'hidden', 
                 transform: 'rotateY(180deg)',
-                borderColor: x.get() > 10 ? '#22c55e' : x.get() < -10 ? '#ef4444' : undefined
+                borderColor: isDragging ? (x.get() > 0 ? '#22c55e' : x.get() < 0 ? '#ef4444' : undefined) : undefined
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
