@@ -279,52 +279,12 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 transform: 'rotateY(180deg)',
                 borderColor: getBorderColor()
               }}>
-          <CardContent className="p-6 h-full flex flex-col justify-center relative">
-            {/* Content with fading opacity */}
+          <CardContent className="p-6 h-full flex items-center justify-center relative">
+            {/* Japanese definition prominently displayed in center */}
             <div className="text-center" style={{ opacity: getContentOpacity() }}>
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold text-foreground mb-4">{word.word}</h2>
-                {word.partOfSpeech && (
-                  <Badge variant="outline" className="text-sm mb-4">
-                    {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="text-lg text-muted-foreground mb-8 leading-relaxed">
+              <h1 className="text-4xl font-bold text-black dark:text-white leading-relaxed px-4">
                 {word.definition}
-              </div>
-              
-              {word.exampleSentences && (
-                <div className="space-y-4 mb-8">
-                  {word.exampleSentences.split('|||').slice(0, 2).map((sentence, index) => {
-                    const [english, japanese] = sentence.split('###');
-                    return (
-                      <div key={index} className="p-4 bg-muted/50 rounded-xl text-left">
-                        <p className="text-foreground italic mb-2">{english?.trim()}</p>
-                        {japanese && (
-                          <p className="text-muted-foreground text-sm">{japanese.trim()}</p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              
-              <div className="mt-auto">
-                <div className="flex justify-between items-center text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-2">
-                    ← {t('notKnown')}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    {t('known')} →
-                  </span>
-                </div>
-                <Badge variant="secondary" className="text-sm px-4 py-2">
-                  <EyeOff className="w-4 h-4 mr-2" />
-                  スワイプして評価
-                </Badge>
-              </div>
+              </h1>
             </div>
             
             {/* Overlay text that appears when dragging */}
