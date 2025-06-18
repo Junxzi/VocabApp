@@ -146,11 +146,13 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         } else {
           window.scrollTo(0, scrollPositionRef.current);
         }
+        // Reset after restoration to prevent unwanted scrolling
+        scrollPositionRef.current = 0;
       }
     };
 
-    // Use a small delay to ensure content is rendered
-    const timer = setTimeout(restoreScrollPosition, 100);
+    // Use a longer delay to ensure content is fully rendered
+    const timer = setTimeout(restoreScrollPosition, 200);
     return () => clearTimeout(timer);
   }, [currentPage, viewMode, filteredAndSortedWords]);
 

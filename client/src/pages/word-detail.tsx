@@ -21,11 +21,6 @@ export function WordDetailPage() {
   const { t, language } = useLanguage();
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   const { data: word, isLoading } = useQuery<VocabularyWord>({
     queryKey: ['/api/vocabulary', id],
     queryFn: async () => {
@@ -83,14 +78,14 @@ export function WordDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
       toast({
-        title: t('detail.word_enriched'),
-        description: t('detail.word_enriched_desc')
+        title: "Word enriched successfully",
+        description: `Enhanced with pronunciations, part of speech, and 2 example sentences with Japanese translations.`
       });
     },
     onError: () => {
       toast({
-        title: t('detail.enrich_failed'),
-        description: t('detail.enrich_failed_desc'),
+        title: "Failed to enrich word",
+        description: "Please try again later.",
         variant: "destructive"
       });
     }
