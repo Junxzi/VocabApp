@@ -14,6 +14,7 @@ interface EditEnrichmentModalProps {
     pronunciationUs?: string;
     pronunciationUk?: string;
     pronunciationAu?: string;
+    partOfSpeech?: string;
     exampleSentences?: string;
   }) => void;
 }
@@ -27,6 +28,7 @@ export function EditEnrichmentModal({
   const [pronunciationUs, setPronunciationUs] = useState(word.pronunciationUs || "");
   const [pronunciationUk, setPronunciationUk] = useState(word.pronunciationUk || "");
   const [pronunciationAu, setPronunciationAu] = useState(word.pronunciationAu || "");
+  const [partOfSpeech, setPartOfSpeech] = useState(word.partOfSpeech || "");
   
   const exampleSentences = word.exampleSentences ? JSON.parse(word.exampleSentences) : ["", ""];
   const [sentence1, setSentence1] = useState(exampleSentences[0] || "");
@@ -37,6 +39,7 @@ export function EditEnrichmentModal({
       pronunciationUs: pronunciationUs.trim(),
       pronunciationUk: pronunciationUk.trim(),
       pronunciationAu: pronunciationAu.trim(),
+      partOfSpeech: partOfSpeech.trim(),
       exampleSentences: JSON.stringify([sentence1.trim(), sentence2.trim()].filter(s => s))
     });
     onOpenChange(false);
@@ -47,6 +50,7 @@ export function EditEnrichmentModal({
     setPronunciationUs(word.pronunciationUs || "");
     setPronunciationUk(word.pronunciationUk || "");
     setPronunciationAu(word.pronunciationAu || "");
+    setPartOfSpeech(word.partOfSpeech || "");
     setSentence1(exampleSentences[0] || "");
     setSentence2(exampleSentences[1] || "");
     onOpenChange(false);

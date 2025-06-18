@@ -33,6 +33,11 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
             <div className="flex items-center gap-2 mb-1">
               <h3 className="text-base md:text-lg font-semibold text-foreground break-words">
                 {word.word}
+                {word.pronunciationUs && (
+                  <span className="text-sm text-muted-foreground font-mono ml-2">
+                    [{word.pronunciationUs}]
+                  </span>
+                )}
               </h3>
               <div className="flex items-center gap-1">
                 <Button
@@ -117,6 +122,11 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
             <Badge variant="secondary" className="text-xs">
               {word.category}
             </Badge>
+            {word.partOfSpeech && (
+              <Badge variant="outline" className="text-xs">
+                {word.partOfSpeech}
+              </Badge>
+            )}
             {word.difficulty && (
               <Badge 
                 variant={word.difficulty >= 3 ? "destructive" : "default"} 

@@ -180,7 +180,7 @@ export function WordDetailPage() {
                         <Badge variant="outline" className="text-xs">
                           AU
                         </Badge>
-                        <span className="text-muted-foreground font-mono">/{word.pronunciationAu}/</span>
+                        <span className="text-muted-foreground font-mono">{word.pronunciationAu}</span>
                       </div>
                     )}
                   </div>
