@@ -103,7 +103,10 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                   <FormControl>
                     <div className="relative">
                       <Input
-                        ref={pronunciationInputRef}
+                        ref={(e) => {
+                          pronunciationInputRef.current = e;
+                          field.ref(e);
+                        }}
                         placeholder="/pronunciation/"
                         className="bg-muted font-mono pr-10"
                         {...field}
@@ -183,6 +186,12 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
             </div>
           </form>
         </Form>
+        
+        <PhoneticKeyboard
+          visible={showPhoneticKeyboard}
+          onInsert={insertPhoneticSymbol}
+          onClose={() => setShowPhoneticKeyboard(false)}
+        />
       </DialogContent>
     </Dialog>
   );

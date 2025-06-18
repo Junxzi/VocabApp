@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, Plus } from "lucide-react";
+import { Menu, Plus, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavigationProps {
   onAddWordClick: () => void;
+  onImportClick: () => void;
 }
 
-export function Navigation({ onAddWordClick }: NavigationProps) {
+export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -44,6 +45,10 @@ export function Navigation({ onAddWordClick }: NavigationProps) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <Button onClick={onImportClick} variant="outline" className="font-medium">
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
             <Button onClick={onAddWordClick} className="font-medium">
               <Plus className="w-4 h-4 mr-2" />
               Add Word

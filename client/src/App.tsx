@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navigation } from "@/components/navigation";
 import { AddWordModal } from "@/components/add-word-modal";
+import { ApkgImport } from "@/components/apkg-import";
 import { VocabularyPage } from "@/pages/vocabulary";
 import { StudyPage } from "@/pages/study";
 import { ProgressPage } from "@/pages/progress";
@@ -13,11 +14,13 @@ import NotFound from "@/pages/not-found";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { VocabularyWord, InsertVocabularyWord } from "@shared/schema";
 
 function AppContent() {
   const [addWordModalOpen, setAddWordModalOpen] = useState(false);
   const [editingWord, setEditingWord] = useState<VocabularyWord | null>(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -68,6 +71,10 @@ function AppContent() {
     setAddWordModalOpen(true);
   };
 
+  const handleImport = () => {
+    setImportModalOpen(true);
+  };
+
   const handleEditWord = (word: VocabularyWord) => {
     setEditingWord(word);
     setAddWordModalOpen(true);
@@ -98,7 +105,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation onAddWordClick={handleAddWord} />
+      <Navigation onAddWordClick={handleAddWord} onImportClick={handleImport} />
       
       <Switch>
         <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
@@ -113,6 +120,12 @@ function AppContent() {
         onSubmit={handleSubmitWord}
         editingWord={editingWord}
       />
+
+      <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <ApkgImport onClose={() => setImportModalOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
