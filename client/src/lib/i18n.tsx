@@ -95,6 +95,9 @@ const translations = {
     'pagination.items': 'items',
     'pagination.per_page': 'Items per page',
     
+    // Word Generation
+    'vocab.generate': 'Generate Words',
+    
     // Study Mode - Swipe Study
     'swipeStudy': 'Swipe Study',
     'loadingStudySession': 'Loading study session...',
@@ -215,6 +218,7 @@ const translations = {
     'vocab.no_results': '検索条件に一致する単語がありません。',
     'vocab.add_first': '最初の単語を追加',
     'vocab.search_placeholder': '単語を検索...',
+    'vocab.generate': 'AI単語生成',
     'vocab.all_categories': 'すべてのカテゴリ',
     'vocab.added': '追加日',
     

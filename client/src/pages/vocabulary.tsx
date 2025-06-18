@@ -4,6 +4,7 @@ import { VocabularyCard } from "@/components/vocabulary-card";
 import { VocabularyListView } from "@/components/vocabulary-list-view";
 import { SearchFilter, type SortOption, type ViewMode } from "@/components/search-filter";
 import { Pagination } from "@/components/pagination";
+import { WordGeneratorModal } from "@/components/word-generator-modal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
