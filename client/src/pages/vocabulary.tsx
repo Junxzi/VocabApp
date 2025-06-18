@@ -62,9 +62,12 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
       const matchesSearch = searchQuery === "" || 
         word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
         word.definition.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        word.category.toLowerCase().includes(searchQuery.toLowerCase());
+        word.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (word.tags && word.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
       
-      const matchesCategory = selectedCategory === "all" || word.category === selectedCategory;
+      const matchesCategory = selectedCategory === "all" || 
+        word.category === selectedCategory ||
+        (word.tags && word.tags.includes(selectedCategory));
       
       return matchesSearch && matchesCategory;
     });

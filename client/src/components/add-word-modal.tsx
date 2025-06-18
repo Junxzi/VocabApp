@@ -140,7 +140,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('add.category')}</FormLabel>
+                  <FormLabel>{t('add.category')} (Primary Tag)</FormLabel>
                   {!showNewCategoryForm ? (
                     <Select 
                       onValueChange={(value) => {
