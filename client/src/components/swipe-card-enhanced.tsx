@@ -100,32 +100,42 @@ export function SwipeCard({
   const speakWord = (variant: 'us' | 'uk') => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(word.word);
+      utterance.rate = 0.8;
+      utterance.volume = 0.7;
+      
       const voices = speechSynthesis.getVoices();
+      if (variant === 'us') {
+        const usVoice = voices.find(voice => 
+          voice.lang.startsWith('en-US') || voice.name.includes('US')
+        );
+        if (usVoice) utterance.voice = usVoice;
+      } else if (variant === 'uk') {
+        const ukVoice = voices.find(voice => 
+          voice.lang.startsWith('en-GB') || voice.name.includes('UK')
+        );
+        if (ukVoice) utterance.voice = ukVoice;
+      }
       
-      const voice = voices.find(v => 
-        variant === 'us' ? v.lang.startsWith('en-US') : v.lang.startsWith('en-GB')
-      );
-      
-      if (voice) utterance.voice = voice;
       speechSynthesis.speak(utterance);
     }
   };
 
   const cardVariants = {
-    active: { 
-      scale: 1, 
-      zIndex: 10,
+    active: {
+      scale: 1,
+      opacity: 1,
+      zIndex: 50,
       y: 0,
+      transition: { duration: 0.3, ease: "easeOut" }
     },
-    inactive: { 
-      scale: 0.95, 
-      zIndex: 1,
-      y: 10,
+    inactive: {
+      scale: Math.max(0.9, 1 - index * 0.05),
+      opacity: Math.max(0.3, 1 - index * 0.15),
+      zIndex: Math.max(0, 40 - index),
+      y: index * 10,
+      transition: { duration: 0.3, ease: "easeOut" }
     }
   };
-
-  // Border color and width based on swipe direction
-
 
   return (
     <motion.div
@@ -194,7 +204,8 @@ export function SwipeCard({
                           }}
                           className="px-3 py-1 bg-muted rounded text-xs hover:bg-muted/80 transition-colors"
                         >
-                          🇺🇸 US
+                          <Volume2 className="w-3 h-3 inline mr-1" />
+                          US
                         </button>
                         <button
                           onClick={(e) => {
@@ -203,39 +214,20 @@ export function SwipeCard({
                           }}
                           className="px-3 py-1 bg-muted rounded text-xs hover:bg-muted/80 transition-colors"
                         >
-                          🇬🇧 UK
+                          <Volume2 className="w-3 h-3 inline mr-1" />
+                          UK
                         </button>
                       </div>
                     </div>
                   )}
-                  
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    {word.tags && word.tags.length > 0 && (
-                      word.tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary">
-                          {tag}
-                        </Badge>
-                      ))
-                    )}
-                    {word.difficulty && (
-                      <Badge 
-                        variant={word.difficulty >= 3 ? "destructive" : "default"}
-                      >
-                        {t('rank')} {word.difficulty}
-                      </Badge>
-                    )}
-                  </div>
                 </div>
-
-                <div className="flex-1 flex flex-col justify-center my-8">
-                  <div className="text-center">
-                    <div className="mb-6 p-6 bg-muted/30 rounded-lg">
-                      <EyeOff className="w-16 h-16 mx-auto text-muted-foreground/60" />
-                    </div>
-                  </div>
+                
+                <div className="flex items-center justify-center mt-6">
+                  <Badge variant="secondary" className="text-xs px-3 py-1">
+                    {showAnswer ? <EyeOff className="w-3 h-3 mr-1" /> : <Eye className="w-3 h-3 mr-1" />}
+                    {t('tapCardToSeeMeaning')}
+                  </Badge>
                 </div>
-
-                <div className="h-4"></div>
               </CardContent>
             </Card>
           </motion.div>
@@ -255,38 +247,38 @@ export function SwipeCard({
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center justify-center gap-2">
-                    {word.tags && word.tags.length > 0 && (
-                      word.tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary">
-                          {tag}
-                        </Badge>
-                      ))
-                    )}
-                    {word.difficulty && (
-                      <Badge 
-                        variant={word.difficulty >= 3 ? "destructive" : "default"}
-                      >
-                        {t('rank')} {word.difficulty}
-                      </Badge>
-                    )}
+                  
+                  <div className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                    {word.definition}
                   </div>
-                </div>
-
-                <div className="flex-1 flex flex-col justify-center my-8">
-                  <div className="text-center">
-                    <div className="mb-6 p-6 bg-primary/5 rounded-lg border border-primary/20">
-                      <h3 className="text-xl font-semibold mb-3 text-foreground">
-                        {t('meaning')}
-                      </h3>
-                      <p className="text-lg text-foreground leading-relaxed">
-                        {word.definition}
-                      </p>
+                  
+                  {word.exampleSentences && (
+                    <div className="space-y-3 text-sm">
+                      {word.exampleSentences.split('|||').slice(0, 2).map((sentence, index) => {
+                        const [english, japanese] = sentence.split('###');
+                        return (
+                          <div key={index} className="p-3 bg-muted/50 rounded-lg">
+                            <p className="text-foreground italic mb-1">{english?.trim()}</p>
+                            {japanese && (
+                              <p className="text-muted-foreground text-xs">{japanese.trim()}</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-center mt-6">
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      ← {t('notKnown')}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      {t('known')} →
+                    </span>
                   </div>
                 </div>
-
-                <div className="h-4"></div>
               </CardContent>
             </Card>
           </motion.div>
