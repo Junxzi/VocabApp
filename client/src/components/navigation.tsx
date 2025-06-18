@@ -24,23 +24,23 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
   ];
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50 safe-area-inset-top">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14 md:h-16">
-          <div className="flex items-center space-x-2 md:space-x-4">
+    <nav className="bg-background/95 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50 safe-area-inset-top shadow-sm">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
+        <div className="flex justify-between items-center h-18 md:h-20">
+          <div className="flex items-center space-x-4 md:space-x-8">
             <div className="flex-shrink-0">
-              <h1 className="text-lg md:text-xl font-bold text-foreground">{t("nav.title")}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">{t("nav.title")}</h1>
             </div>
-            <div className="hidden md:flex space-x-8">
+            <div className="hidden md:flex space-x-10">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "font-medium transition-colors duration-200 hover:text-foreground",
+                    "text-lg font-medium transition-all duration-300 hover:text-foreground hover:scale-105 px-3 py-2 rounded-lg",
                     location === item.href
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                      ? "text-foreground bg-muted/50"
+                      : "text-muted-foreground hover:bg-muted/30"
                   )}
                 >
                   {item.label}
@@ -48,31 +48,31 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
               ))}
             </div>
           </div>
-          <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="flex items-center space-x-3 md:space-x-5">
             <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
-              <SelectTrigger className="w-16 h-8 p-0 border-none bg-transparent">
-                <Globe className="w-4 h-4" />
+              <SelectTrigger className="w-20 h-10 p-2 border border-border/50 bg-background/50 rounded-lg hover:bg-muted/50 transition-colors">
+                <Globe className="w-5 h-5" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">EN</SelectItem>
                 <SelectItem value="ja">日本</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={onImportClick} variant="outline" size="sm" className="font-medium hidden sm:flex">
-              <Upload className="w-4 h-4 mr-1" />
-              <span className="hidden md:inline">{t("nav.import")}</span>
+            <Button onClick={onImportClick} variant="outline" size="lg" className="font-medium hidden sm:flex h-10 px-4 rounded-lg border-border/50 hover:bg-muted/50 transition-all duration-200">
+              <Upload className="w-5 h-5 mr-2" />
+              <span className="hidden md:inline text-base">{t("nav.import")}</span>
             </Button>
-            <Button onClick={onAddWordClick} size="sm" className="font-medium">
-              <Plus className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">{t("nav.add")}</span>
+            <Button onClick={onAddWordClick} size="lg" className="font-medium h-10 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
+              <Plus className="w-5 h-5 mr-2" />
+              <span className="hidden sm:inline text-base">{t("nav.add")}</span>
             </Button>
             <Button
               variant="ghost"
-              size="sm"
-              className="md:hidden p-2"
+              size="lg"
+              className="md:hidden p-3 rounded-lg hover:bg-muted/50 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </Button>
           </div>
         </div>
@@ -80,33 +80,33 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
       
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-background border-t border-border">
-          <div className="px-2 pt-2 pb-3 space-y-1">
+        <div className="md:hidden bg-background/95 backdrop-blur-lg border-t border-border/40">
+          <div className="px-6 py-4 space-y-2">
             {navigationItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "block px-3 py-3 font-medium transition-colors duration-200 rounded-md touch-manipulation",
+                  "block px-4 py-3 rounded-lg text-lg font-medium transition-all duration-300 hover:scale-[1.02] touch-manipulation",
                   location === item.href
-                    ? "text-foreground bg-muted"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "text-foreground bg-muted/50 shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
-            <div className="border-t border-border pt-2 mt-2 space-y-1">
+            <div className="border-t border-border/40 pt-4 mt-4 space-y-2">
               <button
                 onClick={() => {
                   onImportClick();
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center w-full px-3 py-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors duration-200 touch-manipulation"
+                className="flex items-center w-full px-4 py-3 rounded-lg text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all duration-300 hover:scale-[1.02] touch-manipulation"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Import APKG
+                <Upload className="w-5 h-5 mr-3" />
+                {t("nav.import")}
               </button>
             </div>
           </div>
