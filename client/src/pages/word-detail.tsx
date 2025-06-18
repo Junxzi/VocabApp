@@ -83,14 +83,14 @@ export function WordDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
       toast({
-        title: "Word enriched successfully",
-        description: `Enhanced with pronunciations, part of speech, and 2 example sentences with Japanese translations.`
+        title: t('detail.word_enriched'),
+        description: t('detail.word_enriched_desc')
       });
     },
     onError: () => {
       toast({
-        title: "Failed to enrich word",
-        description: "Please try again later.",
+        title: t('detail.enrich_failed'),
+        description: t('detail.enrich_failed_desc'),
         variant: "destructive"
       });
     }
