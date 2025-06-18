@@ -306,6 +306,7 @@ export function SwipeStudyPage() {
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [isCardSwiping, setIsCardSwiping] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     known: 0,
     needReview: 0,
@@ -384,8 +385,9 @@ export function SwipeStudyPage() {
 
   const handleSwipe = (direction: 'left' | 'right') => {
     const currentWord = studyWords[currentIndex];
-    if (!currentWord) return;
+    if (!currentWord || isCardSwiping) return;
 
+    setIsCardSwiping(true);
     const known = direction === 'right';
     
     setSessionStats(prev => ({
@@ -399,15 +401,16 @@ export function SwipeStudyPage() {
       known 
     });
 
-    // Move to next word without removing from array
+    // Wait for swipe animation to complete before showing next card
     setTimeout(() => {
+      setIsCardSwiping(false);
       if (currentIndex < studyWords.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {
         setStudyMode('complete');
       }
-    }, 300);
+    }, 800); // Longer delay to ensure card fully exits
   };
 
   const handleCardTap = () => {
@@ -535,7 +538,7 @@ export function SwipeStudyPage() {
 
       {/* Card Container - positioned lower for thumb accessibility */}
       <div className="max-w-md mx-auto h-[450px] relative mt-20">
-        {currentWord && (
+        {currentWord && !isCardSwiping && (
           <StudyCard
             key={`card-${currentIndex}-${currentWord.id}`}
             word={currentWord}
@@ -545,6 +548,11 @@ export function SwipeStudyPage() {
             isVisible={true}
             zIndex={10}
           />
+        )}
+        {isCardSwiping && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
         )}
       </div>
     </div>
