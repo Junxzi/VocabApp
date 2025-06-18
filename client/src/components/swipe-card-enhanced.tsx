@@ -27,15 +27,25 @@ export function SwipeCard({
   const { t, language } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [dragStarted, setDragStarted] = useState(false);
+  
+  // Create motion values with unique instances for each card
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-30, 0, 30]);
   
-  // Reset position when word changes
+  // Reset state when component mounts or becomes active
   useEffect(() => {
     x.set(0);
     setIsDragging(false);
     setDragStarted(false);
-  }, [word.id, x]);
+  }, [word.id]);
+  
+  // Additional reset when isActive changes
+  useEffect(() => {
+    if (isActive) {
+      setIsDragging(false);
+      setDragStarted(false);
+    }
+  }, [isActive]);
   
   // More fluid color transforms
   const leftSwipeIntensity = useTransform(x, [-200, -50, 0], [1, 0.6, 0]);
@@ -82,7 +92,8 @@ export function SwipeCard({
     setTimeout(() => setDragStarted(false), 50);
   };
 
-  const handleDragStart = () => {
+  const handleDragStart = (event: any) => {
+    if (!isActive) return;
     setIsDragging(true);
     setDragStarted(true);
   };

@@ -277,7 +277,6 @@ export function SwipeStudyPage() {
       {/* Instructions */}
       <div className="max-w-md mx-auto mt-6 text-center text-sm text-muted-foreground space-y-2">
         <p>{t('tapCardToSeeMeaning')}</p>
-        <p>{t('swipeInstructions')}</p>
       </div>
     </div>
   );
