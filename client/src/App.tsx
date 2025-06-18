@@ -1,77 +1,30 @@
 import { useState, useEffect } from "react";
-import { Switch, Route, Link } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
 import { AddWordModal } from "@/components/add-word-modal";
 import { ApkgImport } from "@/components/apkg-import";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { VocabularyPage } from "@/pages/vocabulary";
 import { LanguageProvider } from "@/lib/i18n";
-import { Settings } from "lucide-react";
-
 import { SwipeStudyPage } from "@/pages/swipe-study";
 import { ProgressPage } from "@/pages/progress";
 import { SettingsPage } from "@/pages/settings";
 import { WordDetailPage } from "@/pages/word-detail";
 import NotFound from "@/pages/not-found";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import type { VocabularyWord, InsertVocabularyWord } from "@shared/schema";
+import { useWordOperations } from "@/hooks/use-word-operations";
+import type { VocabularyWord } from "@shared/schema";
 
 function AppContent() {
   const [addWordModalOpen, setAddWordModalOpen] = useState(false);
   const [editingWord, setEditingWord] = useState<VocabularyWord | null>(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const createWordMutation = useMutation({
-    mutationFn: async (word: InsertVocabularyWord) => {
-      const response = await apiRequest("POST", "/api/vocabulary", word);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary"] });
-      toast({
-        title: "Success",
-        description: "Word added successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to add word",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateWordMutation = useMutation({
-    mutationFn: async ({ id, word }: { id: number; word: InsertVocabularyWord }) => {
-      const response = await apiRequest("PUT", `/api/vocabulary/${id}`, word);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary"] });
-      toast({
-        title: "Success",
-        description: "Word updated successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update word",
-        variant: "destructive",
-      });
-    },
-  });
+  const { handleSubmitWord, isLoading } = useWordOperations();
 
   const handleAddWord = () => {
     setEditingWord(null);
@@ -87,15 +40,6 @@ function AppContent() {
     setAddWordModalOpen(true);
   };
 
-  const handleSubmitWord = (word: InsertVocabularyWord) => {
-    if (editingWord) {
-      updateWordMutation.mutate({ id: editingWord.id, word });
-    } else {
-      createWordMutation.mutate(word);
-    }
-    setEditingWord(null);
-  };
-
   const handleModalClose = (open: boolean) => {
     setAddWordModalOpen(open);
     if (!open) {
@@ -103,12 +47,19 @@ function AppContent() {
     }
   };
 
+  const onSubmitWord = async (word: any) => {
+    await handleSubmitWord(word, editingWord);
+    setEditingWord(null);
+  };
+
   // Listen for custom events to open modals
   useEffect(() => {
     const handleOpenAddWord = () => handleAddWord();
     const handleOpenImport = () => handleImport();
+
     window.addEventListener("openAddWord", handleOpenAddWord);
     window.addEventListener("openImport", handleOpenImport);
+
     return () => {
       window.removeEventListener("openAddWord", handleOpenAddWord);
       window.removeEventListener("openImport", handleOpenImport);
@@ -117,8 +68,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-
-
       <div className="pb-20 md:pb-0">
         <Switch>
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
@@ -133,8 +82,9 @@ function AppContent() {
       <AddWordModal
         open={addWordModalOpen}
         onOpenChange={handleModalClose}
-        onSubmit={handleSubmitWord}
+        onSubmit={onSubmitWord}
         editingWord={editingWord}
+        isLoading={isLoading}
       />
 
       <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
