@@ -71,6 +71,16 @@ const translations = {
     'import.title': 'Import APKG File',
     'import.description': 'Import vocabulary from Anki deck files (.apkg)',
     
+    // Sort Options
+    'sort.alphabetical': 'Alphabetical',
+    'sort.date': 'Date Added',
+    'sort.category': 'Category',
+    'sort.difficulty': 'Difficulty',
+    
+    // Pagination
+    'pagination.items': 'items',
+    'pagination.per_page': 'Items per page',
+    
     // Common
     'common.loading': 'Loading...',
     'common.error': 'Error',
@@ -144,6 +154,12 @@ const translations = {
     // Import
     'import.title': 'APKGファイルをインポート',
     'import.description': 'Ankiデッキファイル（.apkg）から単語をインポート',
+    
+    // Sort Options
+    'sort.alphabetical': 'アルファベット順',
+    'sort.date': '追加日順',
+    'sort.category': 'カテゴリ順',
+    'sort.difficulty': '難易度順',
     
     // Common
     'common.loading': '読み込み中...',

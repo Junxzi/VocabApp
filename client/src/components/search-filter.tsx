@@ -41,10 +41,10 @@ export function SearchFilter({
   };
 
   const sortOptions = [
-    { value: 'alphabetical', label: 'アルファベット順' },
-    { value: 'date', label: '追加日順' },
-    { value: 'category', label: 'カテゴリ順' },
-    { value: 'difficulty', label: '難易度順' }
+    { value: 'alphabetical', label: t('sort.alphabetical') },
+    { value: 'date', label: t('sort.date') },
+    { value: 'category', label: t('sort.category') },
+    { value: 'difficulty', label: t('sort.difficulty') }
   ];
 
   return (

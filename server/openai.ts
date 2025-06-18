@@ -31,16 +31,16 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
         {
           role: "system",
           content: `You are a linguistic expert. For any given English word, provide:
-1. IPA pronunciation for American English, British English, and Australian English
+1. IPA pronunciation for American English, British English, and Australian English (without slashes or brackets)
 2. Part of speech (noun, verb, adjective, etc.)
 3. Exactly 2 practical example sentences that demonstrate different uses of the word
 
 Respond with valid JSON in this exact format:
 {
   "pronunciations": {
-    "us": "IPA_pronunciation_here",
-    "uk": "IPA_pronunciation_here", 
-    "au": "IPA_pronunciation_here"
+    "us": "hʊf",
+    "uk": "hʊf", 
+    "au": "hʊf"
   },
   "partOfSpeech": "noun",
   "exampleSentences": [
@@ -49,7 +49,7 @@ Respond with valid JSON in this exact format:
   ]
 }
 
-Only include the JSON response, no additional text.`
+Only include the IPA symbols without any slashes, brackets, or other punctuation. Only include the JSON response, no additional text.`
         },
         {
           role: "user",

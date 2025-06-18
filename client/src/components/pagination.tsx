@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface PaginationProps {
   currentPage: number;
@@ -19,6 +20,7 @@ export function Pagination({
   onPageChange,
   onItemsPerPageChange,
 }: PaginationProps) {
+  const { t } = useLanguage();
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
@@ -52,10 +54,10 @@ export function Pagination({
     <div className="flex items-center justify-between px-2 py-4">
       <div className="flex items-center gap-4">
         <div className="text-sm text-muted-foreground">
-          {startItem}-{endItem} / {totalItems}件
+          {startItem}-{endItem} / {totalItems} {t('pagination.items')}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">表示件数:</span>
+          <span className="text-sm text-muted-foreground">{t('pagination.per_page')}:</span>
           <Select value={itemsPerPage.toString()} onValueChange={(value) => onItemsPerPageChange(Number(value))}>
             <SelectTrigger className="w-20 h-8">
               <SelectValue />
