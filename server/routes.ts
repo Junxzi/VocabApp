@@ -6,6 +6,7 @@ import { z } from "zod";
 import { enrichWordData, generatePronunciation } from "./openai";
 import { calculateNextReview, swipeToQuality, isDueForReview } from "./spaced-repetition";
 import { syncCategoriesFromNotion, initializeDefaultCategories, syncVocabularyWordsFromNotion } from "./setup-categories";
+import { generateWordsForCategory, getSampleWordsForCategory } from "./word-generator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize categories on startup
@@ -263,6 +264,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error enriching word:", error);
       res.status(500).json({ message: "Failed to enrich word data" });
+    }
+  });
+
+  // Generate words for category
+  app.post("/api/categories/:categoryName/generate-words", async (req, res) => {
+    try {
+      const categoryName = req.params.categoryName;
+      const { count = 10 } = req.body;
+      
+      // Don't allow TOEFL category
+      if (categoryName === "TOEFL") {
+        return res.status(400).json({ message: "Word generation not available for TOEFL category" });
+      }
+
+      // Validate category exists
+      const category = await storage.getCategoryByName(categoryName);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      // Generate words using GPT
+      const generatedWords = await generateWordsForCategory(categoryName, count);
+      
+      // Add generated words to database
+      const addedWords = [];
+      for (const wordData of generatedWords) {
+        try {
+          const newWord = await storage.createVocabularyWord({
+            word: wordData.word,
+            definition: wordData.definition,
+            category: wordData.category,
+            language: "en"
+          });
+          addedWords.push(newWord);
+        } catch (error) {
+          console.warn(`Failed to add word: ${wordData.word}`, error);
+        }
+      }
+
+      res.json({
+        message: `Successfully generated ${addedWords.length} words for ${categoryName}`,
+        words: addedWords,
+        totalGenerated: generatedWords.length,
+        totalAdded: addedWords.length
+      });
+    } catch (error) {
+      console.error("Error generating words:", error);
+      res.status(500).json({ message: "Failed to generate words" });
+    }
+  });
+
+  // Get sample words for category (preview)
+  app.get("/api/categories/:categoryName/sample-words", async (req, res) => {
+    try {
+      const categoryName = req.params.categoryName;
+      
+      if (categoryName === "TOEFL") {
+        return res.status(400).json({ message: "Word generation not available for TOEFL category" });
+      }
+
+      const sampleWords = getSampleWordsForCategory(categoryName);
+      res.json({ sampleWords });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get sample words" });
     }
   });
 

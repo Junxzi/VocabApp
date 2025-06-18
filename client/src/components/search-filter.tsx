@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Grid, List, SortAsc, SortDesc } from "lucide-react";
+import { Search, Filter, Grid, List, SortAsc, SortDesc, Sparkles } from "lucide-react";
 import { CATEGORIES } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
@@ -14,6 +14,7 @@ interface SearchFilterProps {
   onCategoryFilter: (category: string) => void;
   onSortChange: (sort: SortOption) => void;
   onViewModeChange: (mode: ViewMode) => void;
+  onGenerateWords?: (category: string) => void;
   searchQuery: string;
   selectedCategory: string;
   sortBy: SortOption;
