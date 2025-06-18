@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
 import { getLocalizedPartOfSpeech } from "@/lib/utils";
 import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags } from "lucide-react";
+import { speakWithAccent, logAvailableVoices } from "@/lib/speech";
 import type { VocabularyWord } from "@shared/schema";
 
 interface StudyCardProps {
@@ -64,60 +65,12 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     }, 150);
   };
 
-  const speakWord = (variant: 'us' | 'uk', e: React.MouseEvent) => {
+  const speakWord = async (variant: 'us' | 'uk', e: React.MouseEvent) => {
     e.stopPropagation();
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.rate = 0.8;
-      utterance.volume = 0.7;
-      
-      // Wait for voices to load if they're not available yet
-      const setVoiceAndSpeak = () => {
-        const voices = speechSynthesis.getVoices();
-        
-        if (variant === 'us') {
-          // Prefer specific US voices
-          const usVoice = voices.find(voice => 
-            voice.lang === 'en-US' || 
-            voice.name.toLowerCase().includes('samantha') ||
-            voice.name.toLowerCase().includes('alex') ||
-            voice.name.toLowerCase().includes('fred') ||
-            (voice.lang.startsWith('en-US') && voice.localService)
-          );
-          if (usVoice) {
-            utterance.voice = usVoice;
-          } else {
-            utterance.lang = 'en-US';
-          }
-        } else if (variant === 'uk') {
-          // Prefer specific UK voices
-          const ukVoice = voices.find(voice => 
-            voice.lang === 'en-GB' || 
-            voice.name.toLowerCase().includes('daniel') ||
-            voice.name.toLowerCase().includes('kate') ||
-            voice.name.toLowerCase().includes('serena') ||
-            (voice.lang.startsWith('en-GB') && voice.localService)
-          );
-          if (ukVoice) {
-            utterance.voice = ukVoice;
-          } else {
-            utterance.lang = 'en-GB';
-          }
-        }
-        
-        speechSynthesis.speak(utterance);
-      };
-
-      // Check if voices are loaded
-      const voices = speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        setVoiceAndSpeak();
-      } else {
-        // Wait for voices to load
-        speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
-        // Fallback timeout
-        setTimeout(setVoiceAndSpeak, 100);
-      }
+    try {
+      await speakWithAccent(word.word, variant);
+    } catch (error) {
+      console.error('Speech synthesis error:', error);
     }
   };
 

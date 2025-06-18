@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Volume2, Sparkles, Loader2, Edit2 } from "lucide-react";
+import { speakWithAccent } from "@/lib/speech";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";
@@ -229,35 +230,11 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            if ('speechSynthesis' in window) {
-                              const utterance = new SpeechSynthesisUtterance(word.word);
-                              utterance.rate = 0.8;
-                              utterance.volume = 0.7;
-                              
-                              const setVoiceAndSpeak = () => {
-                                const voices = speechSynthesis.getVoices();
-                                const usVoice = voices.find(voice => 
-                                  voice.lang === 'en-US' || 
-                                  voice.name.toLowerCase().includes('samantha') ||
-                                  voice.name.toLowerCase().includes('alex') ||
-                                  (voice.lang.startsWith('en-US') && voice.localService)
-                                );
-                                if (usVoice) {
-                                  utterance.voice = usVoice;
-                                } else {
-                                  utterance.lang = 'en-US';
-                                }
-                                speechSynthesis.speak(utterance);
-                              };
-
-                              const voices = speechSynthesis.getVoices();
-                              if (voices.length > 0) {
-                                setVoiceAndSpeak();
-                              } else {
-                                speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
-                                setTimeout(setVoiceAndSpeak, 100);
-                              }
+                          onClick={async () => {
+                            try {
+                              await speakWithAccent(word.word, 'us');
+                            } catch (error) {
+                              console.error('Speech synthesis error:', error);
                             }
                           }}
                           className="p-1 h-6 w-6"
@@ -275,36 +252,11 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            if ('speechSynthesis' in window) {
-                              const utterance = new SpeechSynthesisUtterance(word.word);
-                              utterance.rate = 0.8;
-                              utterance.volume = 0.7;
-                              
-                              const setVoiceAndSpeak = () => {
-                                const voices = speechSynthesis.getVoices();
-                                const ukVoice = voices.find(voice => 
-                                  voice.lang === 'en-GB' || 
-                                  voice.name.toLowerCase().includes('daniel') ||
-                                  voice.name.toLowerCase().includes('kate') ||
-                                  voice.name.toLowerCase().includes('serena') ||
-                                  (voice.lang.startsWith('en-GB') && voice.localService)
-                                );
-                                if (ukVoice) {
-                                  utterance.voice = ukVoice;
-                                } else {
-                                  utterance.lang = 'en-GB';
-                                }
-                                speechSynthesis.speak(utterance);
-                              };
-
-                              const voices = speechSynthesis.getVoices();
-                              if (voices.length > 0) {
-                                setVoiceAndSpeak();
-                              } else {
-                                speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
-                                setTimeout(setVoiceAndSpeak, 100);
-                              }
+                          onClick={async () => {
+                            try {
+                              await speakWithAccent(word.word, 'uk');
+                            } catch (error) {
+                              console.error('Speech synthesis error:', error);
                             }
                           }}
                           className="p-1 h-6 w-6"
@@ -322,35 +274,11 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            if ('speechSynthesis' in window) {
-                              const utterance = new SpeechSynthesisUtterance(word.word);
-                              utterance.rate = 0.8;
-                              utterance.volume = 0.7;
-                              
-                              const setVoiceAndSpeak = () => {
-                                const voices = speechSynthesis.getVoices();
-                                const auVoice = voices.find(voice => 
-                                  voice.lang === 'en-AU' || 
-                                  voice.name.toLowerCase().includes('karen') ||
-                                  voice.name.toLowerCase().includes('lee') ||
-                                  (voice.lang.startsWith('en-AU') && voice.localService)
-                                );
-                                if (auVoice) {
-                                  utterance.voice = auVoice;
-                                } else {
-                                  utterance.lang = 'en-AU';
-                                }
-                                speechSynthesis.speak(utterance);
-                              };
-
-                              const voices = speechSynthesis.getVoices();
-                              if (voices.length > 0) {
-                                setVoiceAndSpeak();
-                              } else {
-                                speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
-                                setTimeout(setVoiceAndSpeak, 100);
-                              }
+                          onClick={async () => {
+                            try {
+                              await speakWithAccent(word.word, 'au');
+                            } catch (error) {
+                              console.error('Speech synthesis error:', error);
                             }
                           }}
                           className="p-1 h-6 w-6"
