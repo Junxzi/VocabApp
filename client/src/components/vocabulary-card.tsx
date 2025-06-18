@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Eye } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
+import { Link } from "wouter";
 import type { VocabularyWord } from "@shared/schema";
 
 interface VocabularyCardProps {
@@ -79,6 +80,15 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
               isHovered ? "opacity-100" : "opacity-70 md:opacity-0"
             )}
           >
+            <Link href={`/word/${word.id}`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="sm"

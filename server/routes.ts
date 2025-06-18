@@ -17,6 +17,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single vocabulary word by ID
+  app.get("/api/vocabulary/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const word = await storage.getVocabularyWord(id);
+      if (!word) {
+        return res.status(404).json({ message: "Vocabulary word not found" });
+      }
+      res.json(word);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vocabulary word" });
+    }
+  });
+
   // Search vocabulary words
   app.get("/api/vocabulary/search", async (req, res) => {
     try {
