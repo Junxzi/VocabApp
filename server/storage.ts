@@ -108,7 +108,7 @@ export class MemStorage implements IStorage {
   }
 
   async updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined> {
-    const word = this.vocabuloryWords.get(id);
+    const word = this.vocabularyWords.get(id);
     if (!word) return undefined;
 
     const updatedWord: VocabularyWord = {

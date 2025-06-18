@@ -27,5 +27,5 @@ export function calculateAccuracy(correct: number, total: number): number {
   return Math.round((correct / total) * 100);
 }
 
-export const CATEGORIES = ["Academic", "Business", "Daily Life", "Technical"] as const;
+export const CATEGORIES = ["Academic", "Business", "Daily Life", "Technical", "TOEFL"] as const;
 export type Category = typeof CATEGORIES[number];

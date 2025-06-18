@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertVocabularyWordSchema } from "@shared/schema";
 import { CATEGORIES } from "@/lib/utils";
+import { PhoneticKeyboard } from "@/components/phonetic-keyboard";
+import { Keyboard } from "lucide-react";
 import type { InsertVocabularyWord, VocabularyWord } from "@shared/schema";
 
 interface AddWordModalProps {
@@ -20,6 +22,9 @@ interface AddWordModalProps {
 }
 
 export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddWordModalProps) {
+  const [showPhoneticKeyboard, setShowPhoneticKeyboard] = useState(false);
+  const pronunciationInputRef = useRef<HTMLInputElement>(null);
+  
   const form = useForm<InsertVocabularyWord>({
     resolver: zodResolver(insertVocabularyWordSchema),
     defaultValues: {
@@ -38,7 +43,26 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
 
   const handleClose = () => {
     form.reset();
+    setShowPhoneticKeyboard(false);
     onOpenChange(false);
+  };
+
+  const insertPhoneticSymbol = (symbol: string) => {
+    const currentValue = form.getValues("pronunciation");
+    const input = pronunciationInputRef.current;
+    
+    if (input) {
+      const start = input.selectionStart || 0;
+      const end = input.selectionEnd || 0;
+      const newValue = currentValue.slice(0, start) + symbol + currentValue.slice(end);
+      form.setValue("pronunciation", newValue);
+      
+      // Focus back to input and set cursor position
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(start + symbol.length, start + symbol.length);
+      }, 0);
+    }
   };
 
   return (
@@ -77,11 +101,23 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                 <FormItem>
                   <FormLabel>Pronunciation</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="/pronunciation/"
-                      className="bg-muted font-mono"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Input
+                        ref={pronunciationInputRef}
+                        placeholder="/pronunciation/"
+                        className="bg-muted font-mono pr-10"
+                        {...field}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                        onClick={() => setShowPhoneticKeyboard(!showPhoneticKeyboard)}
+                      >
+                        <Keyboard className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
