@@ -21,6 +21,11 @@ export function WordDetailPage() {
   const { t, language } = useLanguage();
   const [editModalOpen, setEditModalOpen] = useState(false);
 
+  // Scroll to top when word detail page opens
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const { data: word, isLoading } = useQuery<VocabularyWord>({
     queryKey: ['/api/vocabulary', id],
     queryFn: async () => {
