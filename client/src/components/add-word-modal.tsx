@@ -91,7 +91,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
       <DialogContent className="sm:max-w-md animate-scale-in">
         <DialogHeader>
           <DialogTitle>
-            {editingWord ? "Edit Word" : "Add New Word"}
+            {editingWord ? t('add.edit_title') : t('add.title')}
           </DialogTitle>
         </DialogHeader>
         
@@ -102,10 +102,10 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="word"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Word</FormLabel>
+                  <FormLabel>{t('add.word')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter the word"
+                      placeholder={t('add.wordPlaceholder')}
                       className="bg-muted"
                       {...field}
                     />
@@ -121,10 +121,10 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="definition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Definition</FormLabel>
+                  <FormLabel>{t('add.definition')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter the definition"
+                      placeholder={t('add.definitionPlaceholder')}
                       className="bg-muted resize-none"
                       rows={3}
                       {...field}
@@ -221,19 +221,19 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="difficulty"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Difficulty Rank</FormLabel>
+                  <FormLabel>{t('add.difficulty')}</FormLabel>
                   <Select onValueChange={(value) => field.onChange(value === "unset" ? null : parseInt(value))} value={field.value ? field.value.toString() : "unset"}>
                     <FormControl>
                       <SelectTrigger className="bg-muted">
-                        <SelectValue placeholder="Select difficulty" />
+                        <SelectValue placeholder={t('add.selectDifficulty')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="unset">未設定 (Unset)</SelectItem>
-                      <SelectItem value="1">Rank 1 (Easiest)</SelectItem>
-                      <SelectItem value="2">Rank 2 (Easy)</SelectItem>
-                      <SelectItem value="3">Rank 3 (Hard)</SelectItem>
-                      <SelectItem value="4">Rank 4 (Hardest)</SelectItem>
+                      <SelectItem value="unset">{t('add.difficultyUnset')}</SelectItem>
+                      <SelectItem value="1">{t('add.difficulty1')}</SelectItem>
+                      <SelectItem value="2">{t('add.difficulty2')}</SelectItem>
+                      <SelectItem value="3">{t('add.difficulty3')}</SelectItem>
+                      <SelectItem value="4">{t('add.difficulty4')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -248,10 +248,10 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                 className="flex-1"
                 onClick={handleClose}
               >
-                Cancel
+                {t('add.cancel')}
               </Button>
               <Button type="submit" className="flex-1">
-                {editingWord ? "Update Word" : "Add Word"}
+                {editingWord ? t('add.update') : t('add.save')}
               </Button>
             </div>
           </form>
