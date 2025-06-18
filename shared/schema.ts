@@ -35,6 +35,7 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   categoryId: integer("category_id").references(() => categories.id),
   category: text("category").notNull(), // Keep for backward compatibility
   categories: text("categories").array(), // Multiple categories support
+  tags: text("tags").array().notNull().default([]), // Multiple tags support
   language: text("language").notNull().default("en"), // 'en' for English, 'ja' for Japanese
   difficulty: integer("difficulty"), // Rank 1-4 (4 = hardest), null = unset
   studyCount: integer("study_count").default(0),
@@ -81,6 +82,7 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   categoryId: true,
   category: true,
   categories: true,
+  tags: true,
   language: true,
   difficulty: true,
 }).partial({

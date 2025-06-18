@@ -16,7 +16,7 @@ export interface GachaGeneratedWord {
   }>;
 }
 
-export async function generateWordGacha(categoryName: string, count: number = 50): Promise<GachaGeneratedWord[]> {
+export async function generateWordGacha(tagName: string, count: number = 30): Promise<GachaGeneratedWord[]> {
   try {
     // Split into smaller batches for better performance
     const batchSize = 10;
@@ -33,10 +33,10 @@ export async function generateWordGacha(categoryName: string, count: number = 50
             role: "system",
             content: `あなたは英語学習の専門家です。指定されたカテゴリ・テーマの英単語を${currentBatchSize}個生成してください。
 
-カテゴリ: "${categoryName}"
+タグ: "${tagName}"
 
 要件:
-1. このカテゴリに最も関連性の高い英単語を選択
+1. このタグに最も関連性の高い英単語を選択
 2. 各単語の意味は日本語で簡潔に説明
 3. 中級〜上級レベルの実用的な単語を優先
 4. 重複しない単語を選択
