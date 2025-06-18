@@ -31,14 +31,8 @@ export function SwipeStudyPage() {
 
   const updateWordStatsMutation = useMutation({
     mutationFn: async ({ id, known }: { id: number; known: boolean }) => {
-      await apiRequest(`/api/vocabulary/${id}/study`, {
-        method: "PUT",
-        body: JSON.stringify({
-          difficulty: known ? 1 : 3, // 1 = easy (known), 3 = hard (needs review)
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      await apiRequest("PUT", `/api/vocabulary/${id}/study`, {
+        difficulty: known ? 1 : 3, // 1 = easy (known), 3 = hard (needs review)
       });
     },
     onSuccess: () => {

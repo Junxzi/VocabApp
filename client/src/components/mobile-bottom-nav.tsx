@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, BookOpen, TrendingUp, Plus } from "lucide-react";
+import { Home, BookOpen, TrendingUp, Plus, Shuffle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
@@ -14,6 +14,7 @@ export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
   const navItems = [
     { label: t("nav.vocabulary"), href: "/", icon: Home },
     { label: t("nav.study"), href: "/study", icon: BookOpen },
+    { label: "Swipe", href: "/swipe-study", icon: Shuffle },
     { label: t("nav.progress"), href: "/progress", icon: TrendingUp },
   ];
 

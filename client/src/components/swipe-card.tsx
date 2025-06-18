@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { motion, PanInfo, useMotionValue, useTransform } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Volume2, Eye, EyeOff } from "lucide-react";
 import type { VocabularyWord } from "@shared/schema";
 
 interface SwipeCardProps {
@@ -24,161 +23,152 @@ export function SwipeCard({
   isActive, 
   index 
 }: SwipeCardProps) {
-  const [exitX, setExitX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-25, 25]);
-  const opacity = useTransform(x, [-200, -50, 0, 50, 200], [0, 1, 1, 1, 0]);
+  const rotate = useTransform(x, [-150, 0, 150], [-30, 0, 30]);
+  const opacity = useTransform(x, [-150, -100, 0, 100, 150], [0, 1, 1, 1, 0]);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
-    const threshold = 100;
+    setIsDragging(false);
     
+    if (!isActive) return;
+
+    const threshold = 100;
     if (info.offset.x > threshold) {
-      // Swipe right - knows the word
-      setExitX(200);
       onSwipe('right');
     } else if (info.offset.x < -threshold) {
-      // Swipe left - doesn't know the word
-      setExitX(-200);
       onSwipe('left');
     }
   };
 
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const speakWord = () => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(word.word);
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+    }
+  };
+
   const cardVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 200 : -200,
-      opacity: 0,
-      scale: 0.8,
-      rotate: direction > 0 ? 25 : -25,
-    }),
-    center: {
-      zIndex: index === 0 ? 1 : 0,
-      x: 0,
-      opacity: 1,
-      scale: index === 0 ? 1 : 0.95,
-      rotate: 0,
-      transition: {
-        x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
-        scale: { duration: 0.2 },
-        rotate: { duration: 0.2 },
-      },
+    active: { 
+      scale: 1, 
+      zIndex: 2,
+      y: 0,
     },
-    exit: (direction: number) => ({
-      x: direction < 0 ? -200 : 200,
-      opacity: 0,
-      scale: 0.8,
-      rotate: direction < 0 ? -25 : 25,
-      transition: {
-        duration: 0.3,
-      },
-    }),
+    inactive: { 
+      scale: 0.95, 
+      zIndex: 1,
+      y: 10,
+    }
   };
 
   return (
     <motion.div
-      className={cn(
-        "absolute inset-0 cursor-grab active:cursor-grabbing",
-        !isActive && "pointer-events-none"
-      )}
-      style={{
-        x: isActive ? x : 0,
-        rotate: isActive ? rotate : 0,
-        opacity: isActive ? opacity : index === 1 ? 0.7 : 0.4,
-        zIndex: isActive ? 10 : 1,
-      }}
+      className="absolute inset-0"
+      style={{ x, rotate, opacity }}
+      variants={cardVariants}
+      animate={isActive ? "active" : "inactive"}
       drag={isActive ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.2}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      variants={cardVariants}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      custom={exitX}
+      whileDrag={{ cursor: "grabbing" }}
     >
-      <Card className="h-full w-full shadow-2xl border-2 select-none">
-        <CardContent className="p-8 h-full flex flex-col justify-center items-center text-center relative">
-          {/* Swipe indicators */}
-          <div className="absolute top-6 left-6 opacity-0 motion-safe:opacity-100">
-            <motion.div
-              className="flex items-center text-red-500"
-              style={{
-                opacity: useTransform(x, [-100, -50, 0], [1, 0.5, 0]),
-              }}
-            >
-              <XCircle className="w-8 h-8 mr-2" />
-              <span className="font-bold text-lg">Need Review</span>
-            </motion.div>
-          </div>
-          
-          <div className="absolute top-6 right-6 opacity-0 motion-safe:opacity-100">
-            <motion.div
-              className="flex items-center text-green-500"
-              style={{
-                opacity: useTransform(x, [0, 50, 100], [0, 0.5, 1]),
-              }}
-            >
-              <span className="font-bold text-lg">Know It!</span>
-              <CheckCircle className="w-8 h-8 ml-2" />
-            </motion.div>
-          </div>
-
-          {/* Word content */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="mb-6">
-              <Badge variant="secondary" className="mb-4">
+      <Card className={`h-full shadow-xl border-2 ${
+        isDragging ? 'border-primary' : 'border-border'
+      } bg-card`}>
+        <CardContent className="p-8 h-full flex flex-col justify-center">
+          {/* Word Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <h2 className="text-3xl font-bold text-foreground">{word.word}</h2>
+              {word.pronunciation && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={speakWord}
+                  className="h-8 w-8 p-0 hover:bg-muted"
+                >
+                  <Volume2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            {word.pronunciation && (
+              <p className="text-lg text-muted-foreground font-mono">
+                /{word.pronunciation}/
+              </p>
+            )}
+            
+            {word.category && (
+              <Badge variant="secondary" className="mt-2">
                 {word.category}
               </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 break-words">
-                {word.word}
-              </h1>
-              <p className="text-xl text-muted-foreground font-mono mb-6 break-words">
-                {word.pronunciation}
-              </p>
-            </div>
+            )}
+          </div>
 
-            {showAnswer ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-muted rounded-lg p-6 mb-6"
-              >
-                <p className="text-lg text-foreground leading-relaxed">
-                  {word.definition}
-                </p>
-              </motion.div>
-            ) : (
-              <div className="mb-6">
-                <p className="text-muted-foreground mb-4">
-                  Do you know what this word means?
-                </p>
+          {/* Answer Section */}
+          <div className="flex-1 flex flex-col justify-center">
+            {!showAnswer ? (
+              <div className="text-center">
+                <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                  <EyeOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Think about the meaning...
+                  </p>
+                </div>
+                
                 <Button 
                   onClick={onShowAnswer}
                   variant="outline"
                   size="lg"
-                  className="touch-manipulation"
+                  className="px-8"
                 >
-                  Show Definition
+                  <Eye className="w-4 h-4 mr-2" />
+                  Show Answer
                 </Button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div className="mb-6 p-6 bg-primary/5 rounded-lg border border-primary/20">
+                  <h3 className="text-xl font-semibold mb-3 text-foreground">
+                    Meaning
+                  </h3>
+                  <p className="text-lg text-foreground leading-relaxed">
+                    {word.definition}
+                  </p>
+                </div>
+
+
               </div>
             )}
           </div>
 
-          {/* Swipe instructions */}
-          <div className="flex items-center justify-between w-full max-w-md text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center mr-2">
-                <span className="text-red-600 text-xs">←</span>
-              </div>
-              <span>Need Review</span>
+          {/* Swipe Indicators (only show when dragging) */}
+          {isDragging && (
+            <div className="absolute inset-0 pointer-events-none">
+              <motion.div
+                className="absolute top-1/2 left-8 transform -translate-y-1/2 text-red-500 font-bold text-2xl"
+                style={{
+                  opacity: useTransform(x, [-150, -50, 0], [1, 0.5, 0])
+                }}
+              >
+                REVIEW
+              </motion.div>
+              <motion.div
+                className="absolute top-1/2 right-8 transform -translate-y-1/2 text-green-500 font-bold text-2xl"
+                style={{
+                  opacity: useTransform(x, [0, 50, 150], [0, 0.5, 1])
+                }}
+              >
+                KNOW
+              </motion.div>
             </div>
-            <div className="flex items-center">
-              <span>Know It!</span>
-              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center ml-2">
-                <span className="text-green-600 text-xs">→</span>
-              </div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
