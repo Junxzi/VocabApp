@@ -469,7 +469,7 @@ export function SwipeStudyPage() {
         setStudyMode('complete');
         setIsCardSwiping(false);
       }
-    }, 250); // Reduced timing for faster transitions
+    }, 150); // Even faster timing for quicker transitions
   };
 
   const handleCardTap = () => {
