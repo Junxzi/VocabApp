@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navigation } from "@/components/navigation";
 import { AddWordModal } from "@/components/add-word-modal";
 import { ApkgImport } from "@/components/apkg-import";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { VocabularyPage } from "@/pages/vocabulary";
 import { StudyPage } from "@/pages/study";
 import { ProgressPage } from "@/pages/progress";
@@ -126,6 +127,8 @@ function AppContent() {
           <ApkgImport onClose={() => setImportModalOpen(false)} />
         </DialogContent>
       </Dialog>
+      
+      <MobileBottomNav onAddWordClick={handleAddWord} />
     </div>
   );
 }

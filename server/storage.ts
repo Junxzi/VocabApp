@@ -74,7 +74,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(vocabularyWords)
       .where(eq(vocabularyWords.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async searchVocabularyWords(query: string): Promise<VocabularyWord[]> {

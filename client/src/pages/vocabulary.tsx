@@ -80,7 +80,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom">
       <SearchFilter
         onSearch={setSearchQuery}
         onCategoryFilter={setSelectedCategory}
@@ -88,9 +88,9 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         selectedCategory={selectedCategory}
       />
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-foreground">Your Vocabulary</h2>
-        <span className="text-muted-foreground">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h2 className="text-xl md:text-2xl font-semibold text-foreground">Your Vocabulary</h2>
+        <span className="text-sm text-muted-foreground">
           {filteredWords.length} word{filteredWords.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -103,13 +103,16 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
               : "No vocabulary words yet. Start by adding your first word!"}
           </p>
           {!searchQuery && selectedCategory === "all" && (
-            <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}>
+            <Button 
+              onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}
+              className="touch-manipulation"
+            >
               Add Your First Word
             </Button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mobile-grid">
           {filteredWords.map((word) => (
             <VocabularyCard
               key={word.id}

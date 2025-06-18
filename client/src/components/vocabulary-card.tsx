@@ -18,33 +18,36 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
   return (
     <Card
       className={cn(
-        "transition-all duration-300 hover:shadow-lg hover:scale-105 animate-fade-in",
+        "transition-all duration-300 hover:shadow-lg md:hover:scale-105 animate-fade-in touch-manipulation",
         isHovered && "shadow-lg"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
     >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-foreground mb-1">
+      <CardContent className="p-4 md:p-6">
+        <div className="flex items-start justify-between mb-3 md:mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base md:text-lg font-semibold text-foreground mb-1 break-words">
               {word.word}
             </h3>
-            <p className="text-muted-foreground font-mono text-sm">
+            <p className="text-muted-foreground font-mono text-sm break-words">
               {word.pronunciation}
             </p>
           </div>
           <div
             className={cn(
-              "flex items-center space-x-2 transition-opacity duration-200",
-              isHovered ? "opacity-100" : "opacity-0"
+              "flex items-center space-x-1 transition-opacity duration-200 ml-2",
+              "md:opacity-0 md:group-hover:opacity-100",
+              isHovered ? "opacity-100" : "opacity-70 md:opacity-0"
             )}
           >
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onEdit(word)}
-              className="h-8 w-8 p-0 hover:text-foreground"
+              className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
             >
               <Edit className="h-4 w-4" />
             </Button>
@@ -52,14 +55,14 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
               variant="ghost"
               size="sm"
               onClick={() => onDelete(word.id)}
-              className="h-8 w-8 p-0 hover:text-destructive"
+              className="h-8 w-8 p-0 hover:text-destructive touch-manipulation"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
         
-        <p className="text-foreground mb-3 leading-relaxed">
+        <p className="text-foreground mb-3 leading-relaxed text-sm md:text-base">
           {word.definition}
         </p>
         
