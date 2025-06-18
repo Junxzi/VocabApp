@@ -184,9 +184,8 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
             <Sparkles className="w-5 h-5 mr-2" />
 {language === 'ja' ? 'タグ生成+' : 'Tag Gen+'}
           </Button>
-          <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="lg" className="h-10 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
-            <Plus className="w-5 h-5 mr-2" />
-            Add Word
+          <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="icon" className="h-12 w-12 rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+            <Plus className="w-6 h-6" />
           </Button>
         </div>
       </div>
