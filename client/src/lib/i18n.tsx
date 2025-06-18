@@ -108,6 +108,9 @@ const translations = {
     
     // Word Generation
     'vocab.generate': 'Generate Words',
+    'generate.30words': 'Generate 30 Words',
+    'generate.enterTag': 'Enter tag name (max 10 characters):',
+    'generate.tagTooLong': 'Tag name must be 10 characters or less',
     
     // Study Mode - Swipe Study
     'swipeStudy': 'Swipe Study',
@@ -229,7 +232,6 @@ const translations = {
     'vocab.no_results': '検索条件に一致する単語がありません。',
     'vocab.add_first': '最初の単語を追加',
     'vocab.search_placeholder': '単語を検索...',
-    'vocab.generate': 'AI単語生成',
     'vocab.all_categories': 'すべてのカテゴリ',
     'vocab.added': '追加日',
     
@@ -312,6 +314,11 @@ const translations = {
     // Pagination
     'pagination.items': '件',
     'pagination.per_page': '表示件数',
+    
+    // Word Generation
+    'generate.30words': '30語を生成',
+    'generate.enterTag': 'タグ名を入力してください（最大10文字）：',
+    'generate.tagTooLong': 'タグ名は10文字以内で入力してください',
     
     // Study Mode - Swipe Study
     'swipeStudy': 'スワイプ学習',

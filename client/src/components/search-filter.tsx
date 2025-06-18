@@ -153,17 +153,17 @@ export function SearchFilter({
             variant="outline"
             size="sm"
             onClick={() => {
-              const tagName = prompt("Enter tag name (max 10 characters):", "");
+              const tagName = prompt(t("generate.enterTag"), "");
               if (tagName && tagName.trim().length <= 10) {
                 onGenerateWords(tagName.trim());
               } else if (tagName) {
-                alert("Tag name must be 10 characters or less");
+                alert(t("generate.tagTooLong"));
               }
             }}
             className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border-purple-300 dark:border-purple-700"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            Generate 30 Words
+            {t("generate.30words")}
           </Button>
         )}
       </div>
