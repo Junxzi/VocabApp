@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { VocabularyCard } from "@/components/vocabulary-card";
 import { VocabularyListView } from "@/components/vocabulary-list-view";
@@ -28,6 +28,10 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [wordGeneratorModalOpen, setWordGeneratorModalOpen] = useState(false);
   const [generatorTagName, setGeneratorTagName] = useState("");
   const [wordGachaModalOpen, setWordGachaModalOpen] = useState(false);
+  
+  // Scroll position preservation
+  const scrollPositionRef = useRef<number>(0);
+  const containerRef = useRef<HTMLElement | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language, setLanguage } = useLanguage();
@@ -122,6 +126,45 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     setCurrentPage(1);
   };
 
+  // Save scroll position when editing a word
+  const handleEditWord = (word: VocabularyWord) => {
+    // Save current scroll position
+    if (containerRef.current) {
+      scrollPositionRef.current = containerRef.current.scrollTop;
+    } else {
+      scrollPositionRef.current = window.scrollY;
+    }
+    onEditWord(word);
+  };
+
+  // Restore scroll position after component mounts/updates
+  useEffect(() => {
+    const restoreScrollPosition = () => {
+      if (scrollPositionRef.current > 0) {
+        if (containerRef.current) {
+          containerRef.current.scrollTop = scrollPositionRef.current;
+        } else {
+          window.scrollTo(0, scrollPositionRef.current);
+        }
+      }
+    };
+
+    // Use a small delay to ensure content is rendered
+    const timer = setTimeout(restoreScrollPosition, 100);
+    return () => clearTimeout(timer);
+  }, [currentPage, viewMode, filteredAndSortedWords]);
+
+  // Save scroll position on unmount
+  useEffect(() => {
+    return () => {
+      if (containerRef.current) {
+        scrollPositionRef.current = containerRef.current.scrollTop;
+      } else {
+        scrollPositionRef.current = window.scrollY;
+      }
+    };
+  }, []);
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -144,7 +187,10 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom pt-12 sm:pt-8">
+    <main 
+      ref={(el) => { containerRef.current = el; }}
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom pt-12 sm:pt-8"
+    >
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-[12px] mb-[12px]">{t("vocab.title")}</h1>
         
@@ -226,7 +272,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
                 <VocabularyCard
                   key={word.id}
                   word={word}
-                  onEdit={onEditWord}
+                  onEdit={handleEditWord}
                   onDelete={handleDeleteWord}
                 />
               ))}
@@ -234,7 +280,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           ) : (
             <VocabularyListView
               words={paginatedWords}
-              onEdit={onEditWord}
+              onEdit={handleEditWord}
               onDelete={handleDeleteWord}
             />
           )}
