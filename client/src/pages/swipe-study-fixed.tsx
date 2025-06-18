@@ -621,12 +621,11 @@ export function SwipeStudyPage() {
         
 
       </div>
-
       {/* Card Container - positioned lower for thumb accessibility */}
       <div className="max-w-md mx-auto h-[600px] relative mt-20">
         {/* Large counters in upper corners */}
         <div className="absolute -top-20 left-0 z-20">
-          <div className="flex items-center justify-center w-16 h-16 bg-red-500 text-white rounded-full shadow-lg">
+          <div className="flex items-center justify-center w-16 h-16 bg-red-500 text-white rounded-full shadow-lg mt-[9px] mb-[9px]">
             <div className="text-center">
               <XCircle className="w-6 h-6 mx-auto mb-1" />
               <span className="text-lg font-bold">{sessionStats.needReview}</span>
