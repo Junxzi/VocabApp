@@ -597,7 +597,7 @@ export function SwipeStudyPage() {
       {/* Card Container - positioned lower for thumb accessibility */}
       <div className="max-w-md mx-auto h-[520px] relative mt-20">
         {/* Background blank card frame for smoother transitions */}
-        <div className="absolute inset-0 bg-card border-2 border-border/30 rounded-2xl shadow-lg opacity-50 scale-95 z-0"></div>
+        <div className="absolute inset-0 bg-card border-2 border-border/30 rounded-2xl shadow-lg opacity-50 z-0"></div>
         
         {displayedWord && !isCardSwiping && (
           <StudyCard
