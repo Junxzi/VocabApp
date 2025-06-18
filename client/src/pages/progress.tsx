@@ -126,23 +126,23 @@ export function ProgressPage() {
           <Card>
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">
-                Study Statistics
+                {t('studyStatistics')}
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Words Studied</span>
+                  <span className="text-muted-foreground">{t('wordsStudied')}</span>
                   <span className="font-medium">{studiedWords.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Study Sessions</span>
+                  <span className="text-muted-foreground">{t('totalStudySessions')}</span>
                   <span className="font-medium">{totalStudyCount}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Correct Answers</span>
+                  <span className="text-muted-foreground">{t('correctAnswers')}</span>
                   <span className="font-medium">{totalCorrectAnswers}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Success Rate</span>
+                  <span className="text-muted-foreground">{t('successRate')}</span>
                   <span className="font-medium">{averageAccuracy}%</span>
                 </div>
               </div>
@@ -154,11 +154,11 @@ export function ProgressPage() {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">
-              Recent Activity
+              {t('recentActivity')}
             </h3>
             {recentActivity.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
-                No recent study activity. Start studying to see your progress here!
+                {t('noRecentActivity')}
               </p>
             ) : (
               <div className="space-y-4">
@@ -171,7 +171,7 @@ export function ProgressPage() {
                       <div className="w-2 h-2 bg-primary rounded-full"></div>
                       <div>
                         <div className="font-medium text-foreground">
-                          Studied "{word.word}"
+                          {t('studiedWord').replace('{{word}}', word.word)}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {word.lastStudied && formatRelativeTime(new Date(word.lastStudied))}
@@ -181,7 +181,7 @@ export function ProgressPage() {
                     <div className="text-sm text-muted-foreground">
                       {(word.studyCount || 0) > 0 && (
                         <span>
-                          {calculateAccuracy(word.correctAnswers || 0, word.studyCount || 0)}% accuracy
+                          {calculateAccuracy(word.correctAnswers || 0, word.studyCount || 0)}% {t('accuracyLabel')}
                         </span>
                       )}
                     </div>

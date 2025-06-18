@@ -109,6 +109,15 @@ const translations = {
     'averageAccuracy': 'Average Accuracy',
     'dayStreak': 'Day Streak',
     'wordsByCategory': 'Words by Category',
+    'studyStatistics': 'Study Statistics',
+    'wordsStudied': 'Words Studied',
+    'totalStudySessions': 'Total Study Sessions',
+    'correctAnswers': 'Correct Answers',
+    'successRate': 'Success Rate',
+    'recentActivity': 'Recent Activity',
+    'noRecentActivity': 'No recent study activity. Start studying to see your progress here!',
+    'studiedWord': 'Studied "{{word}}"',
+    'accuracyLabel': 'accuracy',
     
     // Common
     'common.loading': 'Loading...',
@@ -222,6 +231,15 @@ const translations = {
     'averageAccuracy': '平均正答率',
     'dayStreak': '連続日数',
     'wordsByCategory': 'カテゴリ別単語数',
+    'studyStatistics': '学習統計',
+    'wordsStudied': '学習済み単語',
+    'totalStudySessions': '総学習回数',
+    'correctAnswers': '正答数',
+    'successRate': '成功率',
+    'recentActivity': '最近の活動',
+    'noRecentActivity': '最近の学習活動がありません。学習を開始して進捗を確認しましょう！',
+    'studiedWord': '「{{word}}」を学習',
+    'accuracyLabel': '正答率',
     
     // Common
     'common.loading': '読み込み中...',
