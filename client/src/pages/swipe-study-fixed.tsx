@@ -39,6 +39,31 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     setDragX(info.offset.x);
   };
 
+  // Calculate border color with threshold and gradient
+  const getBorderColor = () => {
+    if (!isDragging) return undefined;
+    
+    const threshold = 50; // Center threshold zone
+    const maxDistance = 150; // Maximum distance for full color intensity
+    
+    if (Math.abs(dragX) <= threshold) {
+      return undefined; // No highlight in center zone
+    }
+    
+    const distance = Math.abs(dragX) - threshold;
+    const intensity = Math.min(distance / (maxDistance - threshold), 1);
+    
+    if (dragX > threshold) {
+      // Green with gradient opacity
+      return `rgba(34, 197, 94, ${0.3 + intensity * 0.7})`;
+    } else if (dragX < -threshold) {
+      // Red with gradient opacity
+      return `rgba(239, 68, 68, ${0.3 + intensity * 0.7})`;
+    }
+    
+    return undefined;
+  };
+
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
     setDragX(0);
@@ -135,7 +160,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         <Card className="absolute inset-0 bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl" 
               style={{ 
                 backfaceVisibility: 'hidden',
-                borderColor: isDragging ? (dragX > 0 ? '#22c55e' : dragX < 0 ? '#ef4444' : undefined) : undefined
+                borderColor: getBorderColor()
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
@@ -187,7 +212,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
               style={{ 
                 backfaceVisibility: 'hidden', 
                 transform: 'rotateY(180deg)',
-                borderColor: isDragging ? (dragX > 0 ? '#22c55e' : dragX < 0 ? '#ef4444' : undefined) : undefined
+                borderColor: getBorderColor()
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
