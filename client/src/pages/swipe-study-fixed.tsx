@@ -307,6 +307,7 @@ export function SwipeStudyPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isCardSwiping, setIsCardSwiping] = useState(false);
+  const [displayedWord, setDisplayedWord] = useState<VocabularyWord | null>(null);
   const [sessionStats, setSessionStats] = useState({
     known: 0,
     needReview: 0,
@@ -353,9 +354,18 @@ export function SwipeStudyPage() {
       setStudyWords(shuffled);
       setSessionStats(prev => ({ ...prev, total: shuffled.length }));
       setCurrentIndex(0);
+      setDisplayedWord(shuffled[0]);
       setShowAnswer(false);
+      setIsCardSwiping(false);
     }
   }, [words, studyMode]);
+
+  // Update displayed word when current index changes
+  useEffect(() => {
+    if (studyWords.length > 0 && currentIndex < studyWords.length) {
+      setDisplayedWord(studyWords[currentIndex]);
+    }
+  }, [currentIndex, studyWords]);
 
   useEffect(() => {
     if (studyMode === 'studying') {
@@ -384,12 +394,13 @@ export function SwipeStudyPage() {
   };
 
   const handleSwipe = (direction: 'left' | 'right') => {
-    const currentWord = studyWords[currentIndex];
-    if (!currentWord || isCardSwiping) return;
+    if (!displayedWord || isCardSwiping) return;
 
     setIsCardSwiping(true);
     const known = direction === 'right';
+    const wordId = displayedWord.id;
     
+    // Update stats immediately
     setSessionStats(prev => ({
       ...prev,
       known: known ? prev.known + 1 : prev.known,
@@ -397,22 +408,22 @@ export function SwipeStudyPage() {
     }));
 
     updateWordSpacedRepetitionMutation.mutate({ 
-      id: currentWord.id, 
+      id: wordId, 
       known 
     });
 
-    // Wait for swipe animation to complete before showing next card
+    // Wait for swipe animation to complete
     setTimeout(() => {
       if (currentIndex < studyWords.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
+        // Delay before showing next card
+        setTimeout(() => {
+          setIsCardSwiping(false);
+        }, 150);
       } else {
         setStudyMode('complete');
       }
-      // Small additional delay before showing the card to prevent flash
-      setTimeout(() => {
-        setIsCardSwiping(false);
-      }, 50);
     }, 600);
   };
 
@@ -505,7 +516,6 @@ export function SwipeStudyPage() {
   }
 
   const progress = ((currentIndex + 1) / studyWords.length) * 100;
-  const currentWord = studyWords[currentIndex];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 overflow-hidden">
@@ -541,10 +551,10 @@ export function SwipeStudyPage() {
 
       {/* Card Container - positioned lower for thumb accessibility */}
       <div className="max-w-md mx-auto h-[450px] relative mt-20">
-        {currentWord && !isCardSwiping && (
+        {displayedWord && !isCardSwiping && (
           <StudyCard
-            key={`card-${currentIndex}-${currentWord.id}`}
-            word={currentWord}
+            key={`card-${currentIndex}-${displayedWord.id}`}
+            word={displayedWord}
             onSwipe={handleSwipe}
             onTap={handleCardTap}
             showAnswer={showAnswer}
