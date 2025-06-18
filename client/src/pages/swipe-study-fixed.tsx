@@ -44,8 +44,8 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const getBorderColor = () => {
     if (!isDragging) return undefined;
     
-    const threshold = 30; // Center threshold zone - reduced for quicker color response
-    const maxDistance = 150; // Maximum distance for full color intensity
+    const threshold = 20; // Center threshold zone - reduced for quicker response
+    const maxDistance = 80; // Maximum distance for full intensity - shorter distance
     
     if (Math.abs(dragX) <= threshold) {
       return undefined; // No highlight in center zone
@@ -69,8 +69,8 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const getContentOpacity = () => {
     if (!isDragging) return 1;
     
-    const threshold = 30;
-    const maxDistance = 150;
+    const threshold = 20;
+    const maxDistance = 80;
     
     if (Math.abs(dragX) <= threshold) {
       return 1; // Full opacity in center zone
@@ -79,14 +79,14 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     const distance = Math.abs(dragX) - threshold;
     const fadeIntensity = Math.min(distance / (maxDistance - threshold), 1);
     
-    return 1 - (fadeIntensity * 0.7); // Fade out to 30% opacity
+    return 1 - (fadeIntensity * 0.8); // Fade out more aggressively to 20% opacity
   };
 
   const getOverlayOpacity = () => {
     if (!isDragging) return 0;
     
-    const threshold = 30;
-    const maxDistance = 150;
+    const threshold = 20;
+    const maxDistance = 80;
     
     if (Math.abs(dragX) <= threshold) {
       return 0; // No overlay in center zone
@@ -97,14 +97,14 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   };
 
   const getOverlayText = () => {
-    if (dragX > 30) return "Know it!";
-    if (dragX < -30) return "Still learning";
+    if (dragX > 20) return "Know it!";
+    if (dragX < -20) return "Still learning";
     return "";
   };
 
   const getOverlayColor = () => {
-    if (dragX > 30) return "text-green-500";
-    if (dragX < -30) return "text-red-500";
+    if (dragX > 20) return "text-green-500";
+    if (dragX < -20) return "text-red-500";
     return "";
   };
 
