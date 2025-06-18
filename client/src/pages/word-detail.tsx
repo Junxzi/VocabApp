@@ -129,32 +129,21 @@ export function WordDetailPage() {
         {/* Word Card */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-3xl font-bold">
-                {word.word}
-              </CardTitle>
-              <div className="flex items-center space-x-2">
-                {word.partOfSpeech && (
-                  <Badge variant="secondary">
-                    {word.partOfSpeech}
-                  </Badge>
-                )}
-                <Badge className={`${getDifficultyColor(word.difficulty)} text-white`}>
-                  Rank {word.difficulty || "?"}
-                </Badge>
-                <Badge variant="outline">
-                  {word.category}
-                </Badge>
-              </div>
-            </div>
+            <CardTitle className="text-3xl font-bold">
+              {word.word}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-
-
-            {/* Definition */}
+            {/* Part of Speech and Definition */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Definition</h3>
-              <p className="text-muted-foreground leading-relaxed">{word.definition}</p>
+              {word.partOfSpeech && (
+                <div className="mb-2">
+                  <Badge variant="secondary" className="text-sm">
+                    {word.partOfSpeech}
+                  </Badge>
+                </div>
+              )}
+              <p className="text-muted-foreground leading-relaxed text-lg">{word.definition}</p>
             </div>
 
             {/* Enhanced Pronunciations */}

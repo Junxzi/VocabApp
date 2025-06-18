@@ -8,9 +8,17 @@ export interface PronunciationData {
   au: string;
 }
 
+export interface PartOfSpeechEntry {
+  type: string;
+  definition: string;
+  examples: string[];
+}
+
 export interface WordEnrichmentData {
   pronunciations: PronunciationData;
-  partOfSpeech: string;
+  partsOfSpeech: PartOfSpeechEntry[];
+  primaryPartOfSpeech: string;
+  combinedDefinition: string;
   exampleSentences: string[];
 }
 
@@ -26,34 +34,56 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content: `You are a linguistic expert. For any given English word, provide:
+          content: `You are a comprehensive linguistic expert. For any given English word, analyze ALL its possible parts of speech and provide:
+
 1. IPA pronunciation for American English, British English, and Australian English (without slashes or brackets)
-2. Part of speech (noun, verb, adjective, etc.)
-3. Exactly 2 practical example sentences that demonstrate different uses of the word
+2. ALL parts of speech the word can function as (noun, verb, adjective, adverb, etc.)
+3. For EACH part of speech: a clear definition and 2 example sentences
+4. A combined comprehensive definition that covers all uses
+5. The most common/primary part of speech
 
 Respond with valid JSON in this exact format:
 {
   "pronunciations": {
-    "us": "hʊf",
-    "uk": "hʊf", 
-    "au": "hʊf"
+    "us": "raɪt",
+    "uk": "raɪt", 
+    "au": "raɪt"
   },
-  "partOfSpeech": "noun",
+  "partsOfSpeech": [
+    {
+      "type": "verb",
+      "definition": "to mark letters or words on a surface with a pen or similar tool",
+      "examples": [
+        "She likes to write in her diary every evening.",
+        "Please write your name at the top of the page."
+      ]
+    },
+    {
+      "type": "noun",
+      "definition": "the activity or skill of writing",
+      "examples": [
+        "His write was barely legible.",
+        "The write on the wall was fading."
+      ]
+    }
+  ],
+  "primaryPartOfSpeech": "verb",
+  "combinedDefinition": "To mark letters or words on a surface; can also refer to the act or result of writing",
   "exampleSentences": [
-    "Example sentence 1 here.",
-    "Example sentence 2 here."
+    "I will write a letter to my friend tomorrow.",
+    "The write quality of this pen is excellent."
   ]
 }
 
-Only include the IPA symbols without any slashes, brackets, or other punctuation. Only include the JSON response, no additional text.`
+Include ALL possible parts of speech for the word, with accurate definitions and examples. Only include the IPA symbols without any slashes, brackets, or other punctuation.`
         },
         {
           role: "user",
-          content: `Please provide pronunciation and example sentences for the word: "${word}"`
+          content: `Please provide comprehensive analysis for the word: "${word}"`
         }
       ],
       response_format: { type: "json_object" },
@@ -68,7 +98,9 @@ Only include the IPA symbols without any slashes, brackets, or other punctuation
         uk: result.pronunciations?.uk || "",
         au: result.pronunciations?.au || ""
       },
-      partOfSpeech: result.partOfSpeech || "",
+      partsOfSpeech: Array.isArray(result.partsOfSpeech) ? result.partsOfSpeech : [],
+      primaryPartOfSpeech: result.primaryPartOfSpeech || "",
+      combinedDefinition: result.combinedDefinition || "",
       exampleSentences: Array.isArray(result.exampleSentences) ? result.exampleSentences : []
     };
 
