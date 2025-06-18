@@ -28,24 +28,24 @@ export function SwipeCard({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStarted, setDragStarted] = useState(false);
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-150, 0, 150], [-15, 0, 15]);
-  const opacity = useTransform(x, [-150, -100, 0, 100, 150], [0, 1, 1, 1, 0]);
+  const rotate = useTransform(x, [-100, 0, 100], [-15, 0, 15]);
+  const opacity = useTransform(x, [-100, -60, 0, 60, 100], [0, 1, 1, 1, 0]);
   
-  // Color transforms for swipe feedback
-  const leftSwipeIntensity = useTransform(x, [-150, -50, 0], [1, 0.8, 0]);
-  const rightSwipeIntensity = useTransform(x, [0, 50, 150], [0, 0.8, 1]);
+  // Color transforms for swipe feedback - more responsive to lighter swipes
+  const leftSwipeIntensity = useTransform(x, [-100, -30, 0], [1, 0.8, 0]);
+  const rightSwipeIntensity = useTransform(x, [0, 30, 100], [0, 0.8, 1]);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
     
     if (!isActive) return;
 
-    const threshold = 120;
+    const threshold = 60; // Reduced from 120 for lighter swipes
     const velocity = Math.abs(info.velocity.x);
     const distance = Math.abs(info.offset.x);
     
-    // Only trigger swipe if there's significant movement or velocity
-    if (distance > threshold || (velocity > 500 && distance > 50)) {
+    // Trigger swipe with lighter movement or lower velocity
+    if (distance > threshold || (velocity > 300 && distance > 30)) {
       if (info.offset.x > 0) {
         onSwipe('right');
       } else {
