@@ -154,7 +154,11 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         
         {/* Mobile Add Button */}
         <div className="flex md:hidden">
-          <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="icon" className="h-12 w-12 rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+          <Button 
+            onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} 
+            size="icon" 
+            className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 text-white"
+          >
             <Plus className="w-6 h-6" />
           </Button>
         </div>
@@ -183,7 +187,11 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
             <Sparkles className="w-5 h-5 mr-2" />
 {language === 'ja' ? 'タグ生成+' : 'Tag Gen+'}
           </Button>
-          <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="icon" className="h-12 w-12 rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+          <Button 
+            onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} 
+            size="icon" 
+            className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 text-white"
+          >
             <Plus className="w-6 h-6" />
           </Button>
         </div>
