@@ -193,6 +193,107 @@ export async function getCategoriesFromNotion() {
 }
 
 /**
+ * Setup the Vocabulary Words database in Notion
+ */
+export async function setupVocabularyDatabase() {
+    return await createDatabaseIfNotExists("VocabMaster Words", {
+        Word: {
+            title: {}
+        },
+        Definition: {
+            rich_text: {}
+        },
+        PartOfSpeech: {
+            select: {
+                options: [
+                    { name: "noun", color: "blue" },
+                    { name: "verb", color: "green" },
+                    { name: "adjective", color: "yellow" },
+                    { name: "adverb", color: "orange" },
+                    { name: "preposition", color: "red" },
+                    { name: "conjunction", color: "purple" },
+                    { name: "interjection", color: "pink" }
+                ]
+            }
+        },
+        Category: {
+            relation: {
+                database_id: "" // Will be set dynamically
+            }
+        },
+        PronunciationUS: {
+            rich_text: {}
+        },
+        PronunciationUK: {
+            rich_text: {}
+        },
+        ExampleSentences: {
+            rich_text: {}
+        },
+        Difficulty: {
+            select: {
+                options: [
+                    { name: "1", color: "green" },
+                    { name: "2", color: "yellow" },
+                    { name: "3", color: "orange" },
+                    { name: "4", color: "red" }
+                ]
+            }
+        },
+        Status: {
+            select: {
+                options: [
+                    { name: "Active", color: "green" },
+                    { name: "Draft", color: "yellow" },
+                    { name: "Archived", color: "red" }
+                ]
+            }
+        }
+    });
+}
+
+/**
+ * Get all vocabulary words from Notion Words database
+ */
+export async function getVocabularyWordsFromNotion() {
+    try {
+        const wordsDb = await findDatabaseByTitle("VocabMaster Words");
+        if (!wordsDb) {
+            throw new Error("Words database not found in Notion");
+        }
+
+        const response = await notion.databases.query({
+            database_id: wordsDb.id,
+            filter: {
+                property: "Status",
+                select: {
+                    equals: "Active"
+                }
+            }
+        });
+
+        return response.results.map((page: any) => {
+            const properties = page.properties;
+            
+            return {
+                notionId: page.id,
+                word: properties.Word?.title?.[0]?.plain_text || "",
+                definition: properties.Definition?.rich_text?.[0]?.plain_text || "",
+                partOfSpeech: properties.PartOfSpeech?.select?.name || "",
+                pronunciationUs: properties.PronunciationUS?.rich_text?.[0]?.plain_text || "",
+                pronunciationUk: properties.PronunciationUK?.rich_text?.[0]?.plain_text || "",
+                exampleSentences: properties.ExampleSentences?.rich_text?.[0]?.plain_text || "",
+                difficulty: properties.Difficulty?.select?.name ? parseInt(properties.Difficulty.select.name) : null,
+                categoryRelation: properties.Category?.relation || []
+            };
+        });
+    } catch (error) {
+        console.error("Error fetching vocabulary words from Notion:", error);
+        throw new Error("Failed to fetch vocabulary words from Notion");
+    }
+}
+
+/**
  * Create default categories in Notion if they don't exist
  */
 export async function createDefaultCategories() {

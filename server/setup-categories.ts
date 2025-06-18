@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { categories } from "@shared/schema";
-import { getCategoriesFromNotion, createDefaultCategories, setupCategoriesDatabase } from "./notion";
+import { categories, vocabularyWords } from "@shared/schema";
+import { getCategoriesFromNotion, createDefaultCategories, setupCategoriesDatabase, setupVocabularyDatabase, getVocabularyWordsFromNotion } from "./notion";
 import { eq } from "drizzle-orm";
 
 /**
@@ -71,6 +71,96 @@ async function initializeDefaultCategories() {
         } catch (error) {
             console.error(`✗ Failed to create category ${category.name}:`, error);
         }
+    }
+}
+
+/**
+ * Sync vocabulary words from Notion to database
+ */
+async function syncVocabularyWordsFromNotion() {
+    console.log("🔍 Checking Notion configuration for vocabulary sync...");
+    
+    if (!process.env.NOTION_INTEGRATION_SECRET || !process.env.NOTION_PAGE_URL) {
+        console.log("⚠ Notion integration not configured - skipping vocabulary sync");
+        return;
+    }
+
+    try {
+        console.log("Setting up Notion vocabulary database...");
+        await setupVocabularyDatabase();
+        
+        console.log("Syncing vocabulary words from Notion to database...");
+        const notionWords = await getVocabularyWordsFromNotion();
+        
+        // Get category mapping for relation lookups
+        const categoryMap = new Map();
+        const allCategories = await db.select().from(categories);
+        allCategories.forEach(cat => {
+            if (cat.notionId) {
+                categoryMap.set(cat.notionId, cat.id);
+            }
+        });
+        
+        for (const notionWord of notionWords) {
+            try {
+                // Check if word exists by notion ID
+                const existing = await db.select().from(vocabularyWords)
+                    .where(eq(vocabularyWords.word, notionWord.word));
+                
+                // Find category ID from relation
+                let categoryId = null;
+                let categoryName = "Academic"; // Default category
+                if (notionWord.categoryRelation.length > 0) {
+                    const relationId = notionWord.categoryRelation[0].id;
+                    categoryId = categoryMap.get(relationId);
+                    if (categoryId) {
+                        const category = allCategories.find(cat => cat.id === categoryId);
+                        if (category) {
+                            categoryName = category.name;
+                        }
+                    }
+                }
+                
+                if (existing.length > 0) {
+                    // Update existing word
+                    await db.update(vocabularyWords)
+                        .set({
+                            definition: notionWord.definition,
+                            partOfSpeech: notionWord.partOfSpeech,
+                            pronunciationUs: notionWord.pronunciationUs,
+                            pronunciationUk: notionWord.pronunciationUk,
+                            exampleSentences: notionWord.exampleSentences,
+                            difficulty: notionWord.difficulty,
+                            categoryId: categoryId,
+                            category: categoryName,
+                            updatedAt: new Date()
+                        })
+                        .where(eq(vocabularyWords.word, notionWord.word));
+                    console.log(`✓ Updated word: ${notionWord.word}`);
+                } else {
+                    // Create new word
+                    await db.insert(vocabularyWords).values({
+                        word: notionWord.word,
+                        definition: notionWord.definition,
+                        partOfSpeech: notionWord.partOfSpeech,
+                        pronunciationUs: notionWord.pronunciationUs,
+                        pronunciationUk: notionWord.pronunciationUk,
+                        exampleSentences: notionWord.exampleSentences,
+                        difficulty: notionWord.difficulty,
+                        categoryId: categoryId,
+                        category: categoryName,
+                        language: "en"
+                    });
+                    console.log(`✓ Created word from Notion: ${notionWord.word}`);
+                }
+            } catch (error) {
+                console.error(`✗ Failed to sync word ${notionWord.word}:`, error);
+            }
+        }
+        
+        console.log("✓ Notion vocabulary words sync completed");
+    } catch (error) {
+        console.error("✗ Failed to sync vocabulary from Notion:", error);
     }
 }
 
@@ -155,6 +245,7 @@ async function setupCategories() {
         
         // Try to sync from Notion if configured
         await syncCategoriesFromNotion();
+        await syncVocabularyWordsFromNotion();
         
         // Display final category list
         const allCategories = await db.select().from(categories);
@@ -182,4 +273,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     });
 }
 
-export { setupCategories, initializeDefaultCategories, syncCategoriesFromNotion };
+export { setupCategories, initializeDefaultCategories, syncCategoriesFromNotion, syncVocabularyWordsFromNotion };

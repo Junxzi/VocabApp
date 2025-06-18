@@ -5,7 +5,7 @@ import { insertVocabularyWordSchema, updateVocabularyWordSchema, insertCategoryS
 import { z } from "zod";
 import { enrichWordData, generatePronunciation } from "./openai";
 import { calculateNextReview, swipeToQuality, isDueForReview } from "./spaced-repetition";
-import { syncCategoriesFromNotion, initializeDefaultCategories } from "./setup-categories";
+import { syncCategoriesFromNotion, initializeDefaultCategories, syncVocabularyWordsFromNotion } from "./setup-categories";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize categories on startup
@@ -46,6 +46,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Categories synced from Notion", categories });
     } catch (error) {
       res.status(500).json({ message: "Failed to sync categories from Notion" });
+    }
+  });
+
+  app.post("/api/vocabulary/sync", async (req, res) => {
+    try {
+      await syncVocabularyWordsFromNotion();
+      const words = await storage.getAllVocabularyWords();
+      res.json({ message: "Vocabulary words synced from Notion", count: words.length });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to sync vocabulary from Notion" });
     }
   });
 
