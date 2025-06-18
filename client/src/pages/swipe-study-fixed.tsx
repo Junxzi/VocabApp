@@ -335,27 +335,47 @@ function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
             {/* Daily Challenge */}
             <Button
               onClick={() => onStartStudy('daily')}
-              className="w-full h-auto p-6 flex items-center gap-4"
-              variant={dailyStatus?.completed ? "secondary" : "default"}
+              className={`w-full h-auto p-6 flex items-center gap-4 relative overflow-hidden transition-all duration-300 ${
+                dailyStatus?.completed 
+                  ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 opacity-60"
+                  : "bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 text-white shadow-xl border-0 hover:shadow-2xl hover:scale-[1.02] before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:via-transparent before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
+              }`}
+              variant="ghost"
               disabled={dailyStatus?.completed}
             >
-              <div className="flex items-center gap-3">
+              {/* Animated sparkle overlay for uncompleted daily challenge */}
+              {!dailyStatus?.completed && (
+                <div className="absolute top-2 right-2 z-10">
+                  <div className="relative">
+                    <div className="animate-pulse">
+                      <Trophy className="w-5 h-5 text-yellow-300" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3 relative z-20">
                 <div className="relative">
-                  <Calendar className="w-6 h-6" />
+                  <div className={`p-2 rounded-full ${dailyStatus?.completed ? "" : "bg-white/20 backdrop-blur-sm"}`}>
+                    <Calendar className={`w-6 h-6 ${dailyStatus?.completed ? "" : "text-white drop-shadow-lg"}`} />
+                  </div>
                   {dailyStatus?.completed && (
                     <CheckCircle2 className="w-4 h-4 absolute -top-1 -right-1 text-green-500" />
                   )}
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold flex items-center gap-2">
-                    今日の問題
+                  <div className="font-bold flex items-center gap-2 text-lg">
+                    <span className={dailyStatus?.completed ? "" : "text-white drop-shadow-lg"}>
+                      今日の問題
+                    </span>
                     {dailyStatus?.completed ? (
-                      <Badge variant="secondary" className="text-xs">完了</Badge>
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">完了</Badge>
                     ) : (
-                      <Badge variant="destructive" className="text-xs">未完了</Badge>
+                      <Badge className="text-xs bg-yellow-400 text-yellow-900 font-bold animate-pulse">特別</Badge>
                     )}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className={`text-sm ${dailyStatus?.completed ? "text-muted-foreground" : "text-white/90 drop-shadow"}`}>
                     {dailyStatus?.completed 
                       ? `本日は完了済み (${dailyStatus.stats?.correctWords || 0}/${dailyStatus.stats?.totalWords || 0})`
                       : "SuperMemoアルゴリズムで選ばれた15問"
