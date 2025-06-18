@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Volume2, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord } from "@shared/schema";
 
 interface SwipeCardProps {
@@ -23,6 +24,7 @@ export function SwipeCard({
   isActive, 
   index 
 }: SwipeCardProps) {
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-150, 0, 150], [-30, 0, 30]);
@@ -159,7 +161,7 @@ export function SwipeCard({
                   <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20">
                     <EyeOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground">
-                      Tap to see meaning...
+                      {t('tapToSeeMeaning')}
                     </p>
                   </div>
                 </div>
@@ -196,14 +198,14 @@ export function SwipeCard({
                 <div className="text-center">
                   <div className="mb-6 p-6 bg-primary/5 rounded-lg border border-primary/20">
                     <h3 className="text-xl font-semibold mb-3 text-foreground">
-                      Meaning
+                      {t('meaning')}
                     </h3>
                     <p className="text-lg text-foreground leading-relaxed">
                       {word.definition}
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Tap again to flip back
+                    {t('tapAgainToFlipBack')}
                   </p>
                 </div>
               </div>
