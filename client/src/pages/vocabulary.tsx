@@ -146,7 +146,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom pt-12 sm:pt-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t("vocab.title")}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-[12px] mb-[12px]">{t("vocab.title")}</h1>
         
         {/* Mobile Add Button */}
         <div className="flex md:hidden">
@@ -186,7 +186,6 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           </Button>
         </div>
       </div>
-
       <SearchFilter
         onSearch={setSearchQuery}
         onTagFilter={setSelectedTags}
@@ -203,7 +202,6 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         viewMode={viewMode}
         totalCount={filteredAndSortedWords.length}
       />
-
       {filteredAndSortedWords.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
@@ -251,20 +249,17 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           />
         </>
       )}
-
       {/* Word Generator Modal */}
       <WordGeneratorModal
         open={wordGeneratorModalOpen}
         onOpenChange={setWordGeneratorModalOpen}
         category={generatorTagName}
       />
-
       {/* Word Gacha Modal */}
       <WordGachaModal
         open={wordGachaModalOpen}
         onOpenChange={setWordGachaModalOpen}
       />
-
       {/* Floating Add Button */}
       <Button 
         onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} 
