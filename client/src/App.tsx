@@ -113,6 +113,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation onAddWordClick={handleAddWord} onImportClick={handleImport} />
       <div className="pb-20 md:pb-0">
         <Switch>
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
