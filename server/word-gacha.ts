@@ -31,7 +31,7 @@ export async function generateWordGacha(tagName: string, count: number = 30): Pr
         messages: [
           {
             role: "system",
-            content: `あなたは英語学習の専門家です。指定されたカテゴリ・テーマの英単語を${currentBatchSize}個生成してください。
+            content: `あなたは英語学習の専門家です。指定されたタグ・テーマの英単語を${currentBatchSize}個生成してください。
 
 タグ: "${tagName}"
 
@@ -70,7 +70,7 @@ JSON形式で以下のように回答してください:
           },
           {
             role: "user",
-            content: `"${categoryName}"カテゴリの英単語を${currentBatchSize}個生成してください。バッチ${i + 1}/${numBatches}。このテーマに最も適した実用的で面白い単語を選んでください。`
+            content: `"${tagName}"タグの英単語を${currentBatchSize}個生成してください。バッチ${i + 1}/${numBatches}。このテーマに最も適した実用的で面白い単語を選んでください。`
           }
         ],
         response_format: { type: "json_object" },
