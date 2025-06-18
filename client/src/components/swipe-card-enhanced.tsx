@@ -28,12 +28,12 @@ export function SwipeCard({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStarted, setDragStarted] = useState(false);
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-100, 0, 100], [-15, 0, 15]);
-  const opacity = useTransform(x, [-100, -60, 0, 60, 100], [0, 1, 1, 1, 0]);
+  const rotate = useTransform(x, [-200, 0, 200], [-30, 0, 30]);
+  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 0.5, 1, 0.5, 0]);
   
-  // Color transforms for swipe feedback - more responsive to lighter swipes
-  const leftSwipeIntensity = useTransform(x, [-100, -30, 0], [1, 0.8, 0]);
-  const rightSwipeIntensity = useTransform(x, [0, 30, 100], [0, 0.8, 1]);
+  // More fluid color transforms
+  const leftSwipeIntensity = useTransform(x, [-200, -50, 0], [1, 0.6, 0]);
+  const rightSwipeIntensity = useTransform(x, [0, 50, 200], [0, 0.6, 1]);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
@@ -43,11 +43,11 @@ export function SwipeCard({
     const velocity = Math.abs(info.velocity.x);
     const distance = Math.abs(info.offset.x);
     
-    // Very sensitive detection for light "シュッ" gestures
+    // Super sensitive detection - any meaningful movement triggers swipe
     const shouldSwipe = 
-      distance > 40 || // Light distance
-      (velocity > 200 && distance > 20) || // Quick flick with minimal distance
-      (velocity > 100 && distance > 30); // Medium flick
+      distance > 25 || // Very light distance
+      (velocity > 150 && distance > 15) || // Minimal flick
+      (velocity > 80 && distance > 20); // Gentle movement
     
     if (shouldSwipe) {
       if (info.offset.x > 0) {
@@ -57,7 +57,6 @@ export function SwipeCard({
       }
     }
     
-    // Reset drag state after a short delay to prevent tap interference
     setTimeout(() => setDragStarted(false), 100);
   };
 
@@ -134,14 +133,14 @@ export function SwipeCard({
       variants={cardVariants}
       animate={isActive ? "active" : "inactive"}
       drag={isActive ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.1}
-      dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
+      dragConstraints={false}
+      dragElastic={0.3}
+      dragMomentum={false}
       whileDrag={{ 
-        scale: 1.02, 
+        scale: 1.05, 
         cursor: "grabbing",
-        boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.2)",
-        transition: { duration: 0.1 }
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        transition: { duration: 0.05 }
       }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
