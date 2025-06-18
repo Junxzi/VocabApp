@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, Plus, Upload } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Menu, Plus, Upload, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface NavigationProps {
   onAddWordClick: () => void;
@@ -12,11 +14,12 @@ interface NavigationProps {
 export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t, language, setLanguage } = useLanguage();
 
   const navigationItems = [
-    { label: "Vocabulary", href: "/" },
-    { label: "Study Mode", href: "/study" },
-    { label: "Progress", href: "/progress" },
+    { label: t("nav.vocabulary"), href: "/" },
+    { label: t("nav.study"), href: "/study" },
+    { label: t("nav.progress"), href: "/progress" },
   ];
 
   return (
