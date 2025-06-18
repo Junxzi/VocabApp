@@ -84,7 +84,6 @@ function AppContent() {
         onOpenChange={handleModalClose}
         onSubmit={onSubmitWord}
         editingWord={editingWord}
-        isLoading={isLoading}
       />
 
       <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>

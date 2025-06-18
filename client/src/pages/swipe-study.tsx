@@ -66,12 +66,6 @@ export function SwipeStudyPage() {
   }, []);
 
   const handleSwipe = (direction: 'left' | 'right') => {
-    // Prevent double swipe by checking if answer is shown
-    if (!showAnswer) {
-      setShowAnswer(true);
-      return;
-    }
-
     const currentWord = studyWords[currentIndex];
     if (!currentWord) {
       return; // Safety check to prevent undefined error
