@@ -64,6 +64,16 @@
   --radius: 0.5rem;
 }
 
+/* Flip animation styles */
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Preserve 3D transformation for flip animations */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
 .dark {
   --background: hsl(220, 13%, 9%);
   --foreground: hsl(210, 15%, 95%);
