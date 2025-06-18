@@ -29,13 +29,19 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragX, setDragX] = useState(0);
 
   const handleDragStart = () => {
     setIsDragging(true);
   };
 
+  const handleDrag = (event: any, info: PanInfo) => {
+    setDragX(info.offset.x);
+  };
+
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
+    setDragX(0);
     const threshold = 100;
     const distance = info.offset.x;
     const velocity = Math.abs(info.velocity.x);
@@ -110,6 +116,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.7}
       onDragStart={handleDragStart}
+      onDrag={handleDrag}
       onDragEnd={handleDragEnd}
       whileDrag={{ 
         scale: 1.05,
@@ -128,7 +135,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         <Card className="absolute inset-0 bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl" 
               style={{ 
                 backfaceVisibility: 'hidden',
-                borderColor: isDragging ? (x.get() > 0 ? '#22c55e' : x.get() < 0 ? '#ef4444' : undefined) : undefined
+                borderColor: isDragging ? (dragX > 0 ? '#22c55e' : dragX < 0 ? '#ef4444' : undefined) : undefined
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
@@ -180,7 +187,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
               style={{ 
                 backfaceVisibility: 'hidden', 
                 transform: 'rotateY(180deg)',
-                borderColor: isDragging ? (x.get() > 0 ? '#22c55e' : x.get() < 0 ? '#ef4444' : undefined) : undefined
+                borderColor: isDragging ? (dragX > 0 ? '#22c55e' : dragX < 0 ? '#ef4444' : undefined) : undefined
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
