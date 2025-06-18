@@ -171,6 +171,20 @@ export function WordDetailPage() {
                           US
                         </Badge>
                         <span className="text-muted-foreground font-mono">{word.pronunciationUs}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if ('speechSynthesis' in window) {
+                              const utterance = new SpeechSynthesisUtterance(word.word);
+                              utterance.lang = 'en-US';
+                              speechSynthesis.speak(utterance);
+                            }
+                          }}
+                          className="p-1 h-6 w-6"
+                        >
+                          <Volume2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     )}
                     {word.pronunciationUk && (
@@ -179,6 +193,20 @@ export function WordDetailPage() {
                           UK
                         </Badge>
                         <span className="text-muted-foreground font-mono">{word.pronunciationUk}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if ('speechSynthesis' in window) {
+                              const utterance = new SpeechSynthesisUtterance(word.word);
+                              utterance.lang = 'en-GB';
+                              speechSynthesis.speak(utterance);
+                            }
+                          }}
+                          className="p-1 h-6 w-6"
+                        >
+                          <Volume2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     )}
                     {word.pronunciationAu && (
@@ -187,6 +215,20 @@ export function WordDetailPage() {
                           AU
                         </Badge>
                         <span className="text-muted-foreground font-mono">{word.pronunciationAu}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if ('speechSynthesis' in window) {
+                              const utterance = new SpeechSynthesisUtterance(word.word);
+                              utterance.lang = 'en-AU';
+                              speechSynthesis.speak(utterance);
+                            }
+                          }}
+                          className="p-1 h-6 w-6"
+                        >
+                          <Volume2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     )}
                   </div>
