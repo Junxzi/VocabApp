@@ -218,7 +218,16 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
             {/* Content with fading opacity */}
             <div className="text-center" style={{ opacity: getContentOpacity() }}>
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-4">{word.word}</h2>
+                <h2 className="text-3xl font-bold text-foreground mb-6">{word.word}</h2>
+                
+                {/* US pronunciation in small grey text */}
+                {word.pronunciationUs && (
+                  <div className="text-sm text-muted-foreground font-mono mb-3">
+                    /{word.pronunciationUs}/
+                  </div>
+                )}
+                
+                {/* Part of speech moved down */}
                 {word.partOfSpeech && (
                   <Badge variant="outline" className="text-sm">
                     {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
@@ -250,12 +259,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 </div>
               )}
               
-              <div className="mt-auto">
-                <Badge variant="secondary" className="text-sm px-4 py-2">
-                  <Eye className="w-4 h-4 mr-2" />
-                  {t('tapCardToSeeMeaning')}
-                </Badge>
-              </div>
+              
             </div>
             
             {/* Overlay text that appears when dragging */}
