@@ -29,6 +29,11 @@ export interface IStorage {
   updateWordSpacedRepetition(id: number, known: boolean): Promise<VocabularyWord | undefined>;
   getWordsForReview(limit: number): Promise<VocabularyWord[]>;
   getRandomWordsForStudy(limit: number): Promise<VocabularyWord[]>;
+  
+  // Daily challenge operations
+  getDailyChallengeWords(): Promise<VocabularyWord[]>;
+  getDailyChallengeStatus(): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }>;
+  completeDailyChallenge(stats: { totalWords: number; correctWords: number; accuracy: number }): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -241,6 +246,96 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedWord;
+  }
+
+  async getDailyChallengeWords(): Promise<VocabularyWord[]> {
+    const today = new Date().toISOString().split('T')[0];
+    const DAILY_CHALLENGE_COUNT = 15; // Fixed number of words per day
+    
+    // Get all words that are due for review or haven't been studied recently
+    const allWords = await db
+      .select()
+      .from(vocabularyWords);
+    
+    // Filter words using SuperMemo algorithm priorities:
+    // 1. Words due for review (nextReview <= today)
+    // 2. Words with low ease factor (difficult words)
+    // 3. Words that haven't been studied much
+    const prioritizedWords = allWords
+      .filter(word => {
+        const nextReview = word.nextReview ? new Date(word.nextReview) : new Date(0);
+        const isDue = nextReview <= new Date(today + 'T23:59:59');
+        const lowEase = parseFloat(word.easeFactor?.toString() || "2.5") < 2.0;
+        const lowStudyCount = (word.studyCount || 0) < 3;
+        
+        return isDue || lowEase || lowStudyCount;
+      })
+      .sort((a, b) => {
+        // Sort by priority: due date, ease factor, study count
+        const aNextReview = a.nextReview ? new Date(a.nextReview) : new Date(0);
+        const bNextReview = b.nextReview ? new Date(b.nextReview) : new Date(0);
+        const aEase = parseFloat(a.easeFactor?.toString() || "2.5");
+        const bEase = parseFloat(b.easeFactor?.toString() || "2.5");
+        
+        if (aNextReview.getTime() !== bNextReview.getTime()) {
+          return aNextReview.getTime() - bNextReview.getTime();
+        }
+        if (aEase !== bEase) {
+          return aEase - bEase;
+        }
+        return (a.studyCount || 0) - (b.studyCount || 0);
+      });
+    
+    // If we don't have enough priority words, fill with random words
+    const selectedWords = [...prioritizedWords];
+    if (selectedWords.length < DAILY_CHALLENGE_COUNT) {
+      const remainingWords = allWords
+        .filter(word => !selectedWords.find(selected => selected.id === word.id))
+        .sort(() => Math.random() - 0.5);
+      
+      selectedWords.push(...remainingWords.slice(0, DAILY_CHALLENGE_COUNT - selectedWords.length));
+    }
+    
+    return selectedWords.slice(0, DAILY_CHALLENGE_COUNT);
+  }
+
+  async getDailyChallengeStatus(): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const [todaysChallenge] = await db
+      .select()
+      .from(dailyChallenges)
+      .where(eq(dailyChallenges.date, today));
+    
+    return {
+      completed: !!todaysChallenge?.completedAt,
+      date: today,
+      stats: todaysChallenge
+    };
+  }
+
+  async completeDailyChallenge(stats: { totalWords: number; correctWords: number; accuracy: number }): Promise<void> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Insert or update today's challenge record
+    await db
+      .insert(dailyChallenges)
+      .values({
+        date: today,
+        completedAt: new Date(),
+        totalWords: stats.totalWords,
+        correctWords: stats.correctWords,
+        accuracy: stats.accuracy.toString()
+      })
+      .onConflictDoUpdate({
+        target: dailyChallenges.date,
+        set: {
+          completedAt: new Date(),
+          totalWords: stats.totalWords,
+          correctWords: stats.correctWords,
+          accuracy: stats.accuracy.toString()
+        }
+      });
   }
 
   async getWordsForReview(limit: number): Promise<VocabularyWord[]> {

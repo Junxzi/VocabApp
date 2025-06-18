@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
 import { getLocalizedPartOfSpeech, cn } from "@/lib/utils";
-import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags } from "lucide-react";
+import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags, Calendar, Trophy, Clock } from "lucide-react";
 import type { VocabularyWord } from "@shared/schema";
 
 interface StudyCardProps {
@@ -310,12 +310,17 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
 }
 
 interface ModeSelectionProps {
-  onStartStudy: (mode: 'random' | 'tag', selectedTag?: string) => void;
+  onStartStudy: (mode: 'random' | 'tag' | 'daily', selectedTag?: string) => void;
   availableTags: string[];
 }
 
 function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
   const [selectedTag, setSelectedTag] = useState<string>("");
+
+  // Query daily challenge status
+  const { data: dailyStatus } = useQuery<{ completed: boolean; date: string; stats?: any }>({
+    queryKey: ["/api/vocabulary/daily-challenge/status"],
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -327,9 +332,42 @@ function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
           </div>
 
           <div className="space-y-4">
+            {/* Daily Challenge */}
+            <Button
+              onClick={() => onStartStudy('daily')}
+              className="w-full h-auto p-6 flex items-center gap-4"
+              variant={dailyStatus?.completed ? "secondary" : "default"}
+              disabled={dailyStatus?.completed}
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Calendar className="w-6 h-6" />
+                  {dailyStatus?.completed && (
+                    <CheckCircle2 className="w-4 h-4 absolute -top-1 -right-1 text-green-500" />
+                  )}
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold flex items-center gap-2">
+                    今日の問題
+                    {dailyStatus?.completed ? (
+                      <Badge variant="secondary" className="text-xs">完了</Badge>
+                    ) : (
+                      <Badge variant="destructive" className="text-xs">未完了</Badge>
+                    )}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {dailyStatus?.completed 
+                      ? `本日は完了済み (${dailyStatus.stats?.correctWords || 0}/${dailyStatus.stats?.totalWords || 0})`
+                      : "SuperMemoアルゴリズムで選ばれた15問"
+                    }
+                  </div>
+                </div>
+              </div>
+            </Button>
+
             <Button
               onClick={() => onStartStudy('random')}
-              className="w-full h-auto p-6 flex flex-col items-center gap-3"
+              className="w-full h-auto p-6 flex items-center gap-4"
               variant="outline"
             >
               <div className="flex items-center gap-3">
@@ -381,7 +419,7 @@ function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
 
 export function SwipeStudyPage() {
   const [studyMode, setStudyMode] = useState<'selection' | 'studying' | 'complete'>('selection');
-  const [currentMode, setCurrentMode] = useState<'random' | 'tag'>('random');
+  const [currentMode, setCurrentMode] = useState<'random' | 'tag' | 'daily'>('random');
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
