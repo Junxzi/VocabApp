@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage, type Language } from "@/lib/i18n";
-import { Plus, Globe, Upload } from "lucide-react";
+import { Plus, Globe, Upload, Sparkles } from "lucide-react";
 import type { VocabularyWord, InsertVocabularyWord } from "@shared/schema";
 
 interface VocabularyPageProps {
@@ -160,6 +160,15 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
             <Upload className="w-5 h-5 mr-2" />
             Import
           </Button>
+          <Button 
+            onClick={() => setWordGachaModalOpen(true)} 
+            variant="outline" 
+            size="lg" 
+            className="h-10 px-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border-purple-300 dark:border-purple-700"
+          >
+            <Sparkles className="w-5 h-5 mr-2" />
+            {language === 'ja' ? 'AI生成+' : 'AI Gen+'}
+          </Button>
           <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="lg" className="h-10 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
             <Plus className="w-5 h-5 mr-2" />
             Add Word
@@ -236,6 +245,12 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
         open={wordGeneratorModalOpen}
         onOpenChange={setWordGeneratorModalOpen}
         category={generatorCategory}
+      />
+
+      {/* Word Gacha Modal */}
+      <WordGachaModal
+        open={wordGachaModalOpen}
+        onOpenChange={setWordGachaModalOpen}
       />
     </main>
   );

@@ -18,12 +18,20 @@ export interface GachaGeneratedWord {
 
 export async function generateWordGacha(categoryName: string, count: number = 50): Promise<GachaGeneratedWord[]> {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        {
-          role: "system",
-          content: `あなたは英語学習の専門家です。指定されたカテゴリ・テーマの英単語を${count}個生成してください。
+    // Split into smaller batches for better performance
+    const batchSize = 10;
+    const numBatches = Math.ceil(count / batchSize);
+    const allWords: GachaGeneratedWord[] = [];
+
+    for (let i = 0; i < numBatches; i++) {
+      const currentBatchSize = Math.min(batchSize, count - (i * batchSize));
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: `あなたは英語学習の専門家です。指定されたカテゴリ・テーマの英単語を${currentBatchSize}個生成してください。
 
 カテゴリ: "${categoryName}"
 
@@ -59,17 +67,20 @@ JSON形式で以下のように回答してください:
     }
   ]
 }`
-        },
-        {
-          role: "user",
-          content: `"${categoryName}"カテゴリの英単語を${count}個生成してください。このテーマに最も適した実用的で面白い単語を選んでください。`
-        }
-      ],
-      response_format: { type: "json_object" },
-    });
+          },
+          {
+            role: "user",
+            content: `"${categoryName}"カテゴリの英単語を${currentBatchSize}個生成してください。バッチ${i + 1}/${numBatches}。このテーマに最も適した実用的で面白い単語を選んでください。`
+          }
+        ],
+        response_format: { type: "json_object" },
+      });
 
-    const result = JSON.parse(response.choices[0].message.content || '{"words": []}');
-    return result.words || [];
+      const result = JSON.parse(response.choices[0].message.content || '{"words": []}');
+      allWords.push(...(result.words || []));
+    }
+
+    return allWords;
 
   } catch (error) {
     console.error("Error generating word gacha:", error);
