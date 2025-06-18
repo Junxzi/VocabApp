@@ -5,6 +5,7 @@ import { VocabularyListView } from "@/components/vocabulary-list-view";
 import { SearchFilter, type SortOption, type ViewMode } from "@/components/search-filter";
 import { Pagination } from "@/components/pagination";
 import { WordGeneratorModal } from "@/components/word-generator-modal";
+import { WordGachaModal } from "@/components/word-gacha-modal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +27,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [wordGeneratorModalOpen, setWordGeneratorModalOpen] = useState(false);
   const [generatorCategory, setGeneratorCategory] = useState("");
+  const [wordGachaModalOpen, setWordGachaModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language, setLanguage } = useLanguage();

@@ -47,10 +47,10 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
       toast({
-        title: language === 'ja' ? "単語ガチャ完了！" : "Word Gacha Complete!",
+        title: language === 'ja' ? "生成完了" : "Generation Complete",
         description: language === 'ja' 
-          ? `${categoryName}から${data.totalAdded}個の単語を生成しました！`
-          : `Generated ${data.totalAdded} words from ${categoryName}!`
+          ? `${categoryName}から${data.totalAdded}個の単語を生成しました`
+          : `Generated ${data.totalAdded} words from ${categoryName}`
       });
       onOpenChange(false);
       setCategoryName("");
@@ -102,13 +102,13 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Dices className="h-5 w-5 text-purple-500" />
-            {language === 'ja' ? "単語ガチャ" : "Word Gacha"}
+            <Sparkles className="h-5 w-5 text-purple-500" />
+            {language === 'ja' ? "AI単語生成+" : "AI Word Generator+"}
           </DialogTitle>
           <DialogDescription>
             {language === 'ja' 
-              ? "カテゴリ名を決めて、そのテーマで50個の単語を生成します。生成された単語は選択したカテゴリに自動で分類されます。"
-              : "Create a custom category and generate 50 words based on that theme. Generated words will be automatically categorized into your selected categories."}
+              ? "カスタムテーマから50個の単語を生成。生成された単語は選択したカテゴリに自動分類されます。"
+              : "Generate 50 words from custom themes. Generated words will be automatically categorized into your selected categories."}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,8 +194,8 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
                 </>
               ) : (
                 <>
-                  <Dices className="h-4 w-4 mr-2" />
-                  {language === 'ja' ? "ガチャを回す！" : "Roll Gacha!"}
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {language === 'ja' ? "生成開始" : "Generate"}
                 </>
               )}
             </Button>

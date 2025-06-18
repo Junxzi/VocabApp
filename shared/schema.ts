@@ -80,6 +80,7 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   exampleSentences: true,
   categoryId: true,
   category: true,
+  categories: true,
   language: true,
   difficulty: true,
 }).partial({
