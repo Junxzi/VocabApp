@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Menu, Plus, Upload, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, type Language } from "@/lib/i18n";
 
 interface NavigationProps {
   onAddWordClick: () => void;
@@ -28,7 +28,7 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
         <div className="flex justify-between items-center h-14 md:h-16">
           <div className="flex items-center space-x-2 md:space-x-4">
             <div className="flex-shrink-0">
-              <h1 className="text-lg md:text-xl font-bold text-foreground">VocabMaster</h1>
+              <h1 className="text-lg md:text-xl font-bold text-foreground">{t("nav.title")}</h1>
             </div>
             <div className="hidden md:flex space-x-8">
               {navigationItems.map((item) => (
@@ -48,13 +48,22 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
             </div>
           </div>
           <div className="flex items-center space-x-2 md:space-x-4">
+            <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+              <SelectTrigger className="w-16 h-8 p-0 border-none bg-transparent">
+                <Globe className="w-4 h-4" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">EN</SelectItem>
+                <SelectItem value="ja">日本</SelectItem>
+              </SelectContent>
+            </Select>
             <Button onClick={onImportClick} variant="outline" size="sm" className="font-medium hidden sm:flex">
               <Upload className="w-4 h-4 mr-1" />
-              <span className="hidden md:inline">Import</span>
+              <span className="hidden md:inline">{t("nav.import")}</span>
             </Button>
             <Button onClick={onAddWordClick} size="sm" className="font-medium">
               <Plus className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Add</span>
+              <span className="hidden sm:inline">{t("nav.add")}</span>
             </Button>
             <Button
               variant="ghost"

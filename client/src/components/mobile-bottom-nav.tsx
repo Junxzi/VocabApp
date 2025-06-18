@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Home, BookOpen, TrendingUp, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface MobileBottomNavProps {
   onAddWordClick: () => void;
@@ -8,11 +9,12 @@ interface MobileBottomNavProps {
 
 export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
   const [location] = useLocation();
+  const { t } = useLanguage();
 
   const navItems = [
-    { label: "Vocabulary", href: "/", icon: Home },
-    { label: "Study", href: "/study", icon: BookOpen },
-    { label: "Progress", href: "/progress", icon: TrendingUp },
+    { label: t("nav.vocabulary"), href: "/", icon: Home },
+    { label: t("nav.study"), href: "/study", icon: BookOpen },
+    { label: t("nav.progress"), href: "/progress", icon: TrendingUp },
   ];
 
   return (
@@ -44,7 +46,7 @@ export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
           className="flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors duration-200 touch-manipulation text-foreground bg-primary"
         >
           <Plus className="w-5 h-5 mb-1 text-primary-foreground" />
-          <span className="text-xs font-medium text-primary-foreground">Add</span>
+          <span className="text-xs font-medium text-primary-foreground">{t("nav.add")}</span>
         </button>
       </div>
     </div>
