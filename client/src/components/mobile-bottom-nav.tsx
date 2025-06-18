@@ -48,6 +48,20 @@ export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
           <Plus className="w-5 h-5 mb-1" />
           <span className="text-xs font-medium text-center leading-tight">{t("nav.add")}</span>
         </button>
+
+        {/* Settings on the far right */}
+        <Link
+          href="/settings"
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation",
+            location === "/settings"
+              ? "text-foreground bg-muted"
+              : "text-muted-foreground"
+          )}
+        >
+          <Settings className="w-5 h-5 mb-1" />
+          <span className="text-xs font-medium text-center leading-tight">{t("nav.settings")}</span>
+        </Link>
       </div>
     </div>
   );
