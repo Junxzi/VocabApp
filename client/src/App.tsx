@@ -132,7 +132,7 @@ function AppContent() {
         </DialogContent>
       </Dialog>
       
-      <MobileBottomNav onAddWordClick={handleAddWord} />
+      <MobileBottomNav />
     </div>
   );
 }

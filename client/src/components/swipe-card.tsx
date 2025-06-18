@@ -151,22 +151,22 @@ export function SwipeCard({
           {/* Swipe Indicators (only show when dragging) */}
           {isDragging && (
             <div className="absolute inset-0 pointer-events-none">
-              <motion.div
+              <div
                 className="absolute top-1/2 left-8 transform -translate-y-1/2 text-red-500 font-bold text-2xl"
                 style={{
-                  opacity: useTransform(x, [-150, -50, 0], [1, 0.5, 0])
+                  opacity: isDragging && x.get() < -50 ? Math.min(1, Math.abs(x.get()) / 100) : 0
                 }}
               >
                 REVIEW
-              </motion.div>
-              <motion.div
+              </div>
+              <div
                 className="absolute top-1/2 right-8 transform -translate-y-1/2 text-green-500 font-bold text-2xl"
                 style={{
-                  opacity: useTransform(x, [0, 50, 150], [0, 0.5, 1])
+                  opacity: isDragging && x.get() > 50 ? Math.min(1, x.get() / 100) : 0
                 }}
               >
                 KNOW
-              </motion.div>
+              </div>
             </div>
           )}
         </CardContent>
