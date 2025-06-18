@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
+import { speakWithAccent } from "@/lib/speech";
 import { formatRelativeTime, getLocalizedPartOfSpeech } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord } from "@shared/schema";
@@ -32,36 +33,12 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        if ('speechSynthesis' in window) {
-                          const utterance = new SpeechSynthesisUtterance(word.word);
-                          utterance.rate = 0.8;
-                          utterance.volume = 0.7;
-                          
-                          const setVoiceAndSpeak = () => {
-                            const voices = speechSynthesis.getVoices();
-                            const usVoice = voices.find(voice => 
-                              voice.lang === 'en-US' || 
-                              voice.name.toLowerCase().includes('samantha') ||
-                              voice.name.toLowerCase().includes('alex') ||
-                              (voice.lang.startsWith('en-US') && voice.localService)
-                            );
-                            if (usVoice) {
-                              utterance.voice = usVoice;
-                            } else {
-                              utterance.lang = 'en-US';
-                            }
-                            speechSynthesis.speak(utterance);
-                          };
-
-                          const voices = speechSynthesis.getVoices();
-                          if (voices.length > 0) {
-                            setVoiceAndSpeak();
-                          } else {
-                            speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
-                            setTimeout(setVoiceAndSpeak, 100);
-                          }
+                        try {
+                          await speakWithAccent(word.word, 'us');
+                        } catch (error) {
+                          console.error('Speech synthesis error:', error);
                         }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"
@@ -72,36 +49,12 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        if ('speechSynthesis' in window) {
-                          const utterance = new SpeechSynthesisUtterance(word.word);
-                          utterance.rate = 0.8;
-                          utterance.volume = 0.7;
-                          
-                          const setVoiceAndSpeak = () => {
-                            const voices = speechSynthesis.getVoices();
-                            const ukVoice = voices.find(voice => 
-                              voice.lang === 'en-GB' || 
-                              voice.name.toLowerCase().includes('daniel') ||
-                              voice.name.toLowerCase().includes('kate') ||
-                              (voice.lang.startsWith('en-GB') && voice.localService)
-                            );
-                            if (ukVoice) {
-                              utterance.voice = ukVoice;
-                            } else {
-                              utterance.lang = 'en-GB';
-                            }
-                            speechSynthesis.speak(utterance);
-                          };
-
-                          const voices = speechSynthesis.getVoices();
-                          if (voices.length > 0) {
-                            setVoiceAndSpeak();
-                          } else {
-                            speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
-                            setTimeout(setVoiceAndSpeak, 100);
-                          }
+                        try {
+                          await speakWithAccent(word.word, 'uk');
+                        } catch (error) {
+                          console.error('Speech synthesis error:', error);
                         }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"

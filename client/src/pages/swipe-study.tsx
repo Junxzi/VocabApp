@@ -30,6 +30,21 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
   const [isFlipping, setIsFlipping] = useState(false);
 
+  // Debug: Log available voices on first render
+  useEffect(() => {
+    if (isVisible) {
+      const checkVoices = () => {
+        logAvailableVoices();
+      };
+      
+      if (speechSynthesis.getVoices().length > 0) {
+        checkVoices();
+      } else {
+        speechSynthesis.addEventListener('voiceschanged', checkVoices, { once: true });
+      }
+    }
+  }, [isVisible]);
+
   const handleDragEnd = (event: any, info: PanInfo) => {
     const threshold = 100;
     const distance = info.offset.x;
