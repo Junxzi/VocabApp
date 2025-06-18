@@ -224,7 +224,7 @@ export function SwipeStudyPage() {
           key={`${currentWord.id}-current`}
           word={currentWord}
           onSwipe={handleSwipe}
-          onShowAnswer={() => setShowAnswer(true)}
+          onShowAnswer={() => setShowAnswer(!showAnswer)}
           showAnswer={showAnswer}
           isActive={true}
           index={0}
