@@ -619,20 +619,30 @@ export function SwipeStudyPage() {
         </div>
         <Progress value={progress} className="h-3 mb-4" />
         
-        <div className="flex justify-center gap-6 text-sm">
-          <div className="flex items-center text-green-600">
-            <CheckCircle2 className="w-4 h-4 mr-1" />
-            <span>{sessionStats.known}</span>
-          </div>
-          <div className="flex items-center text-red-600">
-            <XCircle className="w-4 h-4 mr-1" />
-            <span>{sessionStats.needReview}</span>
-          </div>
-        </div>
+
       </div>
 
       {/* Card Container - positioned lower for thumb accessibility */}
       <div className="max-w-md mx-auto h-[600px] relative mt-20">
+        {/* Large counters in upper corners */}
+        <div className="absolute -top-12 left-0 z-20">
+          <div className="flex items-center justify-center w-16 h-16 bg-red-500 text-white rounded-full shadow-lg">
+            <div className="text-center">
+              <XCircle className="w-6 h-6 mx-auto mb-1" />
+              <span className="text-lg font-bold">{sessionStats.needReview}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="absolute -top-12 right-0 z-20">
+          <div className="flex items-center justify-center w-16 h-16 bg-green-500 text-white rounded-full shadow-lg">
+            <div className="text-center">
+              <CheckCircle2 className="w-6 h-6 mx-auto mb-1" />
+              <span className="text-lg font-bold">{sessionStats.known}</span>
+            </div>
+          </div>
+        </div>
+        
         {/* Background blank card frame for smoother transitions */}
         <div className="absolute inset-0 bg-card border-2 border-border/30 rounded-2xl shadow-lg opacity-50 z-0"></div>
         
