@@ -403,14 +403,17 @@ export function SwipeStudyPage() {
 
     // Wait for swipe animation to complete before showing next card
     setTimeout(() => {
-      setIsCardSwiping(false);
       if (currentIndex < studyWords.length - 1) {
         setCurrentIndex(prev => prev + 1);
         setShowAnswer(false);
       } else {
         setStudyMode('complete');
       }
-    }, 800); // Longer delay to ensure card fully exits
+      // Small additional delay before showing the card to prevent flash
+      setTimeout(() => {
+        setIsCardSwiping(false);
+      }, 50);
+    }, 600);
   };
 
   const handleCardTap = () => {
@@ -548,11 +551,6 @@ export function SwipeStudyPage() {
             isVisible={true}
             zIndex={10}
           />
-        )}
-        {isCardSwiping && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
         )}
       </div>
     </div>
