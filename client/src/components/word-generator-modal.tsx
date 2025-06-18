@@ -36,11 +36,17 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
+      const duplicateMessage = data.skippedDuplicates > 0 
+        ? (language === 'ja' 
+          ? ` (${data.skippedDuplicates}個の重複をスキップ)`
+          : ` (${data.skippedDuplicates} duplicates skipped)`)
+        : '';
+      
       toast({
         title: language === 'ja' ? "単語生成完了" : "Words Generated",
         description: language === 'ja' 
-          ? `${tagName}タグに${data.totalAdded}個の単語を追加しました`
-          : `Added ${data.totalAdded} words with ${tagName} tag`
+          ? `${tagName}タグに${data.totalAdded}個の単語を追加しました${duplicateMessage}`
+          : `Added ${data.totalAdded} words with ${tagName} tag${duplicateMessage}`
       });
       onOpenChange(false);
     },

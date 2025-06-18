@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, Plus } from "lucide-react";
+import { X, Plus, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,8 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
   const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const [newTagName, setNewTagName] = useState("");
+  const [wordExists, setWordExists] = useState(false);
+  const [checkingWord, setCheckingWord] = useState(false);
   
   // Get all vocabulary words to extract existing tags
   const { data: allWords = [] } = useQuery<VocabularyWord[]>({
@@ -61,6 +63,25 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
     });
     return Array.from(tagSet).sort();
   }, [allWords]);
+
+  // Check for word duplicates
+  const checkWordExists = (inputWord: string) => {
+    if (!inputWord.trim()) {
+      setWordExists(false);
+      return;
+    }
+    
+    // Skip check if editing the same word
+    if (editingWord && inputWord.toLowerCase() === editingWord.word.toLowerCase()) {
+      setWordExists(false);
+      return;
+    }
+    
+    const exists = allWords.some(word => 
+      word.word.toLowerCase() === inputWord.toLowerCase()
+    );
+    setWordExists(exists);
+  };
   
   const form = useForm<InsertVocabularyWord>({
     resolver: zodResolver(insertVocabularyWordSchema),
@@ -94,8 +115,14 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
   }, [editingWord, form]);
 
   const handleSubmit = (data: InsertVocabularyWord) => {
+    // Prevent submission if word already exists
+    if (wordExists) {
+      return;
+    }
     onSubmit(data);
     form.reset();
+    setWordExists(false);
+    setNewTagName("");
     onOpenChange(false);
   };
 
@@ -132,8 +159,34 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                 <FormItem>
                   <FormLabel>{t('add.word')} *</FormLabel>
                   <FormControl>
-                    <Input {...field} className="bg-muted" placeholder={t('add.wordPlaceholder')} />
+                    <div className="relative">
+                      <Input 
+                        {...field} 
+                        className={`bg-muted ${wordExists ? 'border-red-500 focus:border-red-500' : ''}`}
+                        placeholder={t('add.wordPlaceholder')}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          checkWordExists(e.target.value);
+                        }}
+                      />
+                      {wordExists && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <AlertCircle className="w-4 h-4 text-red-500" />
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
+                  {wordExists && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                      <span className="text-sm text-red-500">
+                        {language === 'ja' 
+                          ? 'この単語は既に登録されています' 
+                          : 'This word already exists in your vocabulary'
+                        }
+                      </span>
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -255,7 +308,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('add.cancel')}
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={wordExists}>
                 {editingWord ? t('add.update') : t('add.save')}
               </Button>
             </div>
