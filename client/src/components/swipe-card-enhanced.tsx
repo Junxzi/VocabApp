@@ -78,33 +78,38 @@ export function SwipeCard({
     }
   };
 
-  // Dynamic background color based on swipe direction
-  const getBackgroundColor = () => {
-    if (!isDragging) return 'hsl(var(--card))';
+  // Border color and width based on swipe direction
+  const getBorderStyle = () => {
+    if (!isDragging) {
+      return {
+        borderColor: 'hsl(var(--border))',
+        borderWidth: '1px',
+        boxShadow: 'none'
+      };
+    }
     
     const rightIntensity = rightSwipeIntensity.get();
     const leftIntensity = leftSwipeIntensity.get();
     
     if (rightIntensity > 0) {
-      return `rgba(34, 197, 94, ${rightIntensity * 0.1 + 0.9})`;
+      return {
+        borderColor: '#22c55e',
+        borderWidth: `${Math.max(2, rightIntensity * 4)}px`,
+        boxShadow: `0 0 ${rightIntensity * 20}px rgba(34, 197, 94, ${rightIntensity * 0.3})`
+      };
     } else if (leftIntensity > 0) {
-      return `rgba(239, 68, 68, ${leftIntensity * 0.1 + 0.9})`;
+      return {
+        borderColor: '#ef4444',
+        borderWidth: `${Math.max(2, leftIntensity * 4)}px`,
+        boxShadow: `0 0 ${leftIntensity * 20}px rgba(239, 68, 68, ${leftIntensity * 0.3})`
+      };
     }
-    return 'hsl(var(--card))';
-  };
-
-  const getBorderColor = () => {
-    if (!isDragging) return 'hsl(var(--border))';
     
-    const rightIntensity = rightSwipeIntensity.get();
-    const leftIntensity = leftSwipeIntensity.get();
-    
-    if (rightIntensity > 0) {
-      return '#22c55e';
-    } else if (leftIntensity > 0) {
-      return '#ef4444';
-    }
-    return 'hsl(var(--border))';
+    return {
+      borderColor: 'hsl(var(--border))',
+      borderWidth: '1px',
+      boxShadow: 'none'
+    };
   };
 
   return (
@@ -128,12 +133,11 @@ export function SwipeCard({
         >
           {/* Front of card */}
           <motion.div
-            className="absolute inset-0 backface-hidden card-front rounded-lg shadow-xl"
+            className="absolute inset-0 backface-hidden card-front rounded-lg shadow-xl bg-card"
             style={{
-              backgroundColor: getBackgroundColor(),
-              borderColor: getBorderColor(),
-              borderWidth: '2px',
-              borderStyle: 'solid'
+              ...getBorderStyle(),
+              borderStyle: 'solid',
+              transition: 'all 0.1s ease-out'
             }}
           >
             <Card className="h-full border-0 bg-transparent shadow-none">
@@ -209,12 +213,11 @@ export function SwipeCard({
 
           {/* Back of card */}
           <motion.div
-            className="absolute inset-0 backface-hidden rotate-y-180 card-back rounded-lg shadow-xl"
+            className="absolute inset-0 backface-hidden rotate-y-180 card-back rounded-lg shadow-xl bg-card"
             style={{
-              backgroundColor: getBackgroundColor(),
-              borderColor: getBorderColor(),
-              borderWidth: '2px',
-              borderStyle: 'solid'
+              ...getBorderStyle(),
+              borderStyle: 'solid',
+              transition: 'all 0.1s ease-out'
             }}
           >
             <Card className="h-full border-0 bg-transparent shadow-none">
