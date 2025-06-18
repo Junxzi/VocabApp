@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
-import { getLocalizedPartOfSpeech } from "@/lib/utils";
+import { getLocalizedPartOfSpeech, cn } from "@/lib/utils";
 import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags } from "lucide-react";
 import type { VocabularyWord } from "@shared/schema";
 
@@ -61,7 +61,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     onTap();
     setTimeout(() => {
       setIsFlipping(false);
-    }, 50);
+    }, 100);
   };
 
   const speakWord = (variant: 'us' | 'uk', e: React.MouseEvent) => {
@@ -114,12 +114,15 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       <motion.div
         className="h-full relative"
         animate={{ rotateY: showAnswer ? 180 : 0 }}
-        transition={{ duration: 0.6, ease: "easeInOut" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         style={{ transformStyle: "preserve-3d" }}
       >
         {/* Front of card */}
         <Card className="absolute inset-0 bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl" 
-              style={{ backfaceVisibility: 'hidden' }}>
+              style={{ 
+                backfaceVisibility: 'hidden',
+                borderColor: x.get() > 10 ? '#22c55e' : x.get() < -10 ? '#ef4444' : undefined
+              }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
               <div className="mb-8">
@@ -166,7 +169,13 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         </Card>
 
         {/* Back of card */}
-        <Card className="absolute inset-0 bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl" 
+        <Card className={cn(
+          "absolute inset-0 bg-card border-2 rounded-2xl overflow-hidden shadow-xl transition-colors duration-100",
+          // Color-coded swipe feedback based on drag position
+          x.get() > 10 ? "border-green-500 shadow-green-500/20" : 
+          x.get() < -10 ? "border-red-500 shadow-red-500/20" : 
+          "border-border"
+        )} 
               style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
           <CardContent className="p-6 h-full flex flex-col justify-center">
             <div className="text-center">
