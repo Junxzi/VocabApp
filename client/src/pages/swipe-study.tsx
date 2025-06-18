@@ -205,7 +205,7 @@ export function SwipeStudyPage() {
       </div>
 
       {/* Cards Container */}
-      <div className="max-w-md mx-auto h-[500px] relative">
+      <div className="max-w-md mx-auto h-[500px] relative mt-16">
         {/* Next card (background) */}
         {nextWord && (
           <SwipeCard
