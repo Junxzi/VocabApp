@@ -93,6 +93,8 @@ const translations = {
     'needReview': 'Need Review',
     'accuracy': 'Accuracy',
     'startNewSession': 'Start New Session',
+    'tapCardToSeeMeaning': 'Tap the card to see meaning',
+    'swipeInstructions': 'Swipe right if you know it, left if you need to review',
     
     // Progress Page
     'learningProgress': 'Learning Progress',
@@ -198,6 +200,8 @@ const translations = {
     'needReview': '復習が必要',
     'accuracy': '正答率',
     'startNewSession': '新しいセッションを開始',
+    'tapCardToSeeMeaning': 'カードをタップして意味を確認',
+    'swipeInstructions': '知っている場合は右、復習が必要な場合は左にスワイプ',
     
     // Progress Page
     'learningProgress': '学習進捗',

@@ -233,8 +233,8 @@ export function SwipeStudyPage() {
 
       {/* Instructions */}
       <div className="max-w-md mx-auto mt-6 text-center text-sm text-muted-foreground space-y-2">
-        <p>Tap the card to see meaning</p>
-        <p>Swipe right if you know it, left if you need to review</p>
+        <p>{t('tapCardToSeeMeaning')}</p>
+        <p>{t('swipeInstructions')}</p>
       </div>
     </div>
   );
