@@ -161,6 +161,10 @@ const translations = {
     'sort.category': 'カテゴリ順',
     'sort.difficulty': '難易度順',
     
+    // Pagination
+    'pagination.items': '件',
+    'pagination.per_page': '表示件数',
+    
     // Common
     'common.loading': '読み込み中...',
     'common.error': 'エラー',
