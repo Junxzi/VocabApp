@@ -9,8 +9,30 @@ import { syncCategoriesFromNotion, initializeDefaultCategories, syncVocabularyWo
 import { generateWordsForCategory, getSampleWordsForCategory } from "./word-generator";
 import { generateWordGacha, getSampleGachaCategories } from "./word-gacha";
 import { requireAuth, optionalAuth, type AuthenticatedRequest } from "./auth-middleware";
+import passport from "passport";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Google OAuth routes
+  app.get("/auth/google", 
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
+
+  app.get("/auth/google/callback", 
+    passport.authenticate("google", { failureRedirect: "/" }),
+    (req, res) => {
+      // Successful authentication, redirect to app
+      res.redirect("/");
+    }
+  );
+
+  app.get("/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.redirect("/");
+    });
+  });
   // Initialize categories on startup
   try {
     await initializeDefaultCategories();
