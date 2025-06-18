@@ -71,20 +71,53 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       utterance.rate = 0.8;
       utterance.volume = 0.7;
       
+      // Wait for voices to load if they're not available yet
+      const setVoiceAndSpeak = () => {
+        const voices = speechSynthesis.getVoices();
+        
+        if (variant === 'us') {
+          // Prefer specific US voices
+          const usVoice = voices.find(voice => 
+            voice.lang === 'en-US' || 
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('alex') ||
+            voice.name.toLowerCase().includes('fred') ||
+            (voice.lang.startsWith('en-US') && voice.localService)
+          );
+          if (usVoice) {
+            utterance.voice = usVoice;
+          } else {
+            utterance.lang = 'en-US';
+          }
+        } else if (variant === 'uk') {
+          // Prefer specific UK voices
+          const ukVoice = voices.find(voice => 
+            voice.lang === 'en-GB' || 
+            voice.name.toLowerCase().includes('daniel') ||
+            voice.name.toLowerCase().includes('kate') ||
+            voice.name.toLowerCase().includes('serena') ||
+            (voice.lang.startsWith('en-GB') && voice.localService)
+          );
+          if (ukVoice) {
+            utterance.voice = ukVoice;
+          } else {
+            utterance.lang = 'en-GB';
+          }
+        }
+        
+        speechSynthesis.speak(utterance);
+      };
+
+      // Check if voices are loaded
       const voices = speechSynthesis.getVoices();
-      if (variant === 'us') {
-        const usVoice = voices.find(voice => 
-          voice.lang.startsWith('en-US') || voice.name.includes('US')
-        );
-        if (usVoice) utterance.voice = usVoice;
-      } else if (variant === 'uk') {
-        const ukVoice = voices.find(voice => 
-          voice.lang.startsWith('en-GB') || voice.name.includes('UK')
-        );
-        if (ukVoice) utterance.voice = ukVoice;
+      if (voices.length > 0) {
+        setVoiceAndSpeak();
+      } else {
+        // Wait for voices to load
+        speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
+        // Fallback timeout
+        setTimeout(setVoiceAndSpeak, 100);
       }
-      
-      speechSynthesis.speak(utterance);
     }
   };
 
