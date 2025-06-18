@@ -488,7 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // TTS generation endpoint
+  // TTS generation endpoint (fallback for words without stored audio)
   app.post("/api/tts/generate", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { text, accent } = req.body;
@@ -514,6 +514,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('TTS generation error:', error);
       res.status(500).json({ error: 'Failed to generate TTS audio' });
+    }
+  });
+
+  // Regenerate TTS audio for existing words
+  app.post("/api/vocabulary/:id/regenerate-audio", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const word = await storage.getVocabularyWordByUser(id, req.userId!);
+      
+      if (!word) {
+        return res.status(404).json({ error: 'Word not found' });
+      }
+
+      const { generateAllAccentsTTS } = await import('./tts');
+      const ttsAudio = await generateAllAccentsTTS(word.word);
+
+      const updatedWord = await storage.updateVocabularyWordByUser(id, req.userId!, {
+        audioDataUs: ttsAudio.audioDataUs,
+        audioDataUk: ttsAudio.audioDataUk,
+        audioDataAu: ttsAudio.audioDataAu
+      });
+
+      res.json(updatedWord);
+    } catch (error) {
+      console.error('Audio regeneration error:', error);
+      res.status(500).json({ error: 'Failed to regenerate audio' });
     }
   });
 

@@ -137,7 +137,8 @@ export async function speakWithAccent(text: string, accent: AccentType, audioDat
 
     // Play the audio
     const audio = new Audio(audioUrl);
-    audio.volume = 0.8;
+    // Increase volume for AU accent as it tends to be quieter
+    audio.volume = accent === 'au' ? 1.0 : 0.8;
     
     return new Promise((resolve, reject) => {
       audio.onended = () => {

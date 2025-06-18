@@ -10,7 +10,7 @@ export type AccentType = 'us' | 'uk' | 'au';
 const ACCENT_VOICE_MAP: Record<AccentType, TTSVoice> = {
   us: 'alloy',    // Clear, natural American accent
   uk: 'shimmer',  // More sophisticated voice suitable for British accent
-  au: 'nova'      // Crisp voice that works well for Australian variant
+  au: 'onyx'      // Deeper, more audible voice for Australian variant
 };
 
 export interface TTSRequest {
