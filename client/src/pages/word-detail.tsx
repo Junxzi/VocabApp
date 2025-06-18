@@ -65,6 +65,31 @@ export function WordDetailPage() {
     }
   });
 
+  const enrichWithAIMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/vocabulary/${id}/enrich`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw new Error('Failed to enrich word');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vocabulary', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
+      toast({
+        title: "Word enriched successfully",
+        description: `Enhanced with comprehensive definitions and ${data.enrichmentDetails?.partsOfSpeech?.length || 0} parts of speech.`
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to enrich word",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -115,15 +140,32 @@ export function WordDetailPage() {
             Back
           </Button>
           
-          {(word.pronunciationUs || word.pronunciationUk || word.pronunciationAu || exampleSentences.length > 0) && (
-            <Button
-              variant="outline"
-              onClick={() => setEditModalOpen(true)}
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-          )}
+          <div className="flex items-center space-x-2">
+            {!hasEnrichedData && (
+              <Button
+                variant="default"
+                onClick={() => enrichWithAIMutation.mutate()}
+                disabled={enrichWithAIMutation.isPending}
+              >
+                {enrichWithAIMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                Enrich with AI
+              </Button>
+            )}
+            
+            {hasEnrichedData && (
+              <Button
+                variant="outline"
+                onClick={() => setEditModalOpen(true)}
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Word Card */}
@@ -137,13 +179,13 @@ export function WordDetailPage() {
             {/* Part of Speech and Definition */}
             <div>
               {word.partOfSpeech && (
-                <div className="mb-2">
+                <div className="mb-3">
                   <Badge variant="secondary" className="text-sm">
                     {word.partOfSpeech}
                   </Badge>
                 </div>
               )}
-              <p className="text-muted-foreground leading-relaxed text-lg">{word.definition}</p>
+              <p className="text-foreground leading-relaxed text-lg">{word.definition}</p>
             </div>
 
             {/* Enhanced Pronunciations */}

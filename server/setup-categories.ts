@@ -208,18 +208,26 @@ async function syncCategoriesFromNotion() {
                         .where(eq(categories.notionId, notionCategory.notionId));
                     console.log(`✓ Updated category: ${notionCategory.name}`);
                 } else {
-                    // Create new category
-                    await db.insert(categories).values({
-                        name: notionCategory.name,
-                        displayName: notionCategory.displayName,
-                        description: notionCategory.description,
-                        color: notionCategory.color,
-                        icon: notionCategory.icon,
-                        isDefault: notionCategory.isDefault ? 1 : 0,
-                        sortOrder: notionCategory.sortOrder,
-                        notionId: notionCategory.notionId
-                    });
-                    console.log(`✓ Created category from Notion: ${notionCategory.name}`);
+                    // Create new category - use ON CONFLICT DO NOTHING to handle duplicates
+                    try {
+                        await db.insert(categories).values({
+                            name: notionCategory.name,
+                            displayName: notionCategory.displayName,
+                            description: notionCategory.description,
+                            color: notionCategory.color,
+                            icon: notionCategory.icon,
+                            isDefault: notionCategory.isDefault ? 1 : 0,
+                            sortOrder: notionCategory.sortOrder,
+                            notionId: notionCategory.notionId
+                        });
+                        console.log(`✓ Created category from Notion: ${notionCategory.name}`);
+                    } catch (insertError: any) {
+                        if (insertError.code === '23505') {
+                            console.log(`○ Category already exists: ${notionCategory.name}`);
+                        } else {
+                            throw insertError;
+                        }
+                    }
                 }
             } catch (error) {
                 console.error(`✗ Failed to sync category ${notionCategory.name}:`, error);
