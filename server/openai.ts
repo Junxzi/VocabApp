@@ -39,9 +39,9 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
 
 1. IPA pronunciation for American English, British English, and Australian English (without slashes or brackets)
 2. The most common part of speech in Japanese (名詞, 動詞, 形容詞, 副詞, etc.)
-3. Exactly 2 natural, conversational example sentences that native speakers would use in everyday situations, with their Japanese translations
+3. Exactly 2 natural, conversational example sentences that native speakers would use in everyday casual situations, with their Japanese translations
 
-Focus on creating relatable, friendly examples that people would actually say in daily life rather than formal or academic sentences.
+For casual/informal words, use very casual, friendly language that friends would use. For formal words, use more polite but still natural language. Match the formality level of the word itself.
 
 Respond with valid JSON in this exact format:
 {
@@ -53,17 +53,17 @@ Respond with valid JSON in this exact format:
   "primaryPartOfSpeech": "形容詞",
   "exampleSentences": [
     {
-      "english": "This coffee is way too bitter for me!",
-      "japanese": "このコーヒー、私には苦すぎる！"
+      "english": "Ugh, this coffee tastes super bitter!",
+      "japanese": "うわ、このコーヒーめっちゃ苦い！"
     },
     {
-      "english": "I'm still bitter about what happened yesterday.",
-      "japanese": "昨日のことまだ根に持ってるんだ。"
+      "english": "I'm still kinda bitter about what she said.",
+      "japanese": "彼女が言ったこと、まだちょっと根に持ってる。"
     }
   ]
 }
 
-Only include the IPA symbols without any slashes, brackets, or other punctuation. Use natural, conversational language that friends would use when talking to each other.`
+Use contractions, slang, and casual expressions when appropriate. Make it sound like real people talking to friends.`
         },
         {
           role: "user",
