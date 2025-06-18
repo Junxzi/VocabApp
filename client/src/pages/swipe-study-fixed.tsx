@@ -362,10 +362,10 @@ export function SwipeStudyPage() {
 
   // Update displayed word when current index changes
   useEffect(() => {
-    if (studyWords.length > 0 && currentIndex < studyWords.length) {
+    if (studyWords.length > 0 && currentIndex < studyWords.length && !isCardSwiping) {
       setDisplayedWord(studyWords[currentIndex]);
     }
-  }, [currentIndex, studyWords]);
+  }, [currentIndex, studyWords, isCardSwiping]);
 
   useEffect(() => {
     if (studyMode === 'studying') {
@@ -399,6 +399,7 @@ export function SwipeStudyPage() {
     setIsCardSwiping(true);
     const known = direction === 'right';
     const wordId = displayedWord.id;
+    const nextIndex = currentIndex + 1;
     
     // Update stats immediately
     setSessionStats(prev => ({
@@ -414,8 +415,9 @@ export function SwipeStudyPage() {
 
     // Wait for swipe animation to complete
     setTimeout(() => {
-      if (currentIndex < studyWords.length - 1) {
-        setCurrentIndex(prev => prev + 1);
+      if (nextIndex < studyWords.length) {
+        setCurrentIndex(nextIndex);
+        setDisplayedWord(studyWords[nextIndex]);
         setShowAnswer(false);
         // Delay before showing next card
         setTimeout(() => {
@@ -423,6 +425,7 @@ export function SwipeStudyPage() {
         }, 150);
       } else {
         setStudyMode('complete');
+        setIsCardSwiping(false);
       }
     }, 600);
   };
