@@ -3,11 +3,7 @@ import { Home, BookOpen, TrendingUp, Shuffle, Plus, Settings } from "lucide-reac
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
-interface MobileBottomNavProps {
-  onAddWordClick: () => void;
-}
-
-export function MobileBottomNav({ onAddWordClick }: MobileBottomNavProps) {
+export function MobileBottomNav() {
   const [location] = useLocation();
   const { t } = useLanguage();
 
