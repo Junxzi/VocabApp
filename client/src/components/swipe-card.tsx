@@ -176,11 +176,8 @@ export function SwipeCard({
 
               <div className="flex-1 flex flex-col justify-center my-8">
                 <div className="text-center">
-                  <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20">
-                    <EyeOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      {t('tapToSeeMeaning')}
-                    </p>
+                  <div className="mb-6 p-6 bg-muted/30 rounded-lg">
+                    <EyeOff className="w-16 h-16 mx-auto text-muted-foreground/60" />
                   </div>
                 </div>
               </div>
@@ -243,15 +240,13 @@ export function SwipeCard({
                       {word.definition}
                     </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t('tapAgainToFlipBack')}
-                  </p>
                 </div>
               </div>
 
               <div className="h-4"></div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </motion.div>
       </div>
 
