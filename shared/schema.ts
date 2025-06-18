@@ -34,6 +34,7 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   exampleSentences: text("example_sentences"), // JSON array of example sentences
   categoryId: integer("category_id").references(() => categories.id),
   category: text("category").notNull(), // Keep for backward compatibility
+  categories: text("categories").array(), // Multiple categories support
   language: text("language").notNull().default("en"), // 'en' for English, 'ja' for Japanese
   difficulty: integer("difficulty"), // Rank 1-4 (4 = hardest), null = unset
   studyCount: integer("study_count").default(0),
