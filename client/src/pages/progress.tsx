@@ -185,7 +185,7 @@ export function ProgressPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Page Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-3xl font-bold text-foreground mt-[34px] mb-[34px]">
           {t('learningProgress')}
         </h1>
         <p className="text-muted-foreground mt-[30px] mb-[30px] pt-[0px] pb-[0px]">
