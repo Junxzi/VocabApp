@@ -6,7 +6,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Category operations
   getAllCategories(): Promise<Category[]>;
   getCategory(id: number): Promise<Category | undefined>;
@@ -14,22 +14,18 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: number): Promise<boolean>;
-  
+
   // Vocabulary operations
-  getAllVocabularyWords(): Promise<VocabularyWord[]>;
+  getVocabularyWords(): Promise<VocabularyWord[]>;
+  getVocabularyWordsByUser(userId: string): Promise<VocabularyWord[]>;
   getVocabularyWord(id: number): Promise<VocabularyWord | undefined>;
-  getVocabularyWordByWord(word: string): Promise<VocabularyWord | undefined>;
-  createVocabularyWord(word: InsertVocabularyWord): Promise<VocabularyWord>;
-  updateVocabularyWord(id: number, word: UpdateVocabularyWord): Promise<VocabularyWord | undefined>;
+  getVocabularyWordByUser(id: number, userId: string): Promise<VocabularyWord | undefined>;
+  createVocabularyWord(data: InsertVocabularyWord & { userId: string }): Promise<VocabularyWord>;
+  updateVocabularyWord(id: number, data: Partial<VocabularyWord>): Promise<VocabularyWord | undefined>;
+  updateVocabularyWordByUser(id: number, userId: string, data: Partial<VocabularyWord>): Promise<VocabularyWord | undefined>;
   deleteVocabularyWord(id: number): Promise<boolean>;
-  searchVocabularyWords(query: string): Promise<VocabularyWord[]>;
-  getVocabularyWordsByCategory(category: string): Promise<VocabularyWord[]>;
-  getVocabularyWordsByTag(tag: string): Promise<VocabularyWord[]>;
-  updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined>;
-  updateWordSpacedRepetition(id: number, known: boolean): Promise<VocabularyWord | undefined>;
-  getWordsForReview(limit: number): Promise<VocabularyWord[]>;
-  getRandomWordsForStudy(limit: number): Promise<VocabularyWord[]>;
-  
+  deleteVocabularyWordByUser(id: number, userId: string): Promise<boolean>;
+
   // Daily challenge operations
   getDailyChallengeWords(): Promise<VocabularyWord[]>;
   getDailyChallengeStatus(): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }>;
@@ -92,10 +88,18 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  async getAllVocabularyWords(): Promise<VocabularyWord[]> {
+  async getVocabularyWords(): Promise<VocabularyWord[]> {
     return await db
       .select()
       .from(vocabularyWords)
+      .orderBy(desc(vocabularyWords.createdAt));
+  }
+
+  async getVocabularyWordsByUser(userId: string): Promise<VocabularyWord[]> {
+    return await db
+      .select()
+      .from(vocabularyWords)
+      .where(eq(vocabularyWords.userId, userId))
       .orderBy(desc(vocabularyWords.createdAt));
   }
 
@@ -107,6 +111,15 @@ export class DatabaseStorage implements IStorage {
     return word || undefined;
   }
 
+  async getVocabularyWordByUser(id: number, userId: string): Promise<VocabularyWord | undefined> {
+    const [word] = await db
+      .select()
+      .from(vocabularyWords)
+      .where(eq(vocabularyWords.id, id))
+      .where(eq(vocabularyWords.userId, userId));
+    return word || undefined;
+  }
+
   async getVocabularyWordByWord(word: string): Promise<VocabularyWord | undefined> {
     const [existingWord] = await db
       .select()
@@ -115,13 +128,13 @@ export class DatabaseStorage implements IStorage {
     return existingWord || undefined;
   }
 
-  async createVocabularyWord(insertWord: InsertVocabularyWord): Promise<VocabularyWord> {
+  async createVocabularyWord(insertWord: InsertVocabularyWord & { userId: string }): Promise<VocabularyWord> {
     // Check if word already exists (case-insensitive)
     const existingWord = await this.getVocabularyWordByWord(insertWord.word);
     if (existingWord) {
       throw new Error(`Word "${insertWord.word}" already exists in your vocabulary`);
     }
-    
+
     const wordData = {
       ...insertWord,
       word: insertWord.word.toLowerCase(), // Store in lowercase for consistency
@@ -143,10 +156,28 @@ export class DatabaseStorage implements IStorage {
     return word || undefined;
   }
 
+  async updateVocabularyWordByUser(id: number, userId: string, updateWord: Partial<VocabularyWord>): Promise<VocabularyWord | undefined> {
+    const [word] = await db
+      .update(vocabularyWords)
+      .set(updateWord)
+      .where(eq(vocabularyWords.id, id))
+      .where(eq(vocabularyWords.userId, userId))
+      .returning();
+    return word || undefined;
+  }
+
   async deleteVocabularyWord(id: number): Promise<boolean> {
     const result = await db
       .delete(vocabularyWords)
       .where(eq(vocabularyWords.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async deleteVocabularyWordByUser(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(vocabularyWords)
+      .where(eq(vocabularyWords.id, id))
+      .where(eq(vocabularyWords.userId, userId));
     return (result.rowCount || 0) > 0;
   }
 
@@ -170,7 +201,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(vocabularyWords)
       .orderBy(desc(vocabularyWords.createdAt));
-    
+
     return allWords.filter(word => word.tags && word.tags.includes(category));
   }
 
@@ -179,7 +210,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(vocabularyWords)
       .orderBy(desc(vocabularyWords.createdAt));
-    
+
     return allWords.filter(word => word.tags && word.tags.includes(tag));
   }
 
@@ -188,7 +219,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(vocabularyWords)
       .where(eq(vocabularyWords.id, id));
-    
+
     if (!existingWord) return undefined;
 
     const [updatedWord] = await db
@@ -201,7 +232,7 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(vocabularyWords.id, id))
       .returning();
-    
+
     return updatedWord || undefined;
   }
 
@@ -210,17 +241,17 @@ export class DatabaseStorage implements IStorage {
     const allWords = await db
       .select()
       .from(vocabularyWords);
-    
+
     // Shuffle the array to get random order
     const shuffled = [...allWords].sort(() => Math.random() - 0.5);
-    
+
     // Return unique words up to the limit (no duplicates possible)
     return shuffled.slice(0, Math.min(limit, shuffled.length));
   }
 
   async updateWordSpacedRepetition(id: number, known: boolean): Promise<VocabularyWord | undefined> {
     const { calculateNextReview, swipeToQuality } = await import("./spaced-repetition");
-    
+
     const [currentWord] = await db.select().from(vocabularyWords).where(eq(vocabularyWords.id, id));
     if (!currentWord) return undefined;
 
@@ -251,12 +282,12 @@ export class DatabaseStorage implements IStorage {
   async getDailyChallengeWords(): Promise<VocabularyWord[]> {
     const today = new Date().toISOString().split('T')[0];
     const DAILY_CHALLENGE_COUNT = 30; // Fixed number of words per day
-    
+
     // Get all words that are due for review or haven't been studied recently
     const allWords = await db
       .select()
       .from(vocabularyWords);
-    
+
     // Filter words using SuperMemo algorithm priorities:
     // 1. Words due for review (nextReview <= today)
     // 2. Words with low ease factor (difficult words)
@@ -267,7 +298,7 @@ export class DatabaseStorage implements IStorage {
         const isDue = nextReview <= new Date(today + 'T23:59:59');
         const lowEase = parseFloat(word.easeFactor?.toString() || "2.5") < 2.0;
         const lowStudyCount = (word.studyCount || 0) < 3;
-        
+
         return isDue || lowEase || lowStudyCount;
       })
       .sort((a, b) => {
@@ -276,7 +307,7 @@ export class DatabaseStorage implements IStorage {
         const bNextReview = b.nextReview ? new Date(b.nextReview) : new Date(0);
         const aEase = parseFloat(a.easeFactor?.toString() || "2.5");
         const bEase = parseFloat(b.easeFactor?.toString() || "2.5");
-        
+
         if (aNextReview.getTime() !== bNextReview.getTime()) {
           return aNextReview.getTime() - bNextReview.getTime();
         }
@@ -285,28 +316,28 @@ export class DatabaseStorage implements IStorage {
         }
         return (a.studyCount || 0) - (b.studyCount || 0);
       });
-    
+
     // If we don't have enough priority words, fill with random words
     const selectedWords = [...prioritizedWords];
     if (selectedWords.length < DAILY_CHALLENGE_COUNT) {
       const remainingWords = allWords
         .filter(word => !selectedWords.find(selected => selected.id === word.id))
         .sort(() => Math.random() - 0.5);
-      
+
       selectedWords.push(...remainingWords.slice(0, DAILY_CHALLENGE_COUNT - selectedWords.length));
     }
-    
+
     return selectedWords.slice(0, DAILY_CHALLENGE_COUNT);
   }
 
   async getDailyChallengeStatus(): Promise<{ completed: boolean; date: string; stats?: DailyChallenge }> {
     const today = new Date().toISOString().split('T')[0];
-    
+
     const [todaysChallenge] = await db
       .select()
       .from(dailyChallenges)
       .where(eq(dailyChallenges.date, today));
-    
+
     return {
       completed: !!todaysChallenge?.completedAt,
       date: today,
@@ -316,7 +347,7 @@ export class DatabaseStorage implements IStorage {
 
   async completeDailyChallenge(stats: { totalWords: number; correctWords: number; accuracy: number }): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
-    
+
     // Insert or update today's challenge record
     await db
       .insert(dailyChallenges)
@@ -340,9 +371,9 @@ export class DatabaseStorage implements IStorage {
 
   async getWordsForReview(limit: number): Promise<VocabularyWord[]> {
     const { isDueForReview } = await import("./spaced-repetition");
-    
+
     const allWords = await db.select().from(vocabularyWords);
-    
+
     // Filter words that are due for review
     const dueWords = allWords.filter(word => 
       isDueForReview(word.nextReview)
@@ -354,7 +385,7 @@ export class DatabaseStorage implements IStorage {
       if (!a.nextReview && b.nextReview) return -1;
       if (a.nextReview && !b.nextReview) return 1;
       if (!a.nextReview && !b.nextReview) return 0;
-      
+
       // For reviewed words, sort by next review date (earliest first)
       return new Date(a.nextReview!).getTime() - new Date(b.nextReview!).getTime();
     });

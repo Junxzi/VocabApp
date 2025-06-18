@@ -24,6 +24,7 @@ export const categories = pgTable("categories", {
 
 export const vocabularyWords = pgTable("vocabulary_words", {
   id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(), // Replit user ID
   word: text("word").notNull(),
   pronunciation: text("pronunciation").default(""),
   pronunciationUs: text("pronunciation_us"), // IPA for American English
@@ -46,7 +47,8 @@ export const vocabularyWords = pgTable("vocabulary_words", {
 
 export const dailyChallenges = pgTable("daily_challenges", {
   id: serial("id").primaryKey(),
-  date: text("date").notNull().unique(), // YYYY-MM-DD format
+  userId: text("user_id").notNull(), // Replit user ID
+  date: text("date").notNull(), // YYYY-MM-DD format
   completedAt: timestamp("completed_at"),
   totalWords: integer("total_words").default(0),
   correctWords: integer("correct_words").default(0),

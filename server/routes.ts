@@ -8,6 +8,7 @@ import { calculateNextReview, swipeToQuality, isDueForReview } from "./spaced-re
 import { syncCategoriesFromNotion, initializeDefaultCategories, syncVocabularyWordsFromNotion } from "./setup-categories";
 import { generateWordsForCategory, getSampleWordsForCategory } from "./word-generator";
 import { generateWordGacha, getSampleGachaCategories } from "./word-gacha";
+import { requireAuth, optionalAuth, type AuthenticatedRequest } from "./auth-middleware";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize categories on startup
@@ -61,10 +62,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all vocabulary words
-  app.get("/api/vocabulary", async (req, res) => {
+  // Get all vocabulary words for authenticated user
+  app.get("/api/vocabulary", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const words = await storage.getAllVocabularyWords();
+      const words = await storage.getVocabularyWordsByUser(req.userId!);
       res.json(words);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch vocabulary words" });
@@ -196,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/vocabulary", async (req, res) => {
     try {
       const validatedData = insertVocabularyWordSchema.parse(req.body);
-      
+
       // Automatically enrich new words with GPT-4o data
       let enrichedData = validatedData;
       if (validatedData.word) {
@@ -214,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn("Failed to enrich word, proceeding without enrichment:", enrichError);
         }
       }
-      
+
       const word = await storage.createVocabularyWord(enrichedData);
       res.status(201).json(word);
     } catch (error) {
@@ -282,14 +283,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const word = await storage.getVocabularyWord(id);
-      
+
       if (!word) {
         return res.status(404).json({ message: "Vocabulary word not found" });
       }
 
       // Get enriched data from GPT-4o
       const enrichmentData = await enrichWordData(word.word);
-      
+
       // Update the word with enriched data
       const updatedWord = await storage.updateVocabularyWord(id, {
         pronunciationUs: enrichmentData.pronunciations.us,
@@ -317,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const categoryName = req.params.categoryName;
       const { count = 10 } = req.body;
-      
+
       // Don't allow TOEFL category
       if (categoryName === "TOEFL") {
         return res.status(400).json({ message: "Word generation not available for TOEFL category" });
@@ -331,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate words using GPT
       const generatedWords = await generateWordsForCategory(categoryName, count);
-      
+
       // Add generated words to database
       const addedWords = [];
       for (const wordData of generatedWords) {
@@ -364,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/categories/:categoryName/sample-words", async (req, res) => {
     try {
       const categoryName = req.params.categoryName;
-      
+
       if (categoryName === "TOEFL") {
         return res.status(400).json({ message: "Word generation not available for TOEFL category" });
       }
@@ -380,7 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/word-gacha/generate", async (req, res) => {
     try {
       const { tagName, selectedTags = [], count = 30 } = req.body;
-      
+
       if (!tagName) {
         return res.status(400).json({ message: "Tag name is required" });
       }
@@ -394,12 +395,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate words using GPT with full enrichment
       const generatedWords = await generateWordGacha(tagName, count);
-      
+
       // Add generated words to database with multiple tags
       const addedWords = [];
       const skippedWords = [];
       const allTags = [tagName, ...selectedTags];
-      
+
       for (const wordData of generatedWords) {
         try {
           const newWord = await storage.createVocabularyWord({
