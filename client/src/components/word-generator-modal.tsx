@@ -81,7 +81,7 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
-            {language === 'ja' ? "AI単語生成" : "AI Word Generation"}
+            {t('generate.title')}
           </DialogTitle>
           <DialogDescription>
             {language === 'ja' 
@@ -95,7 +95,7 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
           {/* Tag name input */}
           <div>
             <Label htmlFor="tagName">
-              {language === 'ja' ? "タグ名" : "Tag Name"}
+              {t('generate.category')}
             </Label>
             <Input
               id="tagName"
@@ -124,7 +124,7 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
           {/* Action buttons */}
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              {language === 'ja' ? "キャンセル" : "Cancel"}
+              {t('generate.cancel')}
             </Button>
             <Button 
               onClick={handleGenerate}

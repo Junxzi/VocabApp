@@ -158,12 +158,12 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="tags"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tags</FormLabel>
+                  <FormLabel>{t('add.tags')}</FormLabel>
                   <FormControl>
                     <div className="space-y-2">
                       <div className="flex gap-2">
                         <Input
-                          placeholder="Add a tag"
+                          placeholder={t('add.newTag')}
                           value={newTagName}
                           onChange={(e) => setNewTagName(e.target.value)}
                           className="bg-muted flex-1"
@@ -182,7 +182,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                       {availableTags.length > 0 && (
                         <div className="mb-3">
                           <Label className="text-sm text-muted-foreground mb-2 block">
-                            Existing tags (click to add):
+                            {t('add.existingTags')}
                           </Label>
                           <div className="flex flex-wrap gap-2">
                             {availableTags
