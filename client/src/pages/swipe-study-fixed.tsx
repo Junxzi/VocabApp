@@ -635,7 +635,7 @@ export function SwipeStudyPage() {
         </div>
         
         <div className="absolute -top-20 right-0 z-20">
-          <div className="flex items-center justify-center w-16 h-16 bg-green-500 text-white rounded-full shadow-lg mt-[8px] mb-[8px]">
+          <div className="flex items-center justify-center w-16 h-16 bg-green-500 text-white rounded-full shadow-lg mt-[705px] mb-[705px]">
             <div className="text-center">
               <CheckCircle2 className="w-6 h-6 mx-auto mb-1" />
               <span className="text-lg font-bold">{sessionStats.known}</span>
