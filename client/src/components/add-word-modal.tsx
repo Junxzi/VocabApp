@@ -9,10 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertVocabularyWordSchema } from "@shared/schema";
-import { CATEGORIES, detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/utils";
+import { detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { Globe } from "lucide-react";
-import type { InsertVocabularyWord, VocabularyWord } from "@shared/schema";
+import { Globe, Plus } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/lib/i18n";
+import type { InsertVocabularyWord, VocabularyWord, Category } from "@shared/schema";
 
 interface AddWordModalProps {
   open: boolean;
@@ -22,13 +25,31 @@ interface AddWordModalProps {
 }
 
 export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddWordModalProps) {
+  const { t } = useLanguage();
+  const queryClient = useQueryClient();
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  
+  // Fetch categories
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
+
+  // Handle new category creation (simple, no persistence)
+  const handleCreateNewCategory = () => {
+    if (newCategoryName.trim()) {
+      form.setValue("category", newCategoryName.trim());
+      setShowNewCategoryForm(false);
+      setNewCategoryName("");
+    }
+  };
   
   const form = useForm<InsertVocabularyWord>({
     resolver: zodResolver(insertVocabularyWordSchema),
     defaultValues: {
       word: "",
       definition: "",
-      category: "Academic",
+      category: categories[0]?.name || "Academic",
       language: "en",
     },
   });
@@ -119,21 +140,77 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-muted">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                  <FormLabel>{t('add.category')}</FormLabel>
+                  {!showNewCategoryForm ? (
+                    <Select 
+                      onValueChange={(value) => {
+                        if (value === "__create_new__") {
+                          setShowNewCategoryForm(true);
+                        } else {
+                          field.onChange(value);
+                        }
+                      }} 
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-muted">
+                          <SelectValue placeholder={t('add.selectCategory')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            <div className="flex items-center gap-2">
+                              {category.icon && <span>{category.icon}</span>}
+                              <span>{category.displayName}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="__create_new__">
+                          <div className="flex items-center gap-2 text-primary">
+                            <Plus className="w-4 h-4" />
+                            <span>{t('add.createNewCategory')}</span>
+                          </div>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder={t('add.newCategoryName')}
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        className="bg-muted"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleCreateNewCategory();
+                          }
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleCreateNewCategory}
+                          disabled={!newCategoryName.trim()}
+                        >
+                          {t('add.createCategory')}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setShowNewCategoryForm(false);
+                            setNewCategoryName("");
+                          }}
+                        >
+                          {t('add.cancel')}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

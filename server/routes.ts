@@ -1,12 +1,54 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertVocabularyWordSchema, updateVocabularyWordSchema } from "@shared/schema";
+import { insertVocabularyWordSchema, updateVocabularyWordSchema, insertCategorySchema } from "@shared/schema";
 import { z } from "zod";
 import { enrichWordData, generatePronunciation } from "./openai";
 import { calculateNextReview, swipeToQuality, isDueForReview } from "./spaced-repetition";
+import { syncCategoriesFromNotion, initializeDefaultCategories } from "./setup-categories";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize categories on startup
+  try {
+    await initializeDefaultCategories();
+    console.log("✓ Default categories initialized");
+  } catch (error) {
+    console.warn("⚠ Failed to initialize categories:", error);
+  }
+
+  // Category routes
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categories = await storage.getAllCategories();
+      res.json(categories);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.post("/api/categories", async (req, res) => {
+    try {
+      const validatedData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create category" });
+    }
+  });
+
+  app.post("/api/categories/sync", async (req, res) => {
+    try {
+      await syncCategoriesFromNotion();
+      const categories = await storage.getAllCategories();
+      res.json({ message: "Categories synced from Notion", categories });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to sync categories from Notion" });
+    }
+  });
+
   // Get all vocabulary words
   app.get("/api/vocabulary", async (req, res) => {
     try {
