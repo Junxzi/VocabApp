@@ -95,6 +95,12 @@ const translations = {
     'startNewSession': 'Start New Session',
     'tapCardToSeeMeaning': 'Tap the card to see meaning',
     'swipeInstructions': 'Swipe right if you know it, left if you need to review',
+    'tapToSeeMeaning': 'Tap to see meaning...',
+    'meaning': 'Meaning',
+    'tapAgainToFlipBack': 'Tap again to flip back',
+    'rank': 'Rank',
+    'review': 'REVIEW',
+    'know': 'KNOW',
     
     // Progress Page
     'learningProgress': 'Learning Progress',
@@ -202,6 +208,12 @@ const translations = {
     'startNewSession': '新しいセッションを開始',
     'tapCardToSeeMeaning': 'カードをタップして意味を確認',
     'swipeInstructions': '知っている場合は右、復習が必要な場合は左にスワイプ',
+    'tapToSeeMeaning': 'タップして意味を確認...',
+    'meaning': '意味',
+    'tapAgainToFlipBack': 'もう一度タップして表に戻る',
+    'rank': 'ランク',
+    'review': '復習',
+    'know': '習得済み',
     
     // Progress Page
     'learningProgress': '学習進捗',

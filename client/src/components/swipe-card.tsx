@@ -150,7 +150,7 @@ export function SwipeCard({
                     <Badge 
                       variant={word.difficulty >= 3 ? "destructive" : "default"}
                     >
-                      Rank {word.difficulty}
+                      {t('rank')} {word.difficulty}
                     </Badge>
                   )}
                 </div>
@@ -188,7 +188,7 @@ export function SwipeCard({
                     <Badge 
                       variant={word.difficulty >= 3 ? "destructive" : "default"}
                     >
-                      Rank {word.difficulty}
+                      {t('rank')} {word.difficulty}
                     </Badge>
                   )}
                 </div>
@@ -225,7 +225,7 @@ export function SwipeCard({
               opacity: isDragging && x.get() < -50 ? Math.min(1, Math.abs(x.get()) / 100) : 0
             }}
           >
-            REVIEW
+            {t('review')}
           </div>
           <div
             className="absolute top-1/2 right-8 transform -translate-y-1/2 text-green-500 font-bold text-2xl"
@@ -233,7 +233,7 @@ export function SwipeCard({
               opacity: isDragging && x.get() > 50 ? Math.min(1, x.get() / 100) : 0
             }}
           >
-            KNOW
+            {t('know')}
           </div>
         </div>
       )}
