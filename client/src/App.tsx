@@ -14,6 +14,7 @@ import { Settings } from "lucide-react";
 import { SwipeStudyPage } from "@/pages/swipe-study";
 import { ProgressPage } from "@/pages/progress";
 import { SettingsPage } from "@/pages/settings";
+import { WordDetailPage } from "@/pages/word-detail";
 import NotFound from "@/pages/not-found";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -124,6 +125,7 @@ function AppContent() {
       <div className="pb-20 md:pb-0">
         <Switch>
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
+          <Route path="/word/:id" component={WordDetailPage} />
           <Route path="/swipe-study" component={SwipeStudyPage} />
           <Route path="/progress" component={ProgressPage} />
           <Route path="/settings" component={SettingsPage} />

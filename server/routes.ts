@@ -148,6 +148,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enrich word with GPT-4o data (pronunciation + examples)
+  app.post("/api/vocabulary/:id/enrich", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const word = await storage.getVocabularyWord(id);
+      
+      if (!word) {
+        return res.status(404).json({ message: "Vocabulary word not found" });
+      }
+
+      // Get enriched data from GPT-4o
+      const enrichmentData = await enrichWordData(word.word);
+      
+      // Update the word with enriched data
+      const updatedWord = await storage.updateVocabularyWord(id, {
+        pronunciationUs: enrichmentData.pronunciations.us,
+        pronunciationUk: enrichmentData.pronunciations.uk,
+        pronunciationAu: enrichmentData.pronunciations.au,
+        exampleSentences: JSON.stringify(enrichmentData.exampleSentences)
+      });
+
+      res.json(updatedWord);
+    } catch (error) {
+      console.error("Error enriching word:", error);
+      res.status(500).json({ message: "Failed to enrich word data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
