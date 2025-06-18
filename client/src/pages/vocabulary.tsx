@@ -140,7 +140,13 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   // Restore scroll position after component mounts/updates
   useEffect(() => {
     const restoreScrollPosition = () => {
-      if (scrollPositionRef.current > 0) {
+      // Check for saved scroll position from session storage (when returning from detail page)
+      const savedScrollPosition = sessionStorage.getItem('vocabularyScrollPosition');
+      if (savedScrollPosition) {
+        const scrollY = parseInt(savedScrollPosition, 10);
+        window.scrollTo(0, scrollY);
+        sessionStorage.removeItem('vocabularyScrollPosition');
+      } else if (scrollPositionRef.current > 0) {
         if (containerRef.current) {
           containerRef.current.scrollTop = scrollPositionRef.current;
         } else {

@@ -68,6 +68,10 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => {
+                  // Save current scroll position before navigating
+                  sessionStorage.setItem('vocabularyScrollPosition', window.scrollY.toString());
+                }}
                 className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
               >
                 <Eye className="h-4 w-4" />
