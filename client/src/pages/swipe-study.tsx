@@ -180,7 +180,7 @@ export function SwipeStudyPage() {
   const nextWord = studyWords[currentIndex + 1];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 overflow-hidden">
       {/* Header */}
       <div className="max-w-md mx-auto mb-6">
         <div className="flex items-center justify-between mb-4">
