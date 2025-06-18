@@ -39,9 +39,9 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
 
 1. IPA pronunciation for American English, British English, and Australian English (without slashes or brackets)
 2. The most common part of speech in Japanese (名詞, 動詞, 形容詞, 副詞, etc.)
-3. Exactly 2 natural, conversational example sentences that native speakers would use in everyday casual situations, with their Japanese translations
+3. Exactly 2 natural, funny, and memorable example sentences that are humorous and entertaining, with their Japanese translations
 
-For casual/informal words, use very casual, friendly language that friends would use. For formal words, use more polite but still natural language. Match the formality level of the word itself.
+Make the examples funny, quirky, or amusing - like something that would make people chuckle or smile. Use casual language with humor, wit, or amusing situations that help people remember the word better.
 
 Respond with valid JSON in this exact format:
 {
@@ -53,17 +53,17 @@ Respond with valid JSON in this exact format:
   "primaryPartOfSpeech": "形容詞",
   "exampleSentences": [
     {
-      "english": "Ugh, this coffee tastes super bitter!",
-      "japanese": "うわ、このコーヒーめっちゃ苦い！"
+      "english": "My ex's cooking was so bitter, even the flies wouldn't touch it!",
+      "japanese": "元カノの料理は苦すぎて、ハエも近寄らなかった！"
     },
     {
-      "english": "I'm still kinda bitter about what she said.",
-      "japanese": "彼女が言ったこと、まだちょっと根に持ってる。"
+      "english": "I'm still bitter that my cat gets more Instagram likes than me.",
+      "japanese": "うちの猫の方がInstagramでいいねもらってるのがまだ悔しい。"
     }
   ]
 }
 
-Use contractions, slang, and casual expressions when appropriate. Make it sound like real people talking to friends.`
+Be creative, funny, and memorable. Use situations that are relatable but amusing.`
         },
         {
           role: "user",
