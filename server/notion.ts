@@ -246,7 +246,28 @@ export async function createDefaultCategories() {
         }
     ];
 
+    // First, check what categories already exist
+    const existingCategories = await notion.databases.query({
+        database_id: categoriesDb.id,
+        filter: {
+            property: "Status",
+            select: {
+                equals: "Active"
+            }
+        }
+    });
+
+    const existingNames = existingCategories.results.map((page: any) => 
+        page.properties.Name?.title?.[0]?.plain_text || ""
+    );
+
     for (const category of defaultCategories) {
+        // Skip if category already exists
+        if (existingNames.includes(category.name)) {
+            console.log(`○ Category already exists in Notion: ${category.name}`);
+            continue;
+        }
+
         try {
             await notion.pages.create({
                 parent: {
@@ -312,9 +333,9 @@ export async function createDefaultCategories() {
                 }
             });
             
-            console.log(`Created category: ${category.name}`);
+            console.log(`✓ Created category in Notion: ${category.name}`);
         } catch (error) {
-            console.log(`Category ${category.name} might already exist, skipping...`);
+            console.error(`✗ Failed to create category ${category.name}:`, error);
         }
     }
 }
