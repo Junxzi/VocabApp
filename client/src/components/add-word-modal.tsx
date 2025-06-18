@@ -1,21 +1,38 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertVocabularyWordSchema } from "@shared/schema";
-import { detectLanguage, getLanguageLabel, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/utils";
-import { cn } from "@/lib/utils";
-import { Globe, Plus } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
+import { X, Plus } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { InsertVocabularyWord, VocabularyWord, insertVocabularyWordSchema } from "@shared/schema";
 import { useLanguage } from "@/lib/i18n";
-import type { InsertVocabularyWord, VocabularyWord, Category } from "@shared/schema";
 
 interface AddWordModalProps {
   open: boolean;
@@ -27,29 +44,14 @@ interface AddWordModalProps {
 export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddWordModalProps) {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
-  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  
-  // Fetch categories
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
-
-  // Handle new category creation (simple, no persistence)
-  const handleCreateNewCategory = () => {
-    if (newCategoryName.trim()) {
-      form.setValue("category", newCategoryName.trim());
-      setShowNewCategoryForm(false);
-      setNewCategoryName("");
-    }
-  };
+  const [newTagName, setNewTagName] = useState("");
   
   const form = useForm<InsertVocabularyWord>({
     resolver: zodResolver(insertVocabularyWordSchema),
     defaultValues: {
       word: "",
       definition: "",
-      category: categories[0]?.name || "Academic",
+      tags: [],
       language: "en",
     },
   });
@@ -60,7 +62,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
       form.reset({
         word: editingWord.word,
         definition: editingWord.definition,
-        category: editingWord.category,
+        tags: editingWord.tags || [],
         language: editingWord.language,
         difficulty: editingWord.difficulty,
       });
@@ -68,7 +70,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
       form.reset({
         word: "",
         definition: "",
-        category: "Academic",
+        tags: [],
         language: "en",
         difficulty: undefined,
       });
@@ -81,20 +83,30 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
     onOpenChange(false);
   };
 
-  const handleClose = () => {
-    form.reset();
-    onOpenChange(false);
+  const addTag = () => {
+    if (newTagName.trim()) {
+      const currentTags = form.getValues("tags") || [];
+      if (!currentTags.includes(newTagName.trim())) {
+        form.setValue("tags", [...currentTags, newTagName.trim()]);
+        setNewTagName("");
+      }
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    const currentTags = form.getValues("tags") || [];
+    form.setValue("tags", currentTags.filter(tag => tag !== tagToRemove));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md animate-scale-in">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingWord ? t('add.edit_title') : t('add.title')}
+            {editingWord ? "Edit Word" : "Add New Word"}
           </DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -102,115 +114,70 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="word"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('add.word')}</FormLabel>
+                  <FormLabel>Word *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={t('add.wordPlaceholder')}
-                      className="bg-muted"
-                      {...field}
-                    />
+                    <Input {...field} className="bg-muted" placeholder="Enter the word" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
 
             <FormField
               control={form.control}
               name="definition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('add.definition')}</FormLabel>
+                  <FormLabel>Definition *</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder={t('add.definitionPlaceholder')}
-                      className="bg-muted resize-none"
-                      rows={3}
-                      {...field}
-                    />
+                    <Textarea {...field} className="bg-muted" placeholder="Enter the definition" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
-              name="category"
+              name="tags"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('add.category')} (Primary Tag)</FormLabel>
-                  {!showNewCategoryForm ? (
-                    <Select 
-                      onValueChange={(value) => {
-                        if (value === "__create_new__") {
-                          setShowNewCategoryForm(true);
-                        } else {
-                          field.onChange(value);
-                        }
-                      }} 
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-muted">
-                          <SelectValue placeholder={t('add.selectCategory')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.name}>
-                            <div className="flex items-center gap-2">
-                              {category.icon && <span>{category.icon}</span>}
-                              <span>{category.displayName}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="__create_new__">
-                          <div className="flex items-center gap-2 text-primary">
-                            <Plus className="w-4 h-4" />
-                            <span>{t('add.createNewCategory')}</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
                     <div className="space-y-2">
-                      <Input
-                        placeholder={t('add.newCategoryName')}
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        className="bg-muted"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleCreateNewCategory();
-                          }
-                        }}
-                      />
                       <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={handleCreateNewCategory}
-                          disabled={!newCategoryName.trim()}
-                        >
-                          {t('add.createCategory')}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setShowNewCategoryForm(false);
-                            setNewCategoryName("");
+                        <Input
+                          placeholder="Add a tag"
+                          value={newTagName}
+                          onChange={(e) => setNewTagName(e.target.value)}
+                          className="bg-muted flex-1"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addTag();
+                            }
                           }}
-                        >
-                          {t('add.cancel')}
+                        />
+                        <Button type="button" onClick={addTag} size="sm">
+                          <Plus className="w-4 h-4" />
                         </Button>
                       </div>
+                      <div className="flex flex-wrap gap-2">
+                        {field.value?.map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => removeTag(tag)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  )}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -221,43 +188,57 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="difficulty"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('add.difficulty')}</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(value === "unset" ? null : parseInt(value))} value={field.value ? field.value.toString() : "unset"}>
+                  <FormLabel>Difficulty Rank</FormLabel>
+                  <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger className="bg-muted">
-                        <SelectValue placeholder={t('add.selectDifficulty')} />
+                        <SelectValue placeholder="Select difficulty (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="unset">{t('add.difficultyUnset')}</SelectItem>
-                      <SelectItem value="1">{t('add.difficulty1')}</SelectItem>
-                      <SelectItem value="2">{t('add.difficulty2')}</SelectItem>
-                      <SelectItem value="3">{t('add.difficulty3')}</SelectItem>
-                      <SelectItem value="4">{t('add.difficulty4')}</SelectItem>
+                      <SelectItem value="1">Rank 1 (Easy)</SelectItem>
+                      <SelectItem value="2">Rank 2</SelectItem>
+                      <SelectItem value="3">Rank 3</SelectItem>
+                      <SelectItem value="4">Rank 4 (Hard)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            <div className="flex space-x-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={handleClose}
-              >
-                {t('add.cancel')}
+
+            <FormField
+              control={form.control}
+              name="language"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Language</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-muted">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="ja">Japanese</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
               </Button>
-              <Button type="submit" className="flex-1">
-                {editingWord ? t('add.update') : t('add.save')}
+              <Button type="submit">
+                {editingWord ? "Update Word" : "Add Word"}
               </Button>
             </div>
           </form>
         </Form>
-        
-
       </DialogContent>
     </Dialog>
   );

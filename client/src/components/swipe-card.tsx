@@ -142,10 +142,12 @@ export function SwipeCard({
                 )}
                 
                 <div className="flex items-center justify-center gap-2 mt-2">
-                  {word.category && (
-                    <Badge variant="secondary">
-                      {word.category}
-                    </Badge>
+                  {word.tags && word.tags.length > 0 && (
+                    word.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))
                   )}
                   {word.difficulty && (
                     <Badge 
@@ -187,10 +189,12 @@ export function SwipeCard({
                   )}
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  {word.category && (
-                    <Badge variant="secondary">
-                      {word.category}
-                    </Badge>
+                  {word.tags && word.tags.length > 0 && (
+                    word.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))
                   )}
                   {word.difficulty && (
                     <Badge 
