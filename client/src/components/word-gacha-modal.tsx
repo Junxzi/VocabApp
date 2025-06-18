@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles, Loader2, AlertCircle, Dices } from "lucide-react";
+import { Sparkles, Loader2, AlertCircle, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";
 import type { Category } from "@shared/schema";
@@ -17,8 +17,8 @@ interface WordGachaModalProps {
 }
 
 export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
-  const [categoryName, setCategoryName] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [tagName, setTagName] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { language } = useLanguage();
@@ -28,14 +28,14 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
   });
 
   const generateWordsMutation = useMutation({
-    mutationFn: async (data: { categoryName: string; selectedCategories: string[] }) => {
+    mutationFn: async (data: { tagName: string; selectedTags: string[] }) => {
       const response = await fetch(`/api/word-gacha/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          categoryName: data.categoryName,
-          selectedCategories: data.selectedCategories,
-          count: 50 
+          tagName: data.tagName,
+          selectedTags: data.selectedTags,
+          count: 30 
         })
       });
       if (!response.ok) {
@@ -49,12 +49,12 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
       toast({
         title: language === 'ja' ? "生成完了" : "Generation Complete",
         description: language === 'ja' 
-          ? `${categoryName}から${data.totalAdded}個の単語を生成しました`
-          : `Generated ${data.totalAdded} words from ${categoryName}`
+          ? `「${data.tagName}」タグで${data.totalAdded}個の単語を生成しました`
+          : `Generated ${data.totalAdded} words with "${data.tagName}" tag`
       });
       onOpenChange(false);
-      setCategoryName("");
-      setSelectedCategories([]);
+      setTagName("");
+      setSelectedTags([]);
     },
     onError: (error: Error) => {
       toast({
@@ -65,8 +65,8 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
     }
   });
 
-  const handleCategoryToggle = (categoryName: string) => {
-    setSelectedCategories(prev => 
+  const handleTagToggle = (categoryName: string) => {
+    setSelectedTags(prev => 
       prev.includes(categoryName) 
         ? prev.filter(c => c !== categoryName)
         : [...prev, categoryName]
@@ -74,128 +74,120 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
   };
 
   const handleGenerate = () => {
-    if (!categoryName.trim()) {
+    if (!tagName.trim()) {
       toast({
-        title: language === 'ja' ? "カテゴリ名が必要" : "Category Name Required",
-        description: language === 'ja' ? "カテゴリ名を入力してください" : "Please enter a category name",
+        title: language === 'ja' ? "タグ名が必要" : "Tag Name Required",
+        description: language === 'ja' ? "新しいタグ名を入力してください" : "Please enter a new tag name",
         variant: "destructive"
       });
       return;
     }
 
-    if (selectedCategories.length === 0) {
+    if (tagName.length > 20) {
       toast({
-        title: language === 'ja' ? "カテゴリを選択" : "Select Categories",
-        description: language === 'ja' ? "少なくとも1つのカテゴリを選択してください" : "Please select at least one category",
+        title: language === 'ja' ? "タグ名が長すぎます" : "Tag Name Too Long",
+        description: language === 'ja' ? "タグ名は20文字以内にしてください" : "Tag name must be 20 characters or less",
         variant: "destructive"
       });
       return;
     }
 
-    generateWordsMutation.mutate({ categoryName, selectedCategories });
+    generateWordsMutation.mutate({ tagName, selectedTags });
   };
 
   const availableCategories = categories.filter(cat => cat.name !== "TOEFL");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
-            {language === 'ja' ? "AI単語生成+" : "AI Word Generator+"}
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            {language === 'ja' ? 'AI単語生成+' : 'AI Word Generator+'}
           </DialogTitle>
           <DialogDescription>
             {language === 'ja' 
-              ? "カスタムテーマから50個の単語を生成。生成された単語は選択したカテゴリに自動分類されます。"
-              : "Generate 50 words from custom themes. Generated words will be automatically categorized into your selected categories."}
+              ? '新しいタグ名を作成して、30個の関連単語をAIで生成します。追加タグも選択できます。'
+              : 'Create a new tag and generate 30 related words with AI. You can also select additional tags.'}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Category Name Input */}
-          <div>
-            <Label htmlFor="categoryName">
-              {language === 'ja' ? "カテゴリ名（テーマ）" : "Category Name (Theme)"}
+        <div className="space-y-6">
+          {/* New Tag Name Input */}
+          <div className="space-y-2">
+            <Label htmlFor="tagName" className="flex items-center gap-2">
+              <Tag className="w-4 h-4" />
+              {language === 'ja' ? '新しいタグ名' : 'New Tag Name'}
             </Label>
             <Input
-              id="categoryName"
-              placeholder={language === 'ja' ? "例: 料理、スポーツ、音楽..." : "e.g., Cooking, Sports, Music..."}
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-              className="mt-1"
+              id="tagName"
+              value={tagName}
+              onChange={(e) => setTagName(e.target.value)}
+              placeholder={language === 'ja' ? '例: 料理、スポーツ、映画...' : 'e.g., Cooking, Sports, Movies...'}
+              maxLength={20}
+              className="text-base"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              {language === 'ja' ? "このテーマに関連する単語を50個生成します" : "50 words related to this theme will be generated"}
-            </p>
+            <div className="text-xs text-muted-foreground">
+              {tagName.length}/20 {language === 'ja' ? '文字' : 'characters'}
+            </div>
           </div>
 
-          {/* Category Selection */}
-          <div>
-            <Label>
-              {language === 'ja' ? "分類先カテゴリ" : "Target Categories"}
+          {/* Additional Tags Selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">
+              {language === 'ja' ? '追加タグ (オプション)' : 'Additional Tags (Optional)'}
             </Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              {language === 'ja' ? "生成された単語を追加するカテゴリを選択" : "Select categories to add generated words to"}
-            </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded-lg">
               {availableCategories.map((category) => (
                 <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox
-                    id={category.name}
-                    checked={selectedCategories.includes(category.name)}
-                    onCheckedChange={() => handleCategoryToggle(category.name)}
+                    id={`category-${category.id}`}
+                    checked={selectedTags.includes(category.name)}
+                    onCheckedChange={() => handleTagToggle(category.name)}
                   />
-                  <Label 
-                    htmlFor={category.name}
-                    className="text-sm font-normal cursor-pointer"
+                  <Label
+                    htmlFor={`category-${category.id}`}
+                    className="text-sm cursor-pointer flex-1"
                   >
-                    {category.name}
+                    {language === 'ja' ? category.displayName : category.name}
                   </Label>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Preview */}
-          {categoryName && selectedCategories.length > 0 && (
-            <div className="p-3 bg-muted/50 rounded-lg">
-              <p className="text-sm font-medium mb-2">
-                {language === 'ja' ? "生成予定:" : "Will Generate:"}
-              </p>
-              <p className="text-sm text-muted-foreground mb-2">
-                <span className="font-medium text-foreground">"{categoryName}"</span>{' '}
-                {language === 'ja' ? "テーマで50個の単語" : "theme with 50 words"}
-              </p>
+            {selectedTags.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {selectedCategories.map(cat => (
-                  <Badge key={cat} variant="outline" className="text-xs">
-                    {cat}
+                {selectedTags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="text-xs">
+                    {tag}
                   </Badge>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Action buttons */}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              {language === 'ja' ? "キャンセル" : "Cancel"}
+          {/* Generate Button */}
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={() => onOpenChange(false)}
+              variant="outline"
+              className="flex-1"
+            >
+              {language === 'ja' ? 'キャンセル' : 'Cancel'}
             </Button>
-            <Button 
+            <Button
               onClick={handleGenerate}
-              disabled={generateWordsMutation.isPending || !categoryName.trim() || selectedCategories.length === 0}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              disabled={generateWordsMutation.isPending || !tagName.trim()}
+              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
             >
               {generateWordsMutation.isPending ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {language === 'ja' ? "生成中..." : "Generating..."}
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'ja' ? '生成中...' : 'Generating...'}
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  {language === 'ja' ? "生成開始" : "Generate"}
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {language === 'ja' ? '30個生成' : 'Generate 30'}
                 </>
               )}
             </Button>

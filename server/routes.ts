@@ -332,20 +332,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Word Gacha - Generate custom category words
+  // Word Gacha - Generate custom tag words
   app.post("/api/word-gacha/generate", async (req, res) => {
     try {
-      const { categoryName, selectedCategories, count = 50 } = req.body;
+      const { tagName, selectedTags = [], count = 30 } = req.body;
       
-      if (!categoryName || !selectedCategories || selectedCategories.length === 0) {
-        return res.status(400).json({ message: "Category name and selected categories are required" });
+      if (!tagName) {
+        return res.status(400).json({ message: "Tag name is required" });
       }
 
+      // Validate tag name length (max 20 characters)
+      if (tagName.length > 20) {
+        return res.status(400).json({ message: "Tag name must be 20 characters or less" });
+      }
+
+      console.log(`Generating ${count} words for tag: ${tagName}, with additional tags: ${selectedTags.join(", ")}`);
+
       // Generate words using GPT with full enrichment
-      const generatedWords = await generateWordGacha(categoryName, count);
+      const generatedWords = await generateWordGacha(tagName, count);
       
-      // Add generated words to database with multiple categories
+      // Add generated words to database with multiple tags
       const addedWords = [];
+      const allTags = [tagName, ...selectedTags];
+      
       for (const wordData of generatedWords) {
         try {
           const newWord = await storage.createVocabularyWord({
@@ -356,8 +365,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             pronunciationAu: wordData.pronunciationAu,
             partOfSpeech: wordData.partOfSpeech,
             exampleSentences: JSON.stringify(wordData.exampleSentences),
-            category: selectedCategories[0], // Primary category
-            categories: selectedCategories, // Multiple categories
+            category: tagName, // Primary tag
+            categories: allTags, // Multiple tags
             language: "en"
           });
           addedWords.push(newWord);
@@ -367,12 +376,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json({
-        message: `Successfully generated ${addedWords.length} words for "${categoryName}"`,
+        message: `Successfully generated ${addedWords.length} words for "${tagName}" tag`,
         words: addedWords,
         totalGenerated: generatedWords.length,
         totalAdded: addedWords.length,
-        categoryName,
-        selectedCategories
+        tagName,
+        selectedTags: allTags
       });
     } catch (error) {
       console.error("Error generating word gacha:", error);
