@@ -250,7 +250,7 @@ export function SwipeStudyPage() {
         {/* Next card (background) */}
         {nextWord && (
           <SwipeCard
-            key={`${nextWord.id}-next`}
+            key={`next-${currentIndex + 1}`}
             word={nextWord}
             onSwipe={() => {}}
             onShowAnswer={() => {}}
@@ -263,7 +263,7 @@ export function SwipeStudyPage() {
         {/* Current card */}
         {currentWord && (
           <SwipeCard
-            key={`${currentWord.id}-current`}
+            key={`current-${currentIndex}`}
             word={currentWord}
             onSwipe={handleSwipe}
             onShowAnswer={() => setShowAnswer(!showAnswer)}

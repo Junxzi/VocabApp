@@ -55,32 +55,31 @@ export function SwipeCard({
     if (isSwipe) {
       // Animate card flying off screen before triggering swipe
       const direction = info.offset.x > 0 ? 1 : -1;
-      const exitX = direction * window.innerWidth;
+      const exitX = direction * window.innerWidth * 1.2;
       
       animate(x, exitX, {
         type: "spring",
-        stiffness: 300,
-        damping: 20
+        stiffness: 200,
+        damping: 15,
+        velocity: info.velocity.x
       });
       
-      // Trigger swipe callback after animation starts
-      setTimeout(() => {
-        if (info.offset.x > 0) {
-          onSwipe('right');
-        } else {
-          onSwipe('left');
-        }
-      }, 100);
+      // Trigger swipe callback immediately to start next card transition
+      if (info.offset.x > 0) {
+        onSwipe('right');
+      } else {
+        onSwipe('left');
+      }
     } else {
-      // Return to original position smoothly
+      // Always return to center if not a complete swipe
       animate(x, 0, {
         type: "spring",
-        stiffness: 400,
-        damping: 30
+        stiffness: 500,
+        damping: 35
       });
     }
     
-    setTimeout(() => setDragStarted(false), 100);
+    setTimeout(() => setDragStarted(false), 50);
   };
 
   const handleDragStart = () => {
@@ -157,9 +156,10 @@ export function SwipeCard({
       animate={isActive ? "active" : "inactive"}
       drag={isActive ? "x" : false}
       dragConstraints={false}
-      dragElastic={0.1}
-      dragMomentum={false}
+      dragElastic={0.2}
+      dragMomentum={true}
       dragPropagation={false}
+      dragSnapToOrigin={false}
       whileDrag={{ 
         scale: 1.08, 
         cursor: "grabbing",
