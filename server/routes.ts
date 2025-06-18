@@ -355,6 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add generated words to database with multiple tags
       const addedWords = [];
+      const skippedWords = [];
       const allTags = [tagName, ...selectedTags];
       
       for (const wordData of generatedWords) {
@@ -372,7 +373,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           addedWords.push(newWord);
         } catch (error) {
-          console.warn(`Failed to add word: ${wordData.word}`, error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (errorMessage.includes("already exists")) {
+            skippedWords.push(wordData.word);
+            console.warn(`Skipped duplicate word: ${wordData.word}`);
+          } else {
+            console.warn(`Failed to add word: ${wordData.word}`, error);
+          }
         }
       }
 
@@ -381,6 +388,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         words: addedWords,
         totalGenerated: generatedWords.length,
         totalAdded: addedWords.length,
+        skippedDuplicates: skippedWords.length,
+        duplicateWords: skippedWords,
         tagName,
         selectedTags: allTags
       });

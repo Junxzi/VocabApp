@@ -18,6 +18,7 @@ export interface IStorage {
   // Vocabulary operations
   getAllVocabularyWords(): Promise<VocabularyWord[]>;
   getVocabularyWord(id: number): Promise<VocabularyWord | undefined>;
+  getVocabularyWordByWord(word: string): Promise<VocabularyWord | undefined>;
   createVocabularyWord(word: InsertVocabularyWord): Promise<VocabularyWord>;
   updateVocabularyWord(id: number, word: UpdateVocabularyWord): Promise<VocabularyWord | undefined>;
   deleteVocabularyWord(id: number): Promise<boolean>;
@@ -100,9 +101,24 @@ export class DatabaseStorage implements IStorage {
     return word || undefined;
   }
 
+  async getVocabularyWordByWord(word: string): Promise<VocabularyWord | undefined> {
+    const [existingWord] = await db
+      .select()
+      .from(vocabularyWords)
+      .where(eq(vocabularyWords.word, word.toLowerCase()));
+    return existingWord || undefined;
+  }
+
   async createVocabularyWord(insertWord: InsertVocabularyWord): Promise<VocabularyWord> {
+    // Check if word already exists (case-insensitive)
+    const existingWord = await this.getVocabularyWordByWord(insertWord.word);
+    if (existingWord) {
+      throw new Error(`Word "${insertWord.word}" already exists in your vocabulary`);
+    }
+    
     const wordData = {
       ...insertWord,
+      word: insertWord.word.toLowerCase(), // Store in lowercase for consistency
       pronunciation: insertWord.pronunciation || ""
     };
     const [word] = await db
