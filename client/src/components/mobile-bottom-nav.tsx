@@ -16,7 +16,7 @@ export function MobileBottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border safe-area-inset-bottom z-50 md:hidden">
-      <div className="flex items-center justify-around py-2">
+      <div className="flex items-center py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -26,14 +26,14 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors duration-200 touch-manipulation",
+                "flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation",
                 isActive
                   ? "text-foreground bg-muted"
                   : "text-muted-foreground"
               )}
             >
               <Icon className="w-5 h-5 mb-1" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-xs font-medium text-center leading-tight">{item.label}</span>
             </Link>
           );
         })}
