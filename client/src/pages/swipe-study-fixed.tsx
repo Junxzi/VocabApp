@@ -439,9 +439,8 @@ export function SwipeStudyPage() {
   };
 
   const handleSwipe = (direction: 'left' | 'right') => {
-    if (!displayedWord || isCardSwiping) return;
+    if (!displayedWord) return;
 
-    setIsCardSwiping(true);
     const known = direction === 'right';
     const wordId = displayedWord.id;
     const nextIndex = currentIndex + 1;
@@ -458,15 +457,13 @@ export function SwipeStudyPage() {
       known 
     });
 
-    // Show next word instantly when swiped
+    // Show next word instantly without any delay state
     if (nextIndex < studyWords.length) {
       setCurrentIndex(nextIndex);
       setDisplayedWord(studyWords[nextIndex]);
       setShowAnswer(false);
-      setIsCardSwiping(false); // Show next card immediately
     } else {
       setStudyMode('complete');
-      setIsCardSwiping(false);
     }
   };
 
@@ -597,7 +594,7 @@ export function SwipeStudyPage() {
         {/* Background blank card frame for smoother transitions */}
         <div className="absolute inset-0 bg-card border-2 border-border/30 rounded-2xl shadow-lg opacity-50 z-0"></div>
         
-        {displayedWord && !isCardSwiping && (
+        {displayedWord && (
           <StudyCard
             key={`card-${currentIndex}-${displayedWord.id}`}
             word={displayedWord}
@@ -607,21 +604,6 @@ export function SwipeStudyPage() {
             isVisible={true}
             zIndex={10}
           />
-        )}
-        
-        {/* Show next word immediately when swiping */}
-        {isCardSwiping && currentIndex + 1 < studyWords.length && (
-          <div className="absolute inset-0" style={{ zIndex: 5 }}>
-            <StudyCard
-              key={`next-card-${currentIndex + 1}-${studyWords[currentIndex + 1].id}`}
-              word={studyWords[currentIndex + 1]}
-              onSwipe={() => {}}
-              onTap={() => {}}
-              showAnswer={false}
-              isVisible={true}
-              zIndex={5}
-            />
-          </div>
         )}
       </div>
     </div>
