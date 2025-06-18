@@ -15,6 +15,7 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   pronunciationUs: text("pronunciation_us"), // IPA for American English
   pronunciationUk: text("pronunciation_uk"), // IPA for British English
   pronunciationAu: text("pronunciation_au"), // IPA for Australian English
+  partOfSpeech: text("part_of_speech"), // noun, verb, adjective, etc.
   definition: text("definition").notNull(),
   exampleSentences: text("example_sentences"), // JSON array of example sentences
   category: text("category").notNull(),
@@ -40,6 +41,7 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   pronunciationUs: true,
   pronunciationUk: true,
   pronunciationAu: true,
+  partOfSpeech: true,
   definition: true,
   exampleSentences: true,
   category: true,
@@ -53,6 +55,7 @@ export const updateVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   pronunciationUs: true,
   pronunciationUk: true,
   pronunciationAu: true,
+  partOfSpeech: true,
   definition: true,
   exampleSentences: true,
   category: true,

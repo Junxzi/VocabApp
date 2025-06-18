@@ -10,6 +10,7 @@ export interface PronunciationData {
 
 export interface WordEnrichmentData {
   pronunciations: PronunciationData;
+  partOfSpeech: string;
   exampleSentences: string[];
 }
 
@@ -31,7 +32,8 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
           role: "system",
           content: `You are a linguistic expert. For any given English word, provide:
 1. IPA pronunciation for American English, British English, and Australian English
-2. Exactly 2 practical example sentences that demonstrate different uses of the word
+2. Part of speech (noun, verb, adjective, etc.)
+3. Exactly 2 practical example sentences that demonstrate different uses of the word
 
 Respond with valid JSON in this exact format:
 {
@@ -40,6 +42,7 @@ Respond with valid JSON in this exact format:
     "uk": "IPA_pronunciation_here", 
     "au": "IPA_pronunciation_here"
   },
+  "partOfSpeech": "noun",
   "exampleSentences": [
     "Example sentence 1 here.",
     "Example sentence 2 here."
@@ -65,6 +68,7 @@ Only include the JSON response, no additional text.`
         uk: result.pronunciations?.uk || "",
         au: result.pronunciations?.au || ""
       },
+      partOfSpeech: result.partOfSpeech || "",
       exampleSentences: Array.isArray(result.exampleSentences) ? result.exampleSentences : []
     };
 

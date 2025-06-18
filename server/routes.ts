@@ -110,6 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pronunciationUs: gptEnrichment.pronunciations.us,
           pronunciationUk: gptEnrichment.pronunciations.uk,
           pronunciationAu: gptEnrichment.pronunciations.au,
+          partOfSpeech: gptEnrichment.partOfSpeech,
           exampleSentences: JSON.stringify(gptEnrichment.exampleSentences)
         };
       } catch (enrichError) {

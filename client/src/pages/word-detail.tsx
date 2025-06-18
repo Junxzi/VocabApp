@@ -164,7 +164,7 @@ export function WordDetailPage() {
                         <Badge variant="outline" className="text-xs">
                           US
                         </Badge>
-                        <span className="text-muted-foreground font-mono">/{word.pronunciationUs}/</span>
+                        <span className="text-muted-foreground font-mono">{word.pronunciationUs}</span>
                       </div>
                     )}
                     {word.pronunciationUk && (
@@ -172,7 +172,7 @@ export function WordDetailPage() {
                         <Badge variant="outline" className="text-xs">
                           UK
                         </Badge>
-                        <span className="text-muted-foreground font-mono">/{word.pronunciationUk}/</span>
+                        <span className="text-muted-foreground font-mono">{word.pronunciationUk}</span>
                       </div>
                     )}
                     {word.pronunciationAu && (
