@@ -131,6 +131,16 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t("vocab.title")}</h1>
+        
+        {/* Mobile Add Button */}
+        <div className="flex md:hidden">
+          <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))} size="lg" className="h-10 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+            <Plus className="w-5 h-5 mr-2" />
+            {t("nav.add")}
+          </Button>
+        </div>
+        
+        {/* Desktop Controls */}
         <div className="hidden md:flex items-center space-x-3">
           <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
             <SelectTrigger className="w-20 h-10 p-2 border border-border/50 bg-background/50 rounded-lg hover:bg-muted/50 transition-colors">
