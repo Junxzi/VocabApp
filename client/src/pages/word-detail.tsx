@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";
 import { EditEnrichmentModal } from "@/components/edit-enrichment-modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function WordDetailPage() {
   const { id } = useParams();
@@ -19,6 +19,11 @@ export function WordDetailPage() {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   const [editModalOpen, setEditModalOpen] = useState(false);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const { data: word, isLoading } = useQuery<VocabularyWord>({
     queryKey: ['/api/vocabulary', id],
