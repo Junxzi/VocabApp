@@ -108,12 +108,14 @@ function AppContent() {
     <div className="min-h-screen bg-background">
       <Navigation onAddWordClick={handleAddWord} onImportClick={handleImport} />
       
-      <Switch>
-        <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
-        <Route path="/study" component={StudyPage} />
-        <Route path="/progress" component={ProgressPage} />
-        <Route component={NotFound} />
-      </Switch>
+      <div className="pb-20 md:pb-0">
+        <Switch>
+          <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
+          <Route path="/study" component={StudyPage} />
+          <Route path="/progress" component={ProgressPage} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
 
       <AddWordModal
         open={addWordModalOpen}

@@ -105,10 +105,10 @@ export function StudyPage() {
   const accuracy = studySession.total > 0 ? Math.round((studySession.correct / studySession.total) * 100) : 0;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-4">Study Mode</h2>
-        <p className="text-muted-foreground">Review your vocabulary with flashcards</p>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll">
+      <div className="text-center mb-6 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 md:mb-4">Study Mode</h2>
+        <p className="text-sm md:text-base text-muted-foreground">Review your vocabulary with flashcards</p>
       </div>
 
       <Card className="mb-8 shadow-lg animate-scale-in">
