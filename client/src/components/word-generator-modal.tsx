@@ -134,17 +134,15 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
             </p>
           </div>
 
-          {/* Warning for TOEFL */}
-          {category === "TOEFL" && (
-            <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                {language === 'ja' 
-                  ? "TOEFLカテゴリでは自動生成はご利用いただけません"
-                  : "Word generation is not available for TOEFL category"}
-              </p>
-            </div>
-          )}
+          {/* Generation info */}
+          <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <Sparkles className="h-4 w-4 text-blue-600" />
+            <p className="text-sm text-blue-700 dark:text-blue-400">
+              {language === 'ja' 
+                ? "AI が指定されたタグに基づいて30個の英単語と日本語訳を生成します"
+                : "AI will generate 30 English words with Japanese translations based on your tag"}
+            </p>
+          </div>
 
           {/* Action buttons */}
           <div className="flex justify-end gap-2 pt-4">
@@ -153,7 +151,7 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
             </Button>
             <Button 
               onClick={handleGenerate}
-              disabled={generateWordsMutation.isPending || category === "TOEFL"}
+              disabled={generateWordsMutation.isPending || !tagName.trim()}
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
             >
               {generateWordsMutation.isPending ? (
