@@ -8,18 +8,15 @@ export interface PronunciationData {
   au: string;
 }
 
-export interface PartOfSpeechEntry {
-  type: string;
-  definition: string;
-  examples: string[];
+export interface ExampleSentence {
+  english: string;
+  japanese: string;
 }
 
 export interface WordEnrichmentData {
   pronunciations: PronunciationData;
-  partsOfSpeech: PartOfSpeechEntry[];
   primaryPartOfSpeech: string;
-  combinedDefinition: string;
-  exampleSentences: string[];
+  exampleSentences: ExampleSentence[];
 }
 
 // Cache to avoid duplicate API calls
@@ -38,48 +35,33 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
       messages: [
         {
           role: "system",
-          content: `You are a comprehensive linguistic expert. For any given English word, analyze ALL its possible parts of speech and provide:
+          content: `You are a linguistic expert. For any given English word, provide:
 
 1. IPA pronunciation for American English, British English, and Australian English (without slashes or brackets)
-2. ALL parts of speech the word can function as (noun, verb, adjective, adverb, etc.)
-3. For EACH part of speech: a clear definition and 2 example sentences
-4. A combined comprehensive definition that covers all uses
-5. The most common/primary part of speech
+2. The most common part of speech (noun, verb, adjective, etc.)
+3. Exactly 2 practical example sentences in English with their Japanese translations
 
 Respond with valid JSON in this exact format:
 {
   "pronunciations": {
-    "us": "raɪt",
-    "uk": "raɪt", 
-    "au": "raɪt"
+    "us": "ˈbɪtər",
+    "uk": "ˈbɪtə", 
+    "au": "ˈbɪtə"
   },
-  "partsOfSpeech": [
+  "primaryPartOfSpeech": "adjective",
+  "exampleSentences": [
     {
-      "type": "verb",
-      "definition": "to mark letters or words on a surface with a pen or similar tool",
-      "examples": [
-        "She likes to write in her diary every evening.",
-        "Please write your name at the top of the page."
-      ]
+      "english": "The coffee tastes bitter without sugar.",
+      "japanese": "砂糖なしのコーヒーは苦い味がする。"
     },
     {
-      "type": "noun",
-      "definition": "the activity or skill of writing",
-      "examples": [
-        "His write was barely legible.",
-        "The write on the wall was fading."
-      ]
+      "english": "She felt bitter about losing the competition.",
+      "japanese": "彼女は競技に負けたことを苦々しく思った。"
     }
-  ],
-  "primaryPartOfSpeech": "verb",
-  "combinedDefinition": "To mark letters or words on a surface; can also refer to the act or result of writing",
-  "exampleSentences": [
-    "I will write a letter to my friend tomorrow.",
-    "The write quality of this pen is excellent."
   ]
 }
 
-Include ALL possible parts of speech for the word, with accurate definitions and examples. Only include the IPA symbols without any slashes, brackets, or other punctuation.`
+Only include the IPA symbols without any slashes, brackets, or other punctuation. Provide accurate Japanese translations for the example sentences.`
         },
         {
           role: "user",
@@ -98,9 +80,7 @@ Include ALL possible parts of speech for the word, with accurate definitions and
         uk: result.pronunciations?.uk || "",
         au: result.pronunciations?.au || ""
       },
-      partsOfSpeech: Array.isArray(result.partsOfSpeech) ? result.partsOfSpeech : [],
       primaryPartOfSpeech: result.primaryPartOfSpeech || "",
-      combinedDefinition: result.combinedDefinition || "",
       exampleSentences: Array.isArray(result.exampleSentences) ? result.exampleSentences : []
     };
 

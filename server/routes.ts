@@ -163,7 +163,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pronunciationUk: gptEnrichment.pronunciations.uk,
           pronunciationAu: gptEnrichment.pronunciations.au,
           partOfSpeech: gptEnrichment.primaryPartOfSpeech,
-          definition: gptEnrichment.combinedDefinition || validatedData.definition,
           exampleSentences: JSON.stringify(gptEnrichment.exampleSentences)
         };
       } catch (enrichError) {
@@ -251,16 +250,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pronunciationUk: enrichmentData.pronunciations.uk,
         pronunciationAu: enrichmentData.pronunciations.au,
         partOfSpeech: enrichmentData.primaryPartOfSpeech,
-        definition: enrichmentData.combinedDefinition,
         exampleSentences: JSON.stringify(enrichmentData.exampleSentences)
       });
 
       res.json({
         ...updatedWord,
         enrichmentDetails: {
-          partsOfSpeech: enrichmentData.partsOfSpeech,
-          combinedDefinition: enrichmentData.combinedDefinition,
-          primaryPartOfSpeech: enrichmentData.primaryPartOfSpeech
+          primaryPartOfSpeech: enrichmentData.primaryPartOfSpeech,
+          exampleSentences: enrichmentData.exampleSentences
         }
       });
     } catch (error) {

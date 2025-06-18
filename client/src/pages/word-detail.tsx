@@ -78,7 +78,7 @@ export function WordDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
       toast({
         title: "Word enriched successfully",
-        description: `Enhanced with comprehensive definitions and ${data.enrichmentDetails?.partsOfSpeech?.length || 0} parts of speech.`
+        description: `Enhanced with pronunciations, part of speech, and 2 example sentences with Japanese translations.`
       });
     },
     onError: () => {
@@ -113,6 +113,12 @@ export function WordDetailPage() {
   const exampleSentences = word.exampleSentences 
     ? JSON.parse(word.exampleSentences) 
     : [];
+
+  // Check if sentences have Japanese translations (new format) or are just strings (old format)
+  const hasJapaneseTranslations = exampleSentences.length > 0 && 
+    typeof exampleSentences[0] === 'object' && 
+    exampleSentences[0].english && 
+    exampleSentences[0].japanese;
 
   const hasEnrichedData = word.pronunciationUs || word.pronunciationUk || word.pronunciationAu || exampleSentences.length > 0;
 
@@ -274,9 +280,16 @@ export function WordDetailPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Example Sentences</h3>
                   <div className="space-y-3">
-                    {exampleSentences.map((sentence: string, index: number) => (
+                    {exampleSentences.map((sentence: any, index: number) => (
                       <div key={index} className="p-3 bg-muted rounded-lg">
-                        <p className="text-foreground leading-relaxed">{sentence}</p>
+                        {hasJapaneseTranslations ? (
+                          <div className="space-y-2">
+                            <p className="text-foreground leading-relaxed">{sentence.english}</p>
+                            <p className="text-muted-foreground text-sm leading-relaxed">{sentence.japanese}</p>
+                          </div>
+                        ) : (
+                          <p className="text-foreground leading-relaxed">{sentence}</p>
+                        )}
                       </div>
                     ))}
                   </div>
