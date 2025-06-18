@@ -50,6 +50,21 @@ export function SwipeStudyPage() {
     }
   }, [words]);
 
+  // Disable scrolling when component mounts, re-enable when unmounts
+  useEffect(() => {
+    // Disable scrolling
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.documentElement.style.overflow = 'hidden';
+    
+    return () => {
+      // Re-enable scrolling when component unmounts
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+
   const handleSwipe = (direction: 'left' | 'right') => {
     const currentWord = studyWords[currentIndex];
     const known = direction === 'right';
