@@ -18,8 +18,7 @@ export function Navigation({ onAddWordClick, onImportClick }: NavigationProps) {
 
   const navigationItems = [
     { label: t("nav.vocabulary"), href: "/" },
-    { label: t("nav.study"), href: "/study" },
-    { label: "Swipe Study", href: "/swipe-study" },
+    { label: t("nav.study"), href: "/swipe-study" },
     { label: t("nav.progress"), href: "/progress" },
   ];
 

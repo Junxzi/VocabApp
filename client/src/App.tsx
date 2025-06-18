@@ -9,7 +9,7 @@ import { AddWordModal } from "@/components/add-word-modal";
 import { ApkgImport } from "@/components/apkg-import";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { VocabularyPage } from "@/pages/vocabulary";
-import { StudyPage } from "@/pages/study";
+
 import { SwipeStudyPage } from "@/pages/swipe-study";
 import { ProgressPage } from "@/pages/progress";
 import NotFound from "@/pages/not-found";
@@ -115,7 +115,6 @@ function AppContent() {
       <div className="pb-20 md:pb-0">
         <Switch>
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
-          <Route path="/study" component={StudyPage} />
           <Route path="/swipe-study" component={SwipeStudyPage} />
           <Route path="/progress" component={ProgressPage} />
           <Route component={NotFound} />
