@@ -44,7 +44,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const getBorderColor = () => {
     if (!isDragging) return undefined;
     
-    const threshold = 50; // Center threshold zone
+    const threshold = 30; // Center threshold zone - reduced for quicker color response
     const maxDistance = 150; // Maximum distance for full color intensity
     
     if (Math.abs(dragX) <= threshold) {
