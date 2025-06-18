@@ -3,7 +3,7 @@
   "short_name": "VocabMaster",
   "description": "Learn English vocabulary with pronunciation guides and study modes",
   "start_url": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff",
   "orientation": "portrait",
