@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, getLocalizedPartOfSpeech } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord } from "@shared/schema";
 
@@ -12,7 +12,7 @@ interface VocabularyListViewProps {
 }
 
 export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListViewProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <div className="space-y-2">

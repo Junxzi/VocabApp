@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Eye } from "lucide-react";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn, formatRelativeTime, getLocalizedPartOfSpeech } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 import { Link } from "wouter";
 import type { VocabularyWord } from "@shared/schema";
 
@@ -20,6 +21,7 @@ interface VocabularyCardProps {
 
 export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const { language } = useLanguage();
 
   return (
     <Card
@@ -49,7 +51,7 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
             {word.partOfSpeech && (
               <div className="mb-2">
                 <Badge variant="outline" className="text-xs">
-                  {word.partOfSpeech}
+                  {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
                 </Badge>
               </div>
             )}

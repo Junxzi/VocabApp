@@ -9,6 +9,7 @@ import { ArrowLeft, Volume2, Sparkles, Loader2, Edit2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";
+import { getLocalizedPartOfSpeech } from "@/lib/utils";
 import { EditEnrichmentModal } from "@/components/edit-enrichment-modal";
 import { useState, useEffect } from "react";
 
@@ -17,7 +18,7 @@ export function WordDetailPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Scroll to top when component mounts
@@ -192,7 +193,7 @@ export function WordDetailPage() {
               {word.partOfSpeech && (
                 <div className="mb-3">
                   <Badge variant="secondary" className="text-sm">
-                    {word.partOfSpeech}
+                    {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
                   </Badge>
                 </div>
               )}
