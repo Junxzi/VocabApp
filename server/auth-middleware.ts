@@ -1,10 +1,34 @@
 
 import { Request, Response, NextFunction } from 'express';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
   userName?: string;
+  user?: any;
 }
+
+// Google OAuth configuration
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID!,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+  callbackURL: "/api/auth/google/callback"
+}, (accessToken, refreshToken, profile, done) => {
+  return done(null, {
+    id: profile.id,
+    name: profile.displayName,
+    email: profile.emails?.[0]?.value
+  });
+}));
+
+passport.serializeUser((user: any, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user: any, done) => {
+  done(null, user);
+});
 
 export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const userId = req.headers['x-replit-user-id'] as string;
