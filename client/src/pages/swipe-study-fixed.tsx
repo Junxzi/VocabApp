@@ -458,18 +458,16 @@ export function SwipeStudyPage() {
       known 
     });
 
-    // Wait for swipe animation to complete
-    setTimeout(() => {
-      if (nextIndex < studyWords.length) {
-        setCurrentIndex(nextIndex);
-        setDisplayedWord(studyWords[nextIndex]);
-        setShowAnswer(false);
-        setIsCardSwiping(false); // Show next card immediately
-      } else {
-        setStudyMode('complete');
-        setIsCardSwiping(false);
-      }
-    }, 150); // Even faster timing for quicker transitions
+    // Show next word instantly when swiped
+    if (nextIndex < studyWords.length) {
+      setCurrentIndex(nextIndex);
+      setDisplayedWord(studyWords[nextIndex]);
+      setShowAnswer(false);
+      setIsCardSwiping(false); // Show next card immediately
+    } else {
+      setStudyMode('complete');
+      setIsCardSwiping(false);
+    }
   };
 
   const handleCardTap = () => {
