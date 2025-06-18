@@ -27,7 +27,7 @@ export async function getNotionDatabases() {
     }
 
     const childDatabases = [];
-    
+
     try {
         let hasMore = true;
         let startCursor: string | undefined = undefined;
@@ -90,7 +90,7 @@ export async function createDatabaseIfNotExists(title: string, properties: any) 
     if (existingDb) {
         return existingDb;
     }
-    
+
     return await notion.databases.create({
         parent: {
             type: "page_id",
@@ -174,7 +174,7 @@ export async function getCategoriesFromNotion() {
 
         return response.results.map((page: any) => {
             const properties = page.properties;
-            
+
             return {
                 notionId: page.id,
                 name: properties.Name?.title?.[0]?.plain_text || "",
@@ -274,7 +274,7 @@ export async function getVocabularyWordsFromNotion() {
 
         return response.results.map((page: any) => {
             const properties = page.properties;
-            
+
             return {
                 notionId: page.id,
                 word: properties.Word?.title?.[0]?.plain_text || "",
@@ -298,7 +298,7 @@ export async function getVocabularyWordsFromNotion() {
  */
 export async function createDefaultCategories() {
     const categoriesDb = await setupCategoriesDatabase();
-    
+
     const defaultCategories = [
         {
             name: "Academic",
@@ -433,10 +433,135 @@ export async function createDefaultCategories() {
                     }
                 }
             });
-            
+
             console.log(`✓ Created category in Notion: ${category.name}`);
         } catch (error) {
             console.error(`✗ Failed to create category ${category.name}:`, error);
         }
     }
 }
+
+/**
+ * Create a new vocabulary word in Notion
+ */
+export async function createVocabularyWordInNotion(wordData: {
+    word: string;
+    definition: string;
+    partOfSpeech?: string;
+    pronunciationUs?: string;
+    pronunciationUk?: string;
+    exampleSentences?: string;
+    difficulty?: number;
+    categoryId?: string; // Notion page ID of the category
+}) {
+    try {
+        const wordsDb = await findDatabaseByTitle("VocabMaster Words");
+        if (!wordsDb) {
+            throw new Error("Words database not found");
+        }
+
+        const properties: any = {
+            Word: {
+                title: [
+                    {
+                        text: {
+                            content: wordData.word
+                        }
+                    }
+                ]
+            },
+            Definition: {
+                rich_text: [
+                    {
+                        text: {
+                            content: wordData.definition
+                        }
+                    }
+                ]
+            },
+            Status: {
+                select: {
+                    name: "Active"
+                }
+            }
+        };
+
+        // Add optional properties if provided
+        if (wordData.partOfSpeech) {
+            properties.PartOfSpeech = {
+                select: {
+                    name: wordData.partOfSpeech
+                }
+            };
+        }
+
+        if (wordData.pronunciationUs) {
+            properties.PronunciationUS = {
+                rich_text: [
+                    {
+                        text: {
+                            content: wordData.pronunciationUs
+                        }
+                    }
+                ]
+            };
+        }
+
+        if (wordData.pronunciationUk) {
+            properties.PronunciationUK = {
+                rich_text: [
+                    {
+                        text: {
+                            content: wordData.pronunciationUk
+                        }
+                    }
+                ]
+            };
+        }
+
+        if (wordData.exampleSentences) {
+            properties.ExampleSentences = {
+                rich_text: [
+                    {
+                        text: {
+                            content: wordData.exampleSentences
+                        }
+                    }
+                ]
+            };
+        }
+
+        if (wordData.difficulty) {
+            properties.Difficulty = {
+                select: {
+                    name: wordData.difficulty.toString()
+                }
+            };
+        }
+
+        if (wordData.categoryId) {
+            properties.Category = {
+                relation: [
+                    {
+                        id: wordData.categoryId
+                    }
+                ]
+            };
+        }
+
+        const response = await notion.pages.create({
+            parent: {
+                database_id: wordsDb.id
+            },
+            properties
+        });
+
+        console.log(`✓ Created word in Notion: ${wordData.word}`);
+        return response;
+    } catch (error) {
+        console.error(`✗ Failed to create word in Notion: ${wordData.word}`, error);
+        throw error;
+    }
+}
+
+export { createVocabularyWordInNotion };
