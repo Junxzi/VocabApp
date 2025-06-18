@@ -134,12 +134,12 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
               {generateWordsMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {language === 'ja' ? "生成中..." : "Generating..."}
+                  {t('generate.generating')}
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  {language === 'ja' ? "生成開始" : "Generate"}
+                  {t('generate.generate')}
                 </>
               )}
             </Button>

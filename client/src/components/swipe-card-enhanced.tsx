@@ -26,6 +26,7 @@ export function SwipeCard({
 }: SwipeCardProps) {
   const { t, language } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
+  const [dragStarted, setDragStarted] = useState(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-150, 0, 150], [-15, 0, 15]);
   const opacity = useTransform(x, [-150, -100, 0, 100, 150], [0, 1, 1, 1, 0]);
@@ -51,10 +52,14 @@ export function SwipeCard({
         onSwipe('left');
       }
     }
+    
+    // Reset drag state after a short delay to prevent tap interference
+    setTimeout(() => setDragStarted(false), 100);
   };
 
   const handleDragStart = () => {
     setIsDragging(true);
+    setDragStarted(true);
   };
 
   const speakWord = (variant: 'us' | 'uk') => {
@@ -136,8 +141,8 @@ export function SwipeCard({
           animate={{ rotateY: showAnswer ? 180 : 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           onClick={(e) => {
-            // Only trigger tap if not dragging
-            if (!isDragging) {
+            // Only trigger tap if not dragging and drag wasn't recently started
+            if (!isDragging && !dragStarted) {
               onShowAnswer();
             }
           }}
