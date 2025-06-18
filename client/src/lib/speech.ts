@@ -1,4 +1,4 @@
-// Speech synthesis utility for consistent accent handling
+// Speech synthesis utility using OpenAI TTS for high-quality pronunciation
 export type AccentType = 'us' | 'uk' | 'au';
 
 interface VoiceInfo {
@@ -84,8 +84,62 @@ export function logAvailableVoices() {
   console.log('AU voices:', auVoices.map(v => `${v.name} (${v.lang})`));
 }
 
-// Main speech function with improved voice selection
-export function speakWithAccent(text: string, accent: AccentType): Promise<void> {
+// Audio cache for TTS responses
+const audioCache = new Map<string, string>();
+
+// Generate cache key for TTS requests
+function getCacheKey(text: string, accent: AccentType): string {
+  return `${text}-${accent}`;
+}
+
+// Main speech function using OpenAI TTS API
+export async function speakWithAccent(text: string, accent: AccentType): Promise<void> {
+  try {
+    const cacheKey = getCacheKey(text, accent);
+    
+    // Check cache first
+    let audioUrl = audioCache.get(cacheKey);
+    
+    if (!audioUrl) {
+      // Generate TTS audio via API
+      const response = await fetch('/api/tts/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text, accent }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`TTS API error: ${response.status}`);
+      }
+
+      // Create blob URL for audio playback
+      const audioBlob = await response.blob();
+      audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Cache the audio URL
+      audioCache.set(cacheKey, audioUrl);
+    }
+
+    // Play the audio
+    const audio = new Audio(audioUrl);
+    audio.volume = 0.8;
+    
+    return new Promise((resolve, reject) => {
+      audio.onended = () => resolve();
+      audio.onerror = () => reject(new Error('Audio playback error'));
+      audio.play().catch(reject);
+    });
+  } catch (error) {
+    console.error('OpenAI TTS error:', error);
+    // Fallback to browser speech synthesis
+    return fallbackToWebSpeech(text, accent);
+  }
+}
+
+// Fallback to browser speech synthesis if OpenAI TTS fails
+function fallbackToWebSpeech(text: string, accent: AccentType): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!('speechSynthesis' in window)) {
       reject(new Error('Speech synthesis not supported'));
@@ -93,7 +147,7 @@ export function speakWithAccent(text: string, accent: AccentType): Promise<void>
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // Slightly faster for more natural speech
+    utterance.rate = 0.9;
     utterance.volume = 0.8;
     utterance.pitch = 1.0;
 
@@ -103,9 +157,8 @@ export function speakWithAccent(text: string, accent: AccentType): Promise<void>
       if (voiceInfos.length > 0) {
         const bestVoice = voiceInfos[0].voice;
         utterance.voice = bestVoice;
-        console.log(`Using voice: ${bestVoice.name} (${bestVoice.lang}) for ${accent.toUpperCase()}`);
+        console.log(`Fallback using voice: ${bestVoice.name} (${bestVoice.lang}) for ${accent.toUpperCase()}`);
       } else {
-        // Fallback to language code
         const langMap = { us: 'en-US', uk: 'en-GB', au: 'en-AU' };
         utterance.lang = langMap[accent];
         console.log(`Fallback to language: ${utterance.lang} for ${accent.toUpperCase()}`);
@@ -117,19 +170,16 @@ export function speakWithAccent(text: string, accent: AccentType): Promise<void>
       speechSynthesis.speak(utterance);
     };
 
-    // Check if voices are loaded
     const voices = speechSynthesis.getVoices();
     if (voices.length > 0) {
       setVoiceAndSpeak();
     } else {
-      // Wait for voices to load
       const handleVoicesChanged = () => {
         speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
         setVoiceAndSpeak();
       };
       speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
       
-      // Fallback timeout
       setTimeout(() => {
         speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
         setVoiceAndSpeak();
