@@ -32,6 +32,8 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
       pronunciation: "",
       definition: "",
       category: "Academic",
+      language: "en",
+      difficulty: undefined,
     },
   });
 
@@ -43,6 +45,8 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
         pronunciation: editingWord.pronunciation,
         definition: editingWord.definition,
         category: editingWord.category,
+        language: editingWord.language,
+        difficulty: editingWord.difficulty,
       });
     } else {
       form.reset({
@@ -50,6 +54,8 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
         pronunciation: "",
         definition: "",
         category: "Academic",
+        language: "en",
+        difficulty: undefined,
       });
     }
   }, [editingWord, form]);
@@ -161,7 +167,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="bg-muted">
                         <SelectValue placeholder="Select a category" />
@@ -186,7 +192,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Difficulty Rank</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(value === "unset" ? null : parseInt(value))} defaultValue={field.value ? field.value.toString() : "unset"}>
+                  <Select onValueChange={(value) => field.onChange(value === "unset" ? null : parseInt(value))} value={field.value ? field.value.toString() : "unset"}>
                     <FormControl>
                       <SelectTrigger className="bg-muted">
                         <SelectValue placeholder="Select difficulty" />
