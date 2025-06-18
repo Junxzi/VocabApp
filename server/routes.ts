@@ -51,6 +51,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get words for spaced repetition review
+  app.get("/api/vocabulary/review/:limit", async (req, res) => {
+    try {
+      const limit = parseInt(req.params.limit) || 10;
+      const words = await storage.getWordsForReview(limit);
+      res.json(words);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch review words" });
+    }
+  });
+
+  // Update word with spaced repetition algorithm
+  app.put("/api/vocabulary/:id/spaced-repetition", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { known } = req.body;
+      if (typeof known !== 'boolean') {
+        return res.status(400).json({ message: "Known must be a boolean value" });
+      }
+      const word = await storage.updateWordSpacedRepetition(id, known);
+      if (!word) {
+        return res.status(404).json({ message: "Vocabulary word not found" });
+      }
+      res.json(word);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update spaced repetition data" });
+    }
+  });
+
   // Create vocabulary word
   app.post("/api/vocabulary", async (req, res) => {
     try {

@@ -133,6 +133,60 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(vocabularyWords.createdAt)) // Changed from random() for compatibility
       .limit(limit);
   }
+
+  async updateWordSpacedRepetition(id: number, known: boolean): Promise<VocabularyWord | undefined> {
+    const { calculateNextReview, swipeToQuality } = await import("./spaced-repetition");
+    
+    const [currentWord] = await db.select().from(vocabularyWords).where(eq(vocabularyWords.id, id));
+    if (!currentWord) return undefined;
+
+    const quality = swipeToQuality(known);
+    const easeFactor = parseFloat(currentWord.easeFactor?.toString() || "2.5");
+    const interval = currentWord.interval || 1;
+    const studyCount = currentWord.studyCount || 0;
+
+    const result = calculateNextReview(quality, easeFactor, interval, studyCount);
+
+    const [updatedWord] = await db
+      .update(vocabularyWords)
+      .set({
+        easeFactor: result.easeFactor.toString(),
+        interval: result.interval,
+        nextReview: result.nextReview,
+        studyCount: studyCount + 1,
+        correctAnswers: known ? (currentWord.correctAnswers || 0) + 1 : currentWord.correctAnswers,
+        lastStudied: new Date(),
+        difficulty: known ? 1 : 3
+      })
+      .where(eq(vocabularyWords.id, id))
+      .returning();
+
+    return updatedWord;
+  }
+
+  async getWordsForReview(limit: number): Promise<VocabularyWord[]> {
+    const { isDueForReview } = await import("./spaced-repetition");
+    
+    const allWords = await db.select().from(vocabularyWords);
+    
+    // Filter words that are due for review
+    const dueWords = allWords.filter(word => 
+      isDueForReview(word.nextReview)
+    );
+
+    // Sort by priority: new words first, then by next review date
+    const sortedWords = dueWords.sort((a, b) => {
+      // New words (never studied) get highest priority
+      if (!a.nextReview && b.nextReview) return -1;
+      if (a.nextReview && !b.nextReview) return 1;
+      if (!a.nextReview && !b.nextReview) return 0;
+      
+      // For reviewed words, sort by next review date (earliest first)
+      return new Date(a.nextReview!).getTime() - new Date(b.nextReview!).getTime();
+    });
+
+    return sortedWords.slice(0, limit);
+  }
 }
 
 export const storage = new DatabaseStorage();

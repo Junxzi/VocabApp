@@ -26,17 +26,18 @@ export function SwipeStudyPage() {
   const { t } = useLanguage();
 
   const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
-    queryKey: ["/api/vocabulary/study/50"],
+    queryKey: ["/api/vocabulary/review/50"],
   });
 
-  const updateWordStatsMutation = useMutation({
+  const updateWordSpacedRepetitionMutation = useMutation({
     mutationFn: async ({ id, known }: { id: number; known: boolean }) => {
-      await apiRequest("PUT", `/api/vocabulary/${id}/study`, {
-        difficulty: known ? 1 : 3, // 1 = easy (known), 3 = hard (needs review)
+      await apiRequest("PUT", `/api/vocabulary/${id}/spaced-repetition`, {
+        known,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/vocabulary"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary/review/50"] });
     },
   });
 
@@ -60,8 +61,8 @@ export function SwipeStudyPage() {
       needReview: known ? prev.needReview : prev.needReview + 1,
     }));
 
-    // Update word stats in database
-    updateWordStatsMutation.mutate({ 
+    // Update word with spaced repetition algorithm
+    updateWordSpacedRepetitionMutation.mutate({ 
       id: currentWord.id, 
       known 
     });
@@ -81,9 +82,8 @@ export function SwipeStudyPage() {
     setSessionStats({ known: 0, needReview: 0, total: studyWords.length });
     setIsSessionComplete(false);
     
-    // Reshuffle words
-    const shuffled = [...studyWords].sort(() => Math.random() - 0.5);
-    setStudyWords(shuffled);
+    // Refetch words for review
+    queryClient.invalidateQueries({ queryKey: ["/api/vocabulary/review/50"] });
   };
 
   const handleManualSwipe = (direction: 'left' | 'right') => {
@@ -110,12 +110,13 @@ export function SwipeStudyPage() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">No Words Available</h2>
+            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-4">All Caught Up!</h2>
             <p className="text-muted-foreground mb-6">
-              Add some vocabulary words to start your swipe study session!
+              No words are due for review right now. Come back later or add new words to study.
             </p>
             <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}>
-              Add Words
+              Add New Words
             </Button>
           </CardContent>
         </Card>
