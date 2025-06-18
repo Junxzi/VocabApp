@@ -16,17 +16,17 @@ interface WordGeneratorModalProps {
 }
 
 export function WordGeneratorModal({ open, onOpenChange, category }: WordGeneratorModalProps) {
-  const [wordCount, setWordCount] = useState(10);
+  const [tagName, setTagName] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
 
   const generateWordsMutation = useMutation({
-    mutationFn: async (data: { category: string; count: number }) => {
-      const response = await fetch(`/api/categories/${data.category}/generate-words`, {
+    mutationFn: async (data: { tagName: string }) => {
+      const response = await fetch(`/api/gacha/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: data.count })
+        body: JSON.stringify({ tagName: data.tagName, count: 30 })
       });
       if (!response.ok) {
         const error = await response.json();
@@ -39,8 +39,8 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
       toast({
         title: language === 'ja' ? "単語生成完了" : "Words Generated",
         description: language === 'ja' 
-          ? `${category}カテゴリに${data.totalAdded}個の単語を追加しました`
-          : `Added ${data.totalAdded} words to ${category} category`
+          ? `${tagName}タグに${data.totalAdded}個の単語を追加しました`
+          : `Added ${data.totalAdded} words with ${tagName} tag`
       });
       onOpenChange(false);
     },
@@ -64,15 +64,23 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
   };
 
   const handleGenerate = () => {
-    if (wordCount < 1 || wordCount > 50) {
+    if (!tagName.trim()) {
       toast({
-        title: language === 'ja' ? "無効な数値" : "Invalid Number",
-        description: language === 'ja' ? "1から50の間で指定してください" : "Please specify between 1 and 50",
+        title: language === 'ja' ? "タグ名が必要" : "Tag Name Required",
+        description: language === 'ja' ? "タグ名を入力してください" : "Please enter a tag name",
         variant: "destructive"
       });
       return;
     }
-    generateWordsMutation.mutate({ category, count: wordCount });
+    if (tagName.trim().length > 10) {
+      toast({
+        title: language === 'ja' ? "タグ名が長すぎます" : "Tag Name Too Long",
+        description: language === 'ja' ? "10文字以下で入力してください" : "Please use 10 characters or less",
+        variant: "destructive"
+      });
+      return;
+    }
+    generateWordsMutation.mutate({ tagName: tagName.trim() });
   };
 
   const sampleWords = getSampleWords();
@@ -107,22 +115,22 @@ export function WordGeneratorModal({ open, onOpenChange, category }: WordGenerat
             </div>
           </div>
 
-          {/* Word count input */}
+          {/* Tag name input */}
           <div>
-            <Label htmlFor="wordCount">
-              {language === 'ja' ? "生成する単語数" : "Number of words to generate"}
+            <Label htmlFor="tagName">
+              {language === 'ja' ? "タグ名" : "Tag Name"}
             </Label>
             <Input
-              id="wordCount"
-              type="number"
-              min="1"
-              max="50"
-              value={wordCount}
-              onChange={(e) => setWordCount(parseInt(e.target.value) || 10)}
+              id="tagName"
+              type="text"
+              maxLength={10}
+              value={tagName}
+              onChange={(e) => setTagName(e.target.value)}
               className="mt-1"
+              placeholder={language === 'ja' ? "例: 科学技術" : "e.g. Science"}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {language === 'ja' ? "1-50個の範囲で指定" : "Specify between 1-50 words"}
+              {language === 'ja' ? "10文字以下で入力してください（30単語を生成）" : "Enter up to 10 characters (generates 30 words)"}
             </p>
           </div>
 

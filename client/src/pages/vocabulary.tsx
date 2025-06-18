@@ -99,10 +99,21 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     currentPage * itemsPerPage
   );
 
+  // Get all available tags from vocabulary words
+  const availableTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    words.forEach(word => {
+      if (word.tags) {
+        word.tags.forEach(tag => tagSet.add(tag));
+      }
+    });
+    return Array.from(tagSet).sort();
+  }, [words]);
+
   // Reset to first page when filters change
   useMemo(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedTags, sortBy]);
 
   const handleDeleteWord = (id: number) => {
     if (window.confirm("Are you sure you want to delete this word?")) {
@@ -182,15 +193,16 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
 
       <SearchFilter
         onSearch={setSearchQuery}
-        onCategoryFilter={setSelectedCategory}
+        onTagFilter={setSelectedTags}
         onSortChange={setSortBy}
         onViewModeChange={setViewMode}
-        onGenerateWords={(category) => {
-          setGeneratorCategory(category);
+        onGenerateWords={(tagName) => {
+          setGeneratorTagName(tagName);
           setWordGeneratorModalOpen(true);
         }}
         searchQuery={searchQuery}
-        selectedCategory={selectedCategory}
+        selectedTags={selectedTags}
+        availableTags={availableTags}
         sortBy={sortBy}
         viewMode={viewMode}
         totalCount={filteredAndSortedWords.length}
@@ -199,11 +211,11 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
       {filteredAndSortedWords.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
-            {searchQuery || selectedCategory !== "all" 
+            {searchQuery || selectedTags.length > 0 
               ? t("vocab.no_results")
               : t("vocab.empty")}
           </p>
-          {!searchQuery && selectedCategory === "all" && (
+          {!searchQuery && selectedTags.length === 0 && (
             <Button 
               onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}
               className="touch-manipulation"
@@ -248,7 +260,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
       <WordGeneratorModal
         open={wordGeneratorModalOpen}
         onOpenChange={setWordGeneratorModalOpen}
-        category={generatorCategory}
+        category={generatorTagName}
       />
 
       {/* Word Gacha Modal */}
