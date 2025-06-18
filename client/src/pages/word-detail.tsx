@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Volume2, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Volume2, Sparkles, Loader2, Edit2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";
+import { EditEnrichmentModal } from "@/components/edit-enrichment-modal";
+import { useState } from "react";
 
 export function WordDetailPage() {
   const { id } = useParams();
@@ -92,134 +94,113 @@ export function WordDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
+    <div className="min-h-screen bg-background text-foreground p-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 
             onClick={() => setLocation("/")}
-            className="text-white hover:bg-gray-800"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          
-          {!hasEnrichedData && (
-            <Button
-              onClick={() => enrichMutation.mutate(id!)}
-              disabled={enrichMutation.isPending}
-              className="bg-white text-black hover:bg-gray-200"
-            >
-              {enrichMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4 mr-2" />
-              )}
-              Enrich with AI
-            </Button>
-          )}
         </div>
 
         {/* Word Card */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-3xl font-bold text-white">
+              <CardTitle className="text-3xl font-bold">
                 {word.word}
               </CardTitle>
               <div className="flex items-center space-x-2">
                 <Badge className={`${getDifficultyColor(word.difficulty)} text-white`}>
                   Rank {word.difficulty || "?"}
                 </Badge>
-                <Badge variant="outline" className="text-gray-300 border-gray-600">
+                <Badge variant="outline">
                   {word.category}
                 </Badge>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Basic Pronunciation */}
-            {word.pronunciation && (
-              <div className="flex items-center space-x-2">
-                <Volume2 className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-300 font-mono">/{word.pronunciation}/</span>
-              </div>
-            )}
+
 
             {/* Definition */}
             <div>
-              <h3 className="text-lg font-semibold mb-2 text-white">Definition</h3>
-              <p className="text-gray-300 leading-relaxed">{word.definition}</p>
+              <h3 className="text-lg font-semibold mb-2">Definition</h3>
+              <p className="text-muted-foreground leading-relaxed">{word.definition}</p>
             </div>
 
             {/* Enhanced Pronunciations */}
-            {hasEnrichedData && (
+            {(word.pronunciationUs || word.pronunciationUk || word.pronunciationAu) && (
               <>
-                <Separator className="bg-gray-700" />
+                <Separator />
                 
-                {(word.pronunciationUs || word.pronunciationUk || word.pronunciationAu) && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-white">Pronunciations</h3>
-                    <div className="space-y-2">
-                      {word.pronunciationUs && (
-                        <div className="flex items-center space-x-3">
-                          <Badge variant="outline" className="text-xs text-gray-300 border-gray-600">
-                            US
-                          </Badge>
-                          <span className="text-gray-300 font-mono">/{word.pronunciationUs}/</span>
-                        </div>
-                      )}
-                      {word.pronunciationUk && (
-                        <div className="flex items-center space-x-3">
-                          <Badge variant="outline" className="text-xs text-gray-300 border-gray-600">
-                            UK
-                          </Badge>
-                          <span className="text-gray-300 font-mono">/{word.pronunciationUk}/</span>
-                        </div>
-                      )}
-                      {word.pronunciationAu && (
-                        <div className="flex items-center space-x-3">
-                          <Badge variant="outline" className="text-xs text-gray-300 border-gray-600">
-                            AU
-                          </Badge>
-                          <span className="text-gray-300 font-mono">/{word.pronunciationAu}/</span>
-                        </div>
-                      )}
-                    </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Pronunciations</h3>
+                  <div className="space-y-2">
+                    {word.pronunciationUs && (
+                      <div className="flex items-center space-x-3">
+                        <Badge variant="outline" className="text-xs">
+                          US
+                        </Badge>
+                        <span className="text-muted-foreground font-mono">/{word.pronunciationUs}/</span>
+                      </div>
+                    )}
+                    {word.pronunciationUk && (
+                      <div className="flex items-center space-x-3">
+                        <Badge variant="outline" className="text-xs">
+                          UK
+                        </Badge>
+                        <span className="text-muted-foreground font-mono">/{word.pronunciationUk}/</span>
+                      </div>
+                    )}
+                    {word.pronunciationAu && (
+                      <div className="flex items-center space-x-3">
+                        <Badge variant="outline" className="text-xs">
+                          AU
+                        </Badge>
+                        <span className="text-muted-foreground font-mono">/{word.pronunciationAu}/</span>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+              </>
+            )}
 
-                {/* Example Sentences */}
-                {exampleSentences.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-white">Example Sentences</h3>
-                    <div className="space-y-3">
-                      {exampleSentences.map((sentence: string, index: number) => (
-                        <div key={index} className="p-3 bg-gray-800 rounded-lg">
-                          <p className="text-gray-300 leading-relaxed">{sentence}</p>
-                        </div>
-                      ))}
-                    </div>
+            {/* Example Sentences */}
+            {exampleSentences.length > 0 && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Example Sentences</h3>
+                  <div className="space-y-3">
+                    {exampleSentences.map((sentence: string, index: number) => (
+                      <div key={index} className="p-3 bg-muted rounded-lg">
+                        <p className="text-foreground leading-relaxed">{sentence}</p>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
               </>
             )}
 
             {/* Study Stats */}
-            <Separator className="bg-gray-700" />
+            <Separator />
             <div>
-              <h3 className="text-lg font-semibold mb-3 text-white">Study Progress</h3>
+              <h3 className="text-lg font-semibold mb-3">Study Progress</h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-gray-800 rounded-lg">
-                  <div className="text-2xl font-bold text-white">{word.studyCount ?? 0}</div>
-                  <div className="text-sm text-gray-400">Times Studied</div>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold">{word.studyCount ?? 0}</div>
+                  <div className="text-sm text-muted-foreground">Times Studied</div>
                 </div>
-                <div className="text-center p-3 bg-gray-800 rounded-lg">
-                  <div className="text-2xl font-bold text-white">
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold">
                     {(word.studyCount ?? 0) > 0 ? Math.round(((word.correctAnswers ?? 0) / (word.studyCount ?? 1)) * 100) : 0}%
                   </div>
-                  <div className="text-sm text-gray-400">Accuracy</div>
+                  <div className="text-sm text-muted-foreground">Accuracy</div>
                 </div>
               </div>
             </div>

@@ -31,7 +31,7 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
           role: "system",
           content: `You are a linguistic expert. For any given English word, provide:
 1. IPA pronunciation for American English, British English, and Australian English
-2. 3-5 practical example sentences that demonstrate different uses of the word
+2. Exactly 2 practical example sentences that demonstrate different uses of the word
 
 Respond with valid JSON in this exact format:
 {
@@ -42,8 +42,7 @@ Respond with valid JSON in this exact format:
   },
   "exampleSentences": [
     "Example sentence 1 here.",
-    "Example sentence 2 here.",
-    "Example sentence 3 here."
+    "Example sentence 2 here."
   ]
 }
 

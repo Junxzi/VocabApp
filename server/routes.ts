@@ -100,7 +100,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/vocabulary", async (req, res) => {
     try {
       const validatedData = insertVocabularyWordSchema.parse(req.body);
-      const word = await storage.createVocabularyWord(validatedData);
+      
+      // Automatically enrich new words with GPT-4o data
+      let enrichedData = validatedData;
+      try {
+        const gptEnrichment = await enrichWordData(validatedData.word);
+        enrichedData = {
+          ...validatedData,
+          pronunciationUs: gptEnrichment.pronunciations.us,
+          pronunciationUk: gptEnrichment.pronunciations.uk,
+          pronunciationAu: gptEnrichment.pronunciations.au,
+          exampleSentences: JSON.stringify(gptEnrichment.exampleSentences)
+        };
+      } catch (enrichError) {
+        console.warn("Failed to enrich word, proceeding without enrichment:", enrichError);
+      }
+      
+      const word = await storage.createVocabularyWord(enrichedData);
       res.status(201).json(word);
     } catch (error) {
       if (error instanceof z.ZodError) {
