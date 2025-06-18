@@ -119,7 +119,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingWord ? "Edit Word" : "Add New Word"}
+            {editingWord ? t('add.edit_title') : t('add.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -130,9 +130,9 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="word"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Word *</FormLabel>
+                  <FormLabel>{t('add.word')} *</FormLabel>
                   <FormControl>
-                    <Input {...field} className="bg-muted" placeholder="Enter the word" />
+                    <Input {...field} className="bg-muted" placeholder={t('add.wordPlaceholder')} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,9 +144,9 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
               name="definition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Definition *</FormLabel>
+                  <FormLabel>{t('add.definition')} *</FormLabel>
                   <FormControl>
-                    <Textarea {...field} className="bg-muted" placeholder="Enter the definition" />
+                    <Textarea {...field} className="bg-muted" placeholder={t('add.definitionPlaceholder')} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

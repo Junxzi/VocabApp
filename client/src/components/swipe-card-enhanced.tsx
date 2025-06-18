@@ -39,11 +39,17 @@ export function SwipeCard({
     
     if (!isActive) return;
 
-    const threshold = 100;
-    if (info.offset.x > threshold) {
-      onSwipe('right');
-    } else if (info.offset.x < -threshold) {
-      onSwipe('left');
+    const threshold = 120;
+    const velocity = Math.abs(info.velocity.x);
+    const distance = Math.abs(info.offset.x);
+    
+    // Only trigger swipe if there's significant movement or velocity
+    if (distance > threshold || (velocity > 500 && distance > 50)) {
+      if (info.offset.x > 0) {
+        onSwipe('right');
+      } else {
+        onSwipe('left');
+      }
     }
   };
 
@@ -129,7 +135,12 @@ export function SwipeCard({
           className="relative w-full h-full transform-style-preserve-3d cursor-pointer"
           animate={{ rotateY: showAnswer ? 180 : 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          onClick={onShowAnswer}
+          onClick={(e) => {
+            // Only trigger tap if not dragging
+            if (!isDragging) {
+              onShowAnswer();
+            }
+          }}
         >
           {/* Front of card */}
           <motion.div

@@ -50,6 +50,17 @@ const translations = {
     'add.save': 'Save Word',
     'add.cancel': 'Cancel',
     'add.phonetic_keyboard': 'Phonetic Keyboard',
+    'add.tags': 'Tags',
+    'add.existingTags': 'Existing tags (click to add):',
+    'add.newTag': 'New tag name',
+    
+    // Generate Words
+    'generate.title': 'Generate Words',
+    'generate.category': 'Category',
+    'generate.selectCategory': 'Select category',
+    'generate.generate': 'Generate Words',
+    'generate.generating': 'Generating...',
+    'generate.cancel': 'Cancel',
     
     // Study Mode
     'study.title': 'Study Mode',
@@ -247,6 +258,17 @@ const translations = {
     'add.save': '単語を保存',
     'add.cancel': 'キャンセル',
     'add.phonetic_keyboard': '発音記号キーボード',
+    'add.tags': 'タグ',
+    'add.existingTags': '既存のタグ（クリックして追加）：',
+    'add.newTag': '新しいタグ名',
+    
+    // Generate Words
+    'generate.title': '単語生成',
+    'generate.category': 'カテゴリ',
+    'generate.selectCategory': 'カテゴリを選択',
+    'generate.generate': '単語を生成',
+    'generate.generating': '生成中...',
+    'generate.cancel': 'キャンセル',
     
     // Study Mode
     'study.title': '学習モード',
