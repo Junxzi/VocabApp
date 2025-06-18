@@ -29,9 +29,37 @@ export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) 
       <CardContent className="p-4 md:p-6">
         <div className="flex items-start justify-between mb-3 md:mb-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-base md:text-lg font-semibold text-foreground mb-1 break-words">
-              {word.word}
-            </h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-base md:text-lg font-semibold text-foreground break-words">
+                {word.word}
+              </h3>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`https://www.oxfordlearnersdictionaries.com/us/definition/english/${word.word}`, '_blank');
+                  }}
+                  className="h-6 px-2 text-xs hover:bg-muted"
+                  title="Oxford US pronunciation"
+                >
+                  🇺🇸
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`https://www.oxfordlearnersdictionaries.com/definition/english/${word.word}`, '_blank');
+                  }}
+                  className="h-6 px-2 text-xs hover:bg-muted"
+                  title="Oxford UK pronunciation"
+                >
+                  🇬🇧
+                </Button>
+              </div>
+            </div>
             <p className="text-muted-foreground font-mono text-sm break-words">
               {word.pronunciation}
             </p>

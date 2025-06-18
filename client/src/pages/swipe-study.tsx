@@ -231,31 +231,10 @@ export function SwipeStudyPage() {
         />
       </div>
 
-      {/* Manual Controls - Thumb-friendly */}
-      <div className="max-w-md mx-auto mt-8 flex justify-center gap-6 px-4">
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => handleManualSwipe('left')}
-          className="flex-1 h-14 border-red-200 text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors touch-manipulation"
-        >
-          <XCircle className="w-6 h-6 mr-2" />
-          <span className="text-base font-medium">Need Review</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => handleManualSwipe('right')}
-          className="flex-1 h-14 border-green-200 text-green-600 hover:bg-green-50 active:bg-green-100 transition-colors touch-manipulation"
-        >
-          <CheckCircle2 className="w-6 h-6 mr-2" />
-          <span className="text-base font-medium">Know It!</span>
-        </Button>
-      </div>
-
       {/* Instructions */}
-      <div className="max-w-md mx-auto mt-6 text-center text-sm text-muted-foreground">
-        <p>Swipe right if you know the word, left if you need to review it</p>
+      <div className="max-w-md mx-auto mt-6 text-center text-sm text-muted-foreground space-y-2">
+        <p>Tap the card to see meaning</p>
+        <p>Swipe right if you know it, left if you need to review</p>
       </div>
     </div>
   );

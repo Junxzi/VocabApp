@@ -24,9 +24,37 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-4">
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-foreground truncate">
-                  {word.word}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-foreground truncate">
+                    {word.word}
+                  </h3>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://www.oxfordlearnersdictionaries.com/us/definition/english/${word.word}`, '_blank');
+                      }}
+                      className="h-5 px-1 text-xs hover:bg-muted"
+                      title="Oxford US pronunciation"
+                    >
+                      🇺🇸
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://www.oxfordlearnersdictionaries.com/definition/english/${word.word}`, '_blank');
+                      }}
+                      className="h-5 px-1 text-xs hover:bg-muted"
+                      title="Oxford UK pronunciation"
+                    >
+                      🇬🇧
+                    </Button>
+                  </div>
+                </div>
                 <p className="text-sm text-muted-foreground font-mono truncate">
                   {word.pronunciation}
                 </p>

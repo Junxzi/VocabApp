@@ -96,43 +96,6 @@ export function SwipeCard({
           <div className="text-center mt-4">
             <div className="text-center mb-4">
               <h2 className="text-3xl font-bold text-foreground mb-3">{word.word}</h2>
-              {word.pronunciation && (
-                <div className="flex items-center justify-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      speakWord('us');
-                    }}
-                    className="h-8 px-2 hover:bg-muted text-xs"
-                  >
-                    🇺🇸 US
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      speakWord('uk');
-                    }}
-                    className="h-8 px-2 hover:bg-muted text-xs"
-                  >
-                    🇬🇧 UK
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      speakWord('au');
-                    }}
-                    className="h-8 px-2 hover:bg-muted text-xs"
-                  >
-                    🇦🇺 AU
-                  </Button>
-                </div>
-              )}
             </div>
             
             {word.pronunciation && (
@@ -160,27 +123,23 @@ export function SwipeCard({
           {/* Answer Section */}
           <div className="flex-1 flex flex-col justify-center my-8">
             {!showAnswer ? (
-              <div className="text-center">
-                <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20">
+              <div 
+                className="text-center cursor-pointer"
+                onClick={onShowAnswer}
+              >
+                <div className="mb-6 p-6 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/20 hover:bg-muted/70 transition-colors">
                   <EyeOff className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground">
-                    Think about the meaning...
+                    Tap to see meaning...
                   </p>
                 </div>
-                
-                <Button 
-                  onClick={onShowAnswer}
-                  variant="outline"
-                  size="lg"
-                  className="px-8"
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  Show Answer
-                </Button>
               </div>
             ) : (
-              <div className="text-center">
-                <div className="mb-6 p-6 bg-primary/5 rounded-lg border border-primary/20">
+              <div 
+                className="text-center cursor-pointer"
+                onClick={() => onShowAnswer()}
+              >
+                <div className="mb-6 p-6 bg-primary/5 rounded-lg border border-primary/20 hover:bg-primary/10 transition-colors">
                   <h3 className="text-xl font-semibold mb-3 text-foreground">
                     Meaning
                   </h3>
@@ -188,8 +147,6 @@ export function SwipeCard({
                     {word.definition}
                   </p>
                 </div>
-
-
               </div>
             )}
           </div>
