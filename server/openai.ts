@@ -38,8 +38,10 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
           content: `You are a linguistic expert. For any given English word, provide:
 
 1. IPA pronunciation for American English, British English, and Australian English (without slashes or brackets)
-2. The most common part of speech (noun, verb, adjective, etc.)
-3. Exactly 2 practical example sentences in English with their Japanese translations
+2. The most common part of speech in Japanese (名詞, 動詞, 形容詞, 副詞, etc.)
+3. Exactly 2 natural, conversational example sentences that native speakers would use in everyday situations, with their Japanese translations
+
+Focus on creating relatable, friendly examples that people would actually say in daily life rather than formal or academic sentences.
 
 Respond with valid JSON in this exact format:
 {
@@ -48,20 +50,20 @@ Respond with valid JSON in this exact format:
     "uk": "ˈbɪtə", 
     "au": "ˈbɪtə"
   },
-  "primaryPartOfSpeech": "adjective",
+  "primaryPartOfSpeech": "形容詞",
   "exampleSentences": [
     {
-      "english": "The coffee tastes bitter without sugar.",
-      "japanese": "砂糖なしのコーヒーは苦い味がする。"
+      "english": "This coffee is way too bitter for me!",
+      "japanese": "このコーヒー、私には苦すぎる！"
     },
     {
-      "english": "She felt bitter about losing the competition.",
-      "japanese": "彼女は競技に負けたことを苦々しく思った。"
+      "english": "I'm still bitter about what happened yesterday.",
+      "japanese": "昨日のことまだ根に持ってるんだ。"
     }
   ]
 }
 
-Only include the IPA symbols without any slashes, brackets, or other punctuation. Provide accurate Japanese translations for the example sentences.`
+Only include the IPA symbols without any slashes, brackets, or other punctuation. Use natural, conversational language that friends would use when talking to each other.`
         },
         {
           role: "user",
