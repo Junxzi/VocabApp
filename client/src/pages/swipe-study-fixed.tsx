@@ -323,21 +323,18 @@ export function SwipeStudyPage() {
     queryKey: ["/api/vocabulary"],
   });
 
-  const { data: words = [], isLoading, refetch } = useQuery<VocabularyWord[]>({
+  const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
     queryKey: currentMode === 'random' 
       ? ["/api/vocabulary/random/30"] 
       : ["/api/vocabulary/tag", selectedTag],
-    enabled: studyMode === 'studying',
+    enabled: studyMode === 'studying' && studyWords.length === 0,
   });
 
   const updateWordSpacedRepetitionMutation = useMutation({
     mutationFn: async ({ id, known }: { id: number; known: boolean }) => {
       await apiRequest("PUT", `/api/vocabulary/${id}/spaced-repetition`, { known });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary/random/30"] });
-    },
+    // Don't invalidate queries during study session to prevent refetching
   });
 
   const availableTags = Array.from(
@@ -390,7 +387,9 @@ export function SwipeStudyPage() {
     if (tag) setSelectedTag(tag);
     setStudyMode('studying');
     setSessionStats({ known: 0, needReview: 0, total: 0 });
-    refetch();
+    setStudyWords([]); // Clear existing words to trigger new fetch
+    setCurrentIndex(0);
+    setIsCardSwiping(false);
   };
 
   const handleSwipe = (direction: 'left' | 'right') => {
