@@ -36,7 +36,7 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                       onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                          await speakWithAccent(word.word, 'us');
+                          await speakWithAccent(word.word, 'us', word.audioDataUs);
                         } catch (error) {
                           console.error('Speech synthesis error:', error);
                         }
@@ -52,7 +52,7 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                       onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                          await speakWithAccent(word.word, 'uk');
+                          await speakWithAccent(word.word, 'uk', word.audioDataUk);
                         } catch (error) {
                           console.error('Speech synthesis error:', error);
                         }
