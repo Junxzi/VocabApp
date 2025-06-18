@@ -114,8 +114,8 @@ export class MemStorage implements IStorage {
     const updatedWord: VocabularyWord = {
       ...word,
       difficulty,
-      studyCount: word.studyCount + 1,
-      correctAnswers: difficulty === 1 ? word.correctAnswers + 1 : word.correctAnswers,
+      studyCount: (word.studyCount || 0) + 1,
+      correctAnswers: difficulty === 1 ? (word.correctAnswers || 0) + 1 : (word.correctAnswers || 0),
       lastStudied: new Date(),
     };
     this.vocabularyWords.set(id, updatedWord);

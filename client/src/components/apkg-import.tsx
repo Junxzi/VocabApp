@@ -39,7 +39,7 @@ export function ApkgImport({ onClose }: ApkgImportProps) {
           results.push({ success: true, word: words[i] });
           setProgress(((i + 1) / words.length) * 100);
         } catch (error) {
-          results.push({ success: false, word: words[i], error: error.message });
+          results.push({ success: false, word: words[i], error: error instanceof Error ? error.message : "Unknown error" });
         }
       }
       return results;
@@ -47,7 +47,7 @@ export function ApkgImport({ onClose }: ApkgImportProps) {
     onSuccess: (results) => {
       const success = results.filter(r => r.success).length;
       const failed = results.filter(r => !r.success).length;
-      const errors = results.filter(r => !r.success).map(r => r.error);
+      const errors = results.filter(r => !r.success).map(r => r.error).filter(Boolean) as string[];
       
       setResult({
         success,

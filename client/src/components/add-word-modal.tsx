@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ interface AddWordModalProps {
 
 export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddWordModalProps) {
   const [showPhoneticKeyboard, setShowPhoneticKeyboard] = useState(false);
-  const pronunciationInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<InsertVocabularyWord>({
     resolver: zodResolver(insertVocabularyWordSchema),
@@ -49,20 +48,7 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
 
   const insertPhoneticSymbol = (symbol: string) => {
     const currentValue = form.getValues("pronunciation");
-    const input = pronunciationInputRef.current;
-    
-    if (input) {
-      const start = input.selectionStart || 0;
-      const end = input.selectionEnd || 0;
-      const newValue = currentValue.slice(0, start) + symbol + currentValue.slice(end);
-      form.setValue("pronunciation", newValue);
-      
-      // Focus back to input and set cursor position
-      setTimeout(() => {
-        input.focus();
-        input.setSelectionRange(start + symbol.length, start + symbol.length);
-      }, 0);
-    }
+    form.setValue("pronunciation", currentValue + symbol);
   };
 
   return (
@@ -103,10 +89,6 @@ export function AddWordModal({ open, onOpenChange, onSubmit, editingWord }: AddW
                   <FormControl>
                     <div className="relative">
                       <Input
-                        ref={(e) => {
-                          pronunciationInputRef.current = e;
-                          field.ref(e);
-                        }}
                         placeholder="/pronunciation/"
                         className="bg-muted font-mono pr-10"
                         {...field}
