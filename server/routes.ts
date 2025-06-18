@@ -186,6 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const words = await storage.getDailyChallengeWords();
       res.json(words);
     } catch (error) {
+      console.error('Daily challenge error:', error);
       res.status(500).json({ message: "Failed to fetch daily challenge words" });
     }
   });
