@@ -1,14 +1,206 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SwipeCard } from "@/components/swipe-card-enhanced";
-import { Button } from "@/components/ui/button";
+import { motion, PanInfo, useMotionValue, useTransform, animate } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
-import { RotateCcw, TrendingUp, CheckCircle2, XCircle } from "lucide-react";
+import { getLocalizedPartOfSpeech } from "@/lib/utils";
+import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import type { VocabularyWord } from "@shared/schema";
+
+interface StudyCardProps {
+  word: VocabularyWord;
+  onSwipe: (direction: 'left' | 'right') => void;
+  onTap: () => void;
+  showAnswer: boolean;
+  isVisible: boolean;
+  zIndex: number;
+}
+
+function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: StudyCardProps) {
+  const { t, language } = useLanguage();
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 0, 200], [-25, 0, 25]);
+  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
+
+  const handleDragEnd = (event: any, info: PanInfo) => {
+    const threshold = 100;
+    const distance = info.offset.x;
+    const velocity = Math.abs(info.velocity.x);
+    
+    if (Math.abs(distance) > threshold || velocity > 200) {
+      // Animate card off screen
+      const direction = distance > 0 ? 1 : -1;
+      const exitX = direction * window.innerWidth;
+      
+      animate(x, exitX, {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        velocity: info.velocity.x
+      }).then(() => {
+        onSwipe(direction > 0 ? 'right' : 'left');
+      });
+    } else {
+      // Return to center
+      animate(x, 0, {
+        type: "spring",
+        stiffness: 500,
+        damping: 35
+      });
+    }
+  };
+
+  const speakWord = (variant: 'us' | 'uk', e: React.MouseEvent) => {
+    e.stopPropagation();
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(word.word);
+      utterance.rate = 0.8;
+      utterance.volume = 0.7;
+      
+      const voices = speechSynthesis.getVoices();
+      if (variant === 'us') {
+        const usVoice = voices.find(voice => 
+          voice.lang.startsWith('en-US') || voice.name.includes('US')
+        );
+        if (usVoice) utterance.voice = usVoice;
+      } else if (variant === 'uk') {
+        const ukVoice = voices.find(voice => 
+          voice.lang.startsWith('en-GB') || voice.name.includes('UK')
+        );
+        if (ukVoice) utterance.voice = ukVoice;
+      }
+      
+      speechSynthesis.speak(utterance);
+    }
+  };
+
+  if (!isVisible) return null;
+
+  return (
+    <motion.div
+      className="absolute inset-0"
+      style={{ 
+        x, 
+        rotate, 
+        opacity,
+        zIndex,
+        scale: isVisible ? 1 : 0.95
+      }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.7}
+      onDragEnd={handleDragEnd}
+      whileDrag={{ 
+        scale: 1.05,
+        cursor: "grabbing",
+        transition: { duration: 0.1 }
+      }}
+      onClick={onTap}
+      className="cursor-pointer"
+    >
+      <Card className="h-full bg-card border-2 border-border rounded-2xl overflow-hidden shadow-xl">
+        <CardContent className="p-6 h-full flex flex-col justify-between">
+          {!showAnswer ? (
+            // Front of card
+            <div className="text-center flex-1 flex flex-col justify-center">
+              <div className="mb-6">
+                <h2 className="text-4xl font-bold text-foreground mb-4">{word.word}</h2>
+                {word.partOfSpeech && (
+                  <Badge variant="outline" className="text-sm">
+                    {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
+                  </Badge>
+                )}
+              </div>
+              
+              {word.pronunciation && (
+                <div className="mb-6">
+                  <p className="text-xl text-muted-foreground font-mono mb-3">
+                    /{word.pronunciation}/
+                  </p>
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      onClick={(e) => speakWord('us', e)}
+                      className="px-4 py-2 bg-muted rounded-lg text-sm hover:bg-muted/80 transition-colors flex items-center gap-2"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      US
+                    </button>
+                    <button
+                      onClick={(e) => speakWord('uk', e)}
+                      className="px-4 py-2 bg-muted rounded-lg text-sm hover:bg-muted/80 transition-colors flex items-center gap-2"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      UK
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-auto">
+                <Badge variant="secondary" className="text-sm px-4 py-2">
+                  <Eye className="w-4 h-4 mr-2" />
+                  {t('tapCardToSeeMeaning')}
+                </Badge>
+              </div>
+            </div>
+          ) : (
+            // Back of card
+            <div className="text-center flex-1 flex flex-col justify-center">
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold text-foreground mb-4">{word.word}</h2>
+                {word.partOfSpeech && (
+                  <Badge variant="outline" className="text-sm mb-4">
+                    {getLocalizedPartOfSpeech(word.partOfSpeech, language)}
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="text-lg text-muted-foreground mb-8 leading-relaxed">
+                {word.definition}
+              </div>
+              
+              {word.exampleSentences && (
+                <div className="space-y-4 mb-8">
+                  {word.exampleSentences.split('|||').slice(0, 2).map((sentence, index) => {
+                    const [english, japanese] = sentence.split('###');
+                    return (
+                      <div key={index} className="p-4 bg-muted/50 rounded-xl text-left">
+                        <p className="text-foreground italic mb-2">{english?.trim()}</p>
+                        {japanese && (
+                          <p className="text-muted-foreground text-sm">{japanese.trim()}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              
+              <div className="mt-auto">
+                <div className="flex justify-between items-center text-sm text-muted-foreground mb-4">
+                  <span className="flex items-center gap-2">
+                    ← {t('notKnown')}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {t('known')} →
+                  </span>
+                </div>
+                <Badge variant="secondary" className="text-sm px-4 py-2">
+                  <EyeOff className="w-4 h-4 mr-2" />
+                  スワイプして評価
+                </Badge>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
 
 export function SwipeStudyPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,9 +223,7 @@ export function SwipeStudyPage() {
 
   const updateWordSpacedRepetitionMutation = useMutation({
     mutationFn: async ({ id, known }: { id: number; known: boolean }) => {
-      await apiRequest("PUT", `/api/vocabulary/${id}/spaced-repetition`, {
-        known,
-      });
+      await apiRequest("PUT", `/api/vocabulary/${id}/spaced-repetition`, { known });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/vocabulary"] });
@@ -43,22 +233,22 @@ export function SwipeStudyPage() {
 
   useEffect(() => {
     if (words.length > 0) {
-      // Shuffle words for variety
       const shuffled = [...words].sort(() => Math.random() - 0.5);
       setStudyWords(shuffled);
       setSessionStats(prev => ({ ...prev, total: shuffled.length }));
+      setCurrentIndex(0);
+      setShowAnswer(false);
+      setIsSessionComplete(false);
     }
   }, [words]);
 
-  // Disable scrolling when component mounts, re-enable when unmounts
+  // Disable scrolling
   useEffect(() => {
-    // Disable scrolling
     document.body.style.overflow = 'hidden';
     document.body.style.height = '100vh';
     document.documentElement.style.overflow = 'hidden';
     
     return () => {
-      // Re-enable scrolling when component unmounts
       document.body.style.overflow = '';
       document.body.style.height = '';
       document.documentElement.style.overflow = '';
@@ -67,9 +257,7 @@ export function SwipeStudyPage() {
 
   const handleSwipe = (direction: 'left' | 'right') => {
     const currentWord = studyWords[currentIndex];
-    if (!currentWord) {
-      return; // Safety check to prevent undefined error
-    }
+    if (!currentWord) return;
 
     const known = direction === 'right';
     
@@ -80,129 +268,99 @@ export function SwipeStudyPage() {
       needReview: known ? prev.needReview : prev.needReview + 1,
     }));
 
-    // Update word with spaced repetition algorithm
+    // Update word with spaced repetition
     updateWordSpacedRepetitionMutation.mutate({ 
       id: currentWord.id, 
       known 
     });
 
-    // Move to next word
-    if (currentIndex < studyWords.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setShowAnswer(false);
-    } else {
-      setIsSessionComplete(true);
-    }
+    // Move to next word or complete session
+    setTimeout(() => {
+      if (currentIndex < studyWords.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setShowAnswer(false);
+      } else {
+        setIsSessionComplete(true);
+      }
+    }, 300);
+  };
+
+  const handleCardTap = () => {
+    setShowAnswer(!showAnswer);
   };
 
   const resetSession = () => {
-    setCurrentIndex(0);
-    setShowAnswer(false);
-    setSessionStats({ known: 0, needReview: 0, total: studyWords.length });
-    setIsSessionComplete(false);
-    
-    // Refetch words for review
-    queryClient.invalidateQueries({ queryKey: ["/api/vocabulary/review/50"] });
-  };
-
-  const handleManualSwipe = (direction: 'left' | 'right') => {
-    if (!showAnswer) {
-      setShowAnswer(true);
-      return;
+    if (words.length > 0) {
+      const shuffled = [...words].sort(() => Math.random() - 0.5);
+      setStudyWords(shuffled);
+      setCurrentIndex(0);
+      setShowAnswer(false);
+      setIsSessionComplete(false);
+      setSessionStats({ known: 0, needReview: 0, total: shuffled.length });
     }
-    handleSwipe(direction);
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{t('loadingStudySession')}</p>
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">学習カードを読み込み中...</p>
         </div>
       </div>
     );
   }
 
-  if (studyWords.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-4">{t('allCaughtUp')}</h2>
-            <p className="text-muted-foreground mb-6">
-              {t('noWordsForReview')}
-            </p>
-            <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}>
-              {t('addNewWords')}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (isSessionComplete) {
-    const accuracy = sessionStats.total > 0 
-      ? Math.round((sessionStats.known / sessionStats.total) * 100) 
-      : 0;
-
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <div className="mb-6">
               <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">{t('sessionComplete')}</h2>
-              <p className="text-muted-foreground">
-                {t('sessionCompleteMessage')}
-              </p>
+              <h2 className="text-2xl font-bold mb-2">学習完了！</h2>
+              <p className="text-muted-foreground">お疲れ様でした</p>
             </div>
-
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                <span className="flex items-center">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
-                  {t('knownWords')}
-                </span>
-                <span className="font-bold">{sessionStats.known}</span>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{sessionStats.known}</div>
+                <div className="text-sm text-green-600">習得済み</div>
               </div>
-              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                <span className="flex items-center">
-                  <XCircle className="w-5 h-5 text-red-500 mr-2" />
-                  {t('needReview')}
-                </span>
-                <span className="font-bold">{sessionStats.needReview}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
-                <span className="flex items-center">
-                  <TrendingUp className="w-5 h-5 text-primary mr-2" />
-                  {t('accuracy')}
-                </span>
-                <span className="font-bold">{accuracy}%</span>
+              <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">{sessionStats.needReview}</div>
+                <div className="text-sm text-red-600">要復習</div>
               </div>
             </div>
-
-            <Button onClick={resetSession} size="lg" className="w-full">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              {t('startNewSession')}
-            </Button>
+            
+            <div className="flex gap-2">
+              <Button onClick={resetSession} className="flex-1">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                もう一度
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = '/vocabulary'}
+                className="flex-1"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                戻る
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Safety check to prevent undefined errors
-  if (!studyWords || studyWords.length === 0 || currentIndex >= studyWords.length) {
+  if (!studyWords.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">No words available for study</p>
-            <Button onClick={() => window.location.href = '/vocabulary'} className="mt-4">
-              Go to Vocabulary
+            <p className="text-muted-foreground mb-4">学習可能な単語がありません</p>
+            <Button onClick={() => window.location.href = '/vocabulary'}>
+              単語帳に戻る
             </Button>
           </CardContent>
         </Card>
@@ -212,7 +370,6 @@ export function SwipeStudyPage() {
 
   const progress = ((currentIndex + 1) / studyWords.length) * 100;
   const currentWord = studyWords[currentIndex];
-  const nextWord = studyWords[currentIndex + 1];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 overflow-hidden">
@@ -224,10 +381,10 @@ export function SwipeStudyPage() {
             {currentIndex + 1} / {studyWords.length}
           </div>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={progress} className="h-3 mb-4" />
         
         {/* Stats */}
-        <div className="flex justify-center gap-4 mt-4 text-sm">
+        <div className="flex justify-center gap-6 text-sm">
           <div className="flex items-center text-green-600">
             <CheckCircle2 className="w-4 h-4 mr-1" />
             <span>{sessionStats.known}</span>
@@ -239,38 +396,19 @@ export function SwipeStudyPage() {
         </div>
       </div>
 
-      {/* Cards Container */}
-      <div className="max-w-md mx-auto h-[500px] relative mt-32">
-        {/* Next card (background) */}
-        {nextWord && (
-          <SwipeCard
-            key={`next-${currentIndex + 1}`}
-            word={nextWord}
-            onSwipe={() => {}}
-            onShowAnswer={() => {}}
-            showAnswer={false}
-            isActive={false}
-            index={1}
-          />
-        )}
-
-        {/* Current card */}
+      {/* Card Container */}
+      <div className="max-w-md mx-auto h-[500px] relative">
         {currentWord && (
-          <SwipeCard
-            key={`current-${currentIndex}`}
+          <StudyCard
+            key={`card-${currentIndex}-${currentWord.id}`}
             word={currentWord}
             onSwipe={handleSwipe}
-            onShowAnswer={() => setShowAnswer(!showAnswer)}
+            onTap={handleCardTap}
             showAnswer={showAnswer}
-            isActive={true}
-            index={0}
+            isVisible={true}
+            zIndex={10}
           />
         )}
-      </div>
-
-      {/* Instructions */}
-      <div className="max-w-md mx-auto mt-6 text-center text-sm text-muted-foreground space-y-2">
-        <p>{t('tapCardToSeeMeaning')}</p>
       </div>
     </div>
   );
