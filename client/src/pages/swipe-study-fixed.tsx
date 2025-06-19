@@ -177,16 +177,28 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     }
     
     const accent = variant || getDefaultAccent();
-    console.log(`[Manual Audio] Attempting to speak "${word.word}" with ${accent.toUpperCase()} accent`);
+    const autoplayEnabled = localStorage.getItem("autoplay") === "true";
+    
+    console.log(`[Manual Audio] Button clicked - Word: "${word.word}", Accent: ${accent.toUpperCase()}, Autoplay: ${autoplayEnabled}`);
+    console.log(`[Manual Audio] Azure TTS available:`, !!azureTTS);
     
     try {
-      // Force stop any currently playing audio first
-      console.log(`[Manual Audio] Stopping any current audio before playing "${word.word}"`);
-      
+      console.log(`[Manual Audio] Starting playback of "${word.word}"`);
       await azureTTS.speak(word.word, accent);
-      console.log(`[Manual Audio] ✓ Successfully played "${word.word}" with ${accent.toUpperCase()} accent`);
+      console.log(`[Manual Audio] ✓ Successfully completed playback of "${word.word}"`);
     } catch (error) {
-      console.error(`[Manual Audio] Failed to play "${word.word}":`, error);
+      console.error(`[Manual Audio] ❌ Failed to play "${word.word}":`, error);
+      
+      // Fallback attempt with browser TTS
+      console.log(`[Manual Audio] Attempting browser TTS fallback`);
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(word.word);
+        utterance.rate = 0.8;
+        utterance.lang = accent === 'uk' ? 'en-GB' : accent === 'au' ? 'en-AU' : 'en-US';
+        speechSynthesis.speak(utterance);
+        console.log(`[Manual Audio] ✓ Browser TTS fallback completed`);
+      }
     }
   };
 
