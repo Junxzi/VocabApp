@@ -164,36 +164,40 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     }, 100);
   };
 
-  // Simple audio playback system for swipe cards
-  const playWordAudio = async (forcePlay: boolean = false) => {
-    const accent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
-    const autoplayEnabled = localStorage.getItem("autoplay") === "true";
-    
-    // Only auto-play if enabled, but always play if manually triggered
-    if (!forcePlay && !autoplayEnabled) {
-      console.log(`[Audio] Skipping auto-play - disabled in settings`);
-      return;
+  // Get default accent from settings
+  const getDefaultAccent = (): 'us' | 'uk' | 'au' => {
+    const stored = localStorage.getItem("pronunciationAccent");
+    return (stored as 'us' | 'uk' | 'au') || 'us';
+  };
+
+  const speakWord = async (variant?: 'us' | 'uk' | 'au', e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
     
-    const playType = forcePlay ? 'Manual' : 'Auto';
-    console.log(`[${playType} Audio] Playing "${word.word}" with ${accent.toUpperCase()} accent`);
+    const accent = variant || getDefaultAccent();
+    const autoplayEnabled = localStorage.getItem("autoplay") === "true";
+    
+    console.log(`[Manual Audio] Button clicked - Word: "${word.word}", Accent: ${accent.toUpperCase()}, Autoplay: ${autoplayEnabled}`);
+    console.log(`[Manual Audio] Azure TTS available:`, !!azureTTS);
     
     try {
+      console.log(`[Manual Audio] Starting playback of "${word.word}"`);
       await azureTTS.speak(word.word, accent);
-      console.log(`[${playType} Audio] ✓ Playback completed`);
+      console.log(`[Manual Audio] ✓ Successfully completed playback of "${word.word}"`);
     } catch (error) {
-      console.error(`[${playType} Audio] ❌ Azure TTS failed:`, error);
+      console.error(`[Manual Audio] ❌ Failed to play "${word.word}":`, error);
       
-      // Simple browser TTS fallback
+      // Fallback attempt with browser TTS
+      console.log(`[Manual Audio] Attempting browser TTS fallback`);
       if ('speechSynthesis' in window) {
         speechSynthesis.cancel();
-        setTimeout(() => {
-          const utterance = new SpeechSynthesisUtterance(word.word);
-          utterance.rate = 0.8;
-          utterance.lang = accent === 'uk' ? 'en-GB' : accent === 'au' ? 'en-AU' : 'en-US';
-          speechSynthesis.speak(utterance);
-          console.log(`[${playType} Audio] ✓ Browser fallback completed`);
-        }, 100);
+        const utterance = new SpeechSynthesisUtterance(word.word);
+        utterance.rate = 0.8;
+        utterance.lang = accent === 'uk' ? 'en-GB' : accent === 'au' ? 'en-AU' : 'en-US';
+        speechSynthesis.speak(utterance);
+        console.log(`[Manual Audio] ✓ Browser TTS fallback completed`);
       }
     }
   };
@@ -238,22 +242,28 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 borderColor: getBorderColor()
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center relative">
-            {/* Audio playback button - rebuilt from scratch */}
-            <div
-              className="absolute top-4 left-4 w-12 h-12 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 shadow-lg"
-              style={{ zIndex: 9999 }}
+            {/* Pronunciation button in top-left corner (uses settings preference) */}
+            <button
               onClick={(e) => {
+                console.log('[Button Click] Manual audio button clicked!');
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('[NEW AUDIO] Manual button clicked!');
-                playWordAudio(true);
+                speakWord(undefined, e);
               }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-              title="単語を再生"
+              onPointerDown={(e) => {
+                console.log('[Button Event] onPointerDown triggered');
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                console.log('[Button Event] onTouchStart triggered');
+                e.stopPropagation();
+              }}
+              className="absolute top-4 left-4 p-3 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-full transition-all duration-150 z-10 shadow-sm haptic-light active:scale-95"
+              style={{ minHeight: '44px', minWidth: '44px' }}
+              title="発音を聞く"
             >
-              <Volume2 className="w-6 h-6 text-white" />
-            </div>
+              <Volume2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </button>
 
             {/* Content with fading opacity */}
             <div className="text-center" style={{ opacity: getContentOpacity() }}>
@@ -533,9 +543,17 @@ export function SwipeStudyPage() {
       setIsCardSwiping(false);
       
       // Auto-play pronunciation if enabled
-      if (shuffled[0]) {
-        setTimeout(() => {
-          playWordAudio(false); // Auto-play (not forced)
+      const autoplay = localStorage.getItem("autoplay") === "true";
+      if (autoplay && shuffled[0]) {
+        // Delay auto-play to allow card to render
+        setTimeout(async () => {
+          try {
+            const defaultAccent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
+            await azureTTS.speak(shuffled[0].word, defaultAccent);
+            console.log(`[Auto-play] Successfully played "${shuffled[0].word}" on initial load`);
+          } catch (error) {
+            console.error('Auto-play failed:', error);
+          }
         }, 500);
       }
     }
@@ -548,9 +566,16 @@ export function SwipeStudyPage() {
       setDisplayedWord(newWord);
       
       // Auto-play pronunciation if enabled for new cards
-      if (newWord && currentIndex > 0) { // Don't auto-play the first card (handled in initial load)
-        setTimeout(() => {
-          playWordAudio(false); // Auto-play (not forced)
+      const autoplay = localStorage.getItem("autoplay") === "true";
+      if (autoplay && newWord && currentIndex > 0) { // Don't auto-play the first card (handled in initial load)
+        setTimeout(async () => {
+          try {
+            const defaultAccent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
+            await azureTTS.speak(newWord.word, defaultAccent);
+            console.log(`[Auto-play] Successfully played "${newWord.word}" on card change`);
+          } catch (error) {
+            console.error('Auto-play failed for new card:', error);
+          }
         }, 300);
       }
     }
