@@ -68,7 +68,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pb-20 md:pb-0">
+      <div className="pb-[env(safe-area-inset-bottom,80px)] md:pb-0">
         <Switch>
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
           <Route path="/word/:id" component={WordDetailPage} />
