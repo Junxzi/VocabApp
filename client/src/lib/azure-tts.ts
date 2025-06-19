@@ -25,6 +25,7 @@ class AzureTTSService {
   private db: IDBDatabase | null = null;
   private dbName = 'azure-tts-cache';
   private dbVersion = 1;
+  private currentAudio: HTMLAudioElement | null = null; // Track current playing audio
 
   constructor() {
     this.initialize();
@@ -100,17 +101,31 @@ class AzureTTSService {
   }
 
   private async playFromCache(cacheKey: string): Promise<void> {
+    // Stop any currently playing audio
+    this.stopCurrentAudio();
+
     // Try in-memory cache first
     const cachedUrl = this.audioCache.get(cacheKey);
     if (cachedUrl) {
       return new Promise((resolve, reject) => {
         const audio = new Audio(cachedUrl);
-        audio.onended = () => resolve();
-        audio.onerror = () => reject('Cached audio playback failed');
+        this.currentAudio = audio;
+        
+        audio.onended = () => {
+          this.currentAudio = null;
+          resolve();
+        };
+        audio.onerror = () => {
+          this.currentAudio = null;
+          reject('Cached audio playback failed');
+        };
         
         // Reset audio to allow multiple plays
         audio.currentTime = 0;
-        audio.play().catch(reject);
+        audio.play().catch((error) => {
+          this.currentAudio = null;
+          reject(error);
+        });
       });
     }
 
@@ -123,16 +138,35 @@ class AzureTTSService {
       
       return new Promise((resolve, reject) => {
         const audio = new Audio(url);
-        audio.onended = () => resolve();
-        audio.onerror = () => reject('Cached audio playback failed');
+        this.currentAudio = audio;
+        
+        audio.onended = () => {
+          this.currentAudio = null;
+          resolve();
+        };
+        audio.onerror = () => {
+          this.currentAudio = null;
+          reject('Cached audio playback failed');
+        };
         
         // Reset audio to allow multiple plays
         audio.currentTime = 0;
-        audio.play().catch(reject);
+        audio.play().catch((error) => {
+          this.currentAudio = null;
+          reject(error);
+        });
       });
     }
 
     return Promise.reject('Not in cache');
+  }
+
+  private stopCurrentAudio(): void {
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio.currentTime = 0;
+      this.currentAudio = null;
+    }
   }
 
   private async cacheAudioData(key: string, audioData: ArrayBuffer): Promise<void> {
@@ -186,6 +220,9 @@ class AzureTTSService {
 
   async speak(text: string, accent: 'us' | 'uk' | 'au' = 'us'): Promise<void> {
     const cacheKey = this.getCacheKey(text, accent);
+    
+    // Stop any currently playing audio first
+    this.stopCurrentAudio();
     
     // Try to play from cache first
     try {
