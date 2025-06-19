@@ -170,17 +170,20 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   };
 
   const speakWord = async (variant?: 'us' | 'uk' | 'au', e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
     const accent = variant || getDefaultAccent();
-    console.log(`Speaking "${word.word}" with ${accent.toUpperCase()} accent`);
+    console.log(`[Swipe Card] Speaking "${word.word}" with ${accent.toUpperCase()} accent`);
     
     try {
       const { azureTTS } = await import('@/lib/azure-tts');
       await azureTTS.speak(word.word, accent);
-      console.log(`✓ Azure TTS successful for "${word.word}"`);
+      console.log(`[Swipe Card] ✓ Azure TTS successful for "${word.word}"`);
     } catch (error) {
-      console.error('Azure TTS failed, using browser TTS:', error);
+      console.error('[Swipe Card] Azure TTS failed, using browser TTS:', error);
       
       if ('speechSynthesis' in window) {
         speechSynthesis.cancel();
@@ -207,9 +210,9 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
             utterance.voice = targetVoice;
           }
 
-          utterance.onstart = () => console.log(`✓ Browser TTS started for "${word.word}"`);
-          utterance.onend = () => console.log(`✓ Browser TTS completed for "${word.word}"`);
-          utterance.onerror = (err) => console.error('Browser TTS error:', err);
+          utterance.onstart = () => console.log(`[Swipe Card] ✓ Browser TTS started for "${word.word}"`);
+          utterance.onend = () => console.log(`[Swipe Card] ✓ Browser TTS completed for "${word.word}"`);
+          utterance.onerror = (err) => console.error('[Swipe Card] Browser TTS error:', err);
 
           speechSynthesis.speak(utterance);
         }, 100);
@@ -258,7 +261,13 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
           <CardContent className="p-6 h-full flex flex-col justify-center relative">
             {/* Pronunciation button in top-left corner (uses settings preference) */}
             <button
-              onClick={(e) => speakWord(undefined, e)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                speakWord(undefined, e);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               className="absolute top-4 left-4 p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-full transition-colors z-10 shadow-sm"
               title="発音を聞く"
             >
