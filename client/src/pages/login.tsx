@@ -38,7 +38,7 @@ export function LoginPage() {
               data-repl-auth
               data-style="button"
               data-text="Replitでログイン"
-            /></div>
+            />
           </div>
         </CardContent>
       </Card>
