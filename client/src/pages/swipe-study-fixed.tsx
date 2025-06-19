@@ -233,12 +233,19 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
             {/* Pronunciation button in top-left corner (uses settings preference) */}
             <button
               onClick={(e) => {
+                console.log('[Button Click] Manual audio button clicked!');
                 e.preventDefault();
                 e.stopPropagation();
                 speakWord(undefined, e);
               }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
+              onPointerDown={(e) => {
+                console.log('[Button Event] onPointerDown triggered');
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                console.log('[Button Event] onTouchStart triggered');
+                e.stopPropagation();
+              }}
               className="absolute top-4 left-4 p-3 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-full transition-all duration-150 z-10 shadow-sm haptic-light active:scale-95"
               style={{ minHeight: '44px', minWidth: '44px' }}
               title="発音を聞く"
