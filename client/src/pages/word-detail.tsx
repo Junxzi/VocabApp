@@ -233,8 +233,16 @@ export function WordDetailPage() {
         {/* Word Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl font-bold">
+            <CardTitle className="text-3xl font-bold flex items-center gap-3">
               {word.word}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => speakWord()}
+                className="p-2 h-10 w-10 hover:bg-muted"
+              >
+                <Volume2 className="h-5 w-5" />
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -267,19 +275,7 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              const { azureTTS } = await import('@/lib/azure-tts');
-                              await azureTTS.speak(word.word, 'us');
-                            } catch (error) {
-                              console.error('Azure TTS failed, using fallback:', error);
-                              if ('speechSynthesis' in window) {
-                                const utterance = new SpeechSynthesisUtterance(word.word);
-                                utterance.lang = 'en-US';
-                                speechSynthesis.speak(utterance);
-                              }
-                            }
-                          }}
+                          onClick={() => speakWord('us')}
                           className="p-1 h-6 w-6"
                         >
                           <Volume2 className="h-3 w-3" />
@@ -295,19 +291,7 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              const { azureTTS } = await import('@/lib/azure-tts');
-                              await azureTTS.speak(word.word, 'uk');
-                            } catch (error) {
-                              console.error('Azure TTS failed, using fallback:', error);
-                              if ('speechSynthesis' in window) {
-                                const utterance = new SpeechSynthesisUtterance(word.word);
-                                utterance.lang = 'en-GB';
-                                speechSynthesis.speak(utterance);
-                              }
-                            }
-                          }}
+                          onClick={() => speakWord('uk')}
                           className="p-1 h-6 w-6"
                         >
                           <Volume2 className="h-3 w-3" />
@@ -323,19 +307,7 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              const { azureTTS } = await import('@/lib/azure-tts');
-                              await azureTTS.speak(word.word, 'au');
-                            } catch (error) {
-                              console.error('Azure TTS failed, using fallback:', error);
-                              if ('speechSynthesis' in window) {
-                                const utterance = new SpeechSynthesisUtterance(word.word);
-                                utterance.lang = 'en-AU';
-                                speechSynthesis.speak(utterance);
-                              }
-                            }
-                          }}
+                          onClick={() => speakWord('au')}
                           className="p-1 h-6 w-6"
                         >
                           <Volume2 className="h-3 w-3" />
