@@ -153,6 +153,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get daily challenge words
+  app.get("/api/vocabulary/daily-challenge", async (req, res) => {
+    try {
+      console.log("Getting daily challenge words...");
+      const words = await storage.getDailyChallengeWords();
+      console.log(`Found ${words.length} words for daily challenge`);
+      res.json(words);
+    } catch (error) {
+      console.error("Error fetching daily challenge words:", error);
+      res.status(500).json({ message: "Failed to fetch daily challenge words" });
+    }
+  });
+
   // Check if daily challenge is completed
   app.get("/api/vocabulary/daily-challenge/status", async (req, res) => {
     try {
