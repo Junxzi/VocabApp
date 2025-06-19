@@ -30,6 +30,10 @@ class AzureTTSService {
   private currentSynthesizer: sdk.SpeechSynthesizer | null = null; // Track current synthesizer
   private playbackQueue: Array<() => Promise<void>> = []; // Queue for audio requests
   private isProcessingQueue = false;
+  private cacheHits = 0; // Track cache efficiency
+  private cacheMisses = 0; // Track cache misses
+  private readonly MAX_CACHE_SIZE = 100; // Maximum number of cached items
+  private readonly CACHE_EXPIRY_DAYS = 30; // Cache expiry in days
 
   constructor() {
     this.initialize();
@@ -76,13 +80,33 @@ class AzureTTSService {
       request.onsuccess = () => {
         const result = request.result;
         if (result && result.audioData) {
-          resolve(result.audioData);
+          // Check if cache entry has expired
+          const expiryTime = result.timestamp + (this.CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+          if (Date.now() > expiryTime) {
+            // Cache expired, remove it
+            this.removeFromIndexedDB(key);
+            resolve(null);
+          } else {
+            resolve(result.audioData);
+          }
         } else {
           resolve(null);
         }
       };
       
       request.onerror = () => resolve(null);
+    });
+  }
+
+  private async removeFromIndexedDB(key: string): Promise<void> {
+    if (!this.db) return;
+
+    return new Promise((resolve) => {
+      const transaction = this.db!.transaction(['audioCache'], 'readwrite');
+      const store = transaction.objectStore('audioCache');
+      const request = store.delete(key);
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
     });
   }
 
@@ -108,6 +132,9 @@ class AzureTTSService {
     // Try in-memory cache first
     const cachedUrl = this.audioCache.get(cacheKey);
     if (cachedUrl) {
+      this.cacheHits++;
+      console.log(`🎯 Playing from memory cache (Hit rate: ${(this.cacheHits / (this.cacheHits + this.cacheMisses) * 100).toFixed(1)}%)`);
+      
       return new Promise((resolve, reject) => {
         // Create fresh audio element each time to avoid replay issues
         const audio = new Audio();
@@ -148,6 +175,9 @@ class AzureTTSService {
     // Try IndexedDB cache
     const cachedData = await this.getFromIndexedDB(cacheKey);
     if (cachedData) {
+      this.cacheHits++;
+      console.log(`💾 Playing from persistent cache (Hit rate: ${(this.cacheHits / (this.cacheHits + this.cacheMisses) * 100).toFixed(1)}%)`);
+      
       const blob = new Blob([cachedData], { type: 'audio/mp3' });
       const url = URL.createObjectURL(blob);
       this.audioCache.set(cacheKey, url);
@@ -189,6 +219,8 @@ class AzureTTSService {
       });
     }
 
+    // Not found in cache
+    this.cacheMisses++;
     return Promise.reject('Not in cache');
   }
 
@@ -265,14 +297,86 @@ class AzureTTSService {
     this.audioCache.set(key, url);
     
     // Clean up old in-memory cache if needed
-    if (this.audioCache.size > 50) {
+    if (this.audioCache.size > this.MAX_CACHE_SIZE) {
       const entries = Array.from(this.audioCache.entries());
-      const toRemove = entries.slice(0, 10);
+      const toRemove = entries.slice(0, 20); // Remove 20 oldest entries
       toRemove.forEach(([cacheKey, blobUrl]) => {
         URL.revokeObjectURL(blobUrl);
         this.audioCache.delete(cacheKey);
       });
+      console.log(`🧹 Cleaned up ${toRemove.length} old cache entries`);
     }
+  }
+
+  // Public method to get cache statistics
+  getCacheStats(): { hits: number; misses: number; hitRate: string; memoryCacheSize: number } {
+    const total = this.cacheHits + this.cacheMisses;
+    const hitRate = total > 0 ? (this.cacheHits / total * 100).toFixed(1) : '0.0';
+    
+    return {
+      hits: this.cacheHits,
+      misses: this.cacheMisses,
+      hitRate: `${hitRate}%`,
+      memoryCacheSize: this.audioCache.size
+    };
+  }
+
+  // Public method to clear all caches
+  async clearCache(): Promise<void> {
+    // Clear memory cache
+    this.audioCache.forEach((url) => URL.revokeObjectURL(url));
+    this.audioCache.clear();
+    
+    // Clear IndexedDB cache
+    if (this.db) {
+      return new Promise((resolve) => {
+        const transaction = this.db!.transaction(['audioCache'], 'readwrite');
+        const store = transaction.objectStore('audioCache');
+        const request = store.clear();
+        request.onsuccess = () => {
+          console.log('🗑️ Audio cache cleared');
+          resolve();
+        };
+        request.onerror = () => resolve();
+      });
+    }
+    
+    // Reset statistics
+    this.cacheHits = 0;
+    this.cacheMisses = 0;
+  }
+
+  // Public method to clean expired entries
+  async cleanExpiredCache(): Promise<void> {
+    if (!this.db) return;
+
+    return new Promise((resolve) => {
+      const transaction = this.db!.transaction(['audioCache'], 'readwrite');
+      const store = transaction.objectStore('audioCache');
+      const request = store.openCursor();
+      
+      let cleanedCount = 0;
+      const expiryThreshold = Date.now() - (this.CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+      
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result;
+        if (cursor) {
+          const entry = cursor.value;
+          if (entry.timestamp < expiryThreshold) {
+            cursor.delete();
+            cleanedCount++;
+          }
+          cursor.continue();
+        } else {
+          if (cleanedCount > 0) {
+            console.log(`🧹 Cleaned ${cleanedCount} expired cache entries`);
+          }
+          resolve();
+        }
+      };
+      
+      request.onerror = () => resolve();
+    });
   }
 
   private async initialize() {
