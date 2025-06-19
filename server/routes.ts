@@ -146,16 +146,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get daily challenge words
   app.get("/api/vocabulary/daily-challenge", async (req, res) => {
     try {
-      const words = await storage.getDailyChallengeWords();
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch daily challenge words" });
-    }
-  });
-
-  // Get daily challenge words
-  app.get("/api/vocabulary/daily-challenge", async (req, res) => {
-    try {
       console.log("Getting daily challenge words...");
       const words = await storage.getDailyChallengeWords();
       console.log(`Found ${words.length} words for daily challenge`);
