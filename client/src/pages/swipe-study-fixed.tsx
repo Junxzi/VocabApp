@@ -124,19 +124,19 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       // Trigger word change immediately when finger lifts
       onSwipe(direction > 0 ? 'right' : 'left');
       
-      // Smoother exit animation
+      // Slower, more natural exit animation
       animate(x, exitX, {
         type: "spring",
-        stiffness: 600,
-        damping: 30,
-        velocity: info.velocity.x
+        stiffness: 300,
+        damping: 25,
+        velocity: info.velocity.x * 0.8
       });
       
       // Subtle Y movement for more natural exit
-      animate(y, direction * 50, {
+      animate(y, direction * 30, {
         type: "spring",
-        stiffness: 600,
-        damping: 30
+        stiffness: 300,
+        damping: 25
       });
     } else {
       // Smooth return to center with better spring physics
