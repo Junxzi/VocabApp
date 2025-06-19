@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
 import { getLocalizedPartOfSpeech, cn } from "@/lib/utils";
 import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags, Calendar, Trophy, Clock } from "lucide-react";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import type { VocabularyWord } from "@shared/schema";
 
 interface StudyCardProps {
@@ -163,55 +164,60 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
 
   const speakWord = async (variant: 'us' | 'uk' | 'au', e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log(`Audio button clicked for "${word.word}" with ${variant.toUpperCase()} accent`);
     
     try {
       // Import Azure TTS service dynamically
       const { azureTTS } = await import('@/lib/azure-tts');
-      console.log(`Speaking "${word.word}" with ${variant.toUpperCase()} accent using Azure TTS`);
+      console.log(`Attempting Azure TTS for "${word.word}" with ${variant.toUpperCase()} accent`);
       
-      // Wait for the TTS service to be ready
+      // Test if Azure TTS is initialized
       await azureTTS.speak(word.word, variant);
-      console.log(`Successfully spoke "${word.word}" with ${variant.toUpperCase()} accent`);
+      console.log(`✓ Azure TTS successful for "${word.word}" with ${variant.toUpperCase()} accent`);
     } catch (error) {
-      console.error('Azure TTS failed, falling back to browser TTS:', error);
+      console.error('Azure TTS failed, using browser TTS:', error);
       
-      // Enhanced fallback to browser TTS
+      // Immediate fallback to browser TTS
       if ('speechSynthesis' in window) {
+        console.log(`Using browser TTS fallback for "${word.word}"`);
+        
         // Cancel any ongoing speech
         speechSynthesis.cancel();
         
-        const utterance = new SpeechSynthesisUtterance(word.word);
-        utterance.rate = 0.8;
-        utterance.volume = 0.8;
-        utterance.pitch = 1.0;
+        // Wait a bit for cancel to complete
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(word.word);
+          utterance.rate = 0.8;
+          utterance.volume = 1.0;
+          utterance.pitch = 1.0;
 
-        const languageMap = {
-          us: 'en-US',
-          uk: 'en-GB',
-          au: 'en-AU'
-        };
-        utterance.lang = languageMap[variant];
+          const languageMap = {
+            us: 'en-US',
+            uk: 'en-GB', 
+            au: 'en-AU'
+          };
+          utterance.lang = languageMap[variant];
 
-        // Wait for voices to load if needed
-        const loadVoices = () => {
           const voices = speechSynthesis.getVoices();
+          console.log(`Available voices: ${voices.length}`);
+          
           const targetVoice = voices.find(voice => 
-            voice.lang.startsWith(languageMap[variant]) ||
-            voice.name.toLowerCase().includes(variant === 'us' ? 'united states' : variant === 'uk' ? 'united kingdom' : 'australia')
+            voice.lang.startsWith(languageMap[variant])
           );
           
           if (targetVoice) {
             utterance.voice = targetVoice;
+            console.log(`Using voice: ${targetVoice.name}`);
           }
 
-          speechSynthesis.speak(utterance);
-        };
+          utterance.onstart = () => console.log(`✓ Browser TTS started for "${word.word}"`);
+          utterance.onend = () => console.log(`✓ Browser TTS completed for "${word.word}"`);
+          utterance.onerror = (err) => console.error('Browser TTS error:', err);
 
-        if (speechSynthesis.getVoices().length === 0) {
-          speechSynthesis.addEventListener('voiceschanged', loadVoices, { once: true });
-        } else {
-          loadVoices();
-        }
+          speechSynthesis.speak(utterance);
+        }, 100);
+      } else {
+        console.error('Speech synthesis not supported in this browser');
       }
     }
   };
@@ -660,9 +666,12 @@ export function SwipeStudyPage() {
 
   if (studyMode === 'selection') {
     return (
-      <div className="pb-20">
-        <ModeSelection onStartStudy={handleStartStudy} availableTags={availableTags} />
-      </div>
+      <>
+        <div className="pb-20">
+          <ModeSelection onStartStudy={handleStartStudy} availableTags={availableTags} />
+        </div>
+        <MobileBottomNav />
+      </>
     );
   }
 

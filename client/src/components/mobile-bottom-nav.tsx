@@ -3,12 +3,16 @@ import { Home, BookOpen, TrendingUp, Shuffle, Plus, Settings } from "lucide-reac
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
-export function MobileBottomNav() {
+interface MobileBottomNavProps {
+  hidden?: boolean;
+}
+
+export function MobileBottomNav({ hidden = false }: MobileBottomNavProps) {
   const [location] = useLocation();
   const { t } = useLanguage();
 
-  // Hide navigation during swipe study mode
-  if (location === "/swipe-study") {
+  // Hide navigation when explicitly requested (during card study)
+  if (hidden) {
     return null;
   }
 

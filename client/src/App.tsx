@@ -92,7 +92,6 @@ function AppContent() {
         </DialogContent>
       </Dialog>
 
-      <MobileBottomNav />
       <PWAInstallPrompt />
     </div>
   );
