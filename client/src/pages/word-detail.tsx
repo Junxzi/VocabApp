@@ -233,7 +233,7 @@ export function WordDetailPage() {
                           size="sm"
                           onClick={async () => {
                             try {
-                              await speakWithAccent(word.word, 'us', word.audioDataUs);
+                              await speak(word.word, 'us');
                             } catch (error) {
                               console.error('Speech synthesis error:', error);
                             }
@@ -255,7 +255,7 @@ export function WordDetailPage() {
                           size="sm"
                           onClick={async () => {
                             try {
-                              await speakWithAccent(word.word, 'uk', word.audioDataUk);
+                              await speak(word.word, 'uk');
                             } catch (error) {
                               console.error('Speech synthesis error:', error);
                             }
@@ -277,7 +277,7 @@ export function WordDetailPage() {
                           size="sm"
                           onClick={async () => {
                             try {
-                              await speakWithAccent(word.word, 'au', word.audioDataAu);
+                              await speak(word.word, 'au');
                             } catch (error) {
                               console.error('Speech synthesis error:', error);
                             }
