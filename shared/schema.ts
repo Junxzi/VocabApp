@@ -1,5 +1,4 @@
 import { pgTable, text, serial, integer, timestamp, numeric } from "drizzle-orm/pg-core";
-import { uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -25,16 +24,11 @@ export const categories = pgTable("categories", {
 
 export const vocabularyWords = pgTable("vocabulary_words", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(), // Replit user ID
   word: text("word").notNull(),
   pronunciation: text("pronunciation").default(""),
   pronunciationUs: text("pronunciation_us"), // IPA for American English
   pronunciationUk: text("pronunciation_uk"), // IPA for British English
   pronunciationAu: text("pronunciation_au"), // IPA for Australian English
-  // TTS audio data stored as base64 encoded strings
-  audioDataUs: text("audio_data_us"),
-  audioDataUk: text("audio_data_uk"),
-  audioDataAu: text("audio_data_au"),
   partOfSpeech: text("part_of_speech"), // noun, verb, adjective, etc.
   definition: text("definition").notNull(),
   exampleSentences: text("example_sentences"), // JSON array of example sentences
@@ -52,16 +46,13 @@ export const vocabularyWords = pgTable("vocabulary_words", {
 
 export const dailyChallenges = pgTable("daily_challenges", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(), // Replit user ID
-  date: text("date").notNull(), // YYYY-MM-DD format
+  date: text("date").notNull().unique(), // YYYY-MM-DD format
   completedAt: timestamp("completed_at"),
   totalWords: integer("total_words").default(0),
   correctWords: integer("correct_words").default(0),
   accuracy: numeric("accuracy", { precision: 5, scale: 2 }).default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
-  userDateUnique: uniqueIndex("daily_challenges_user_date_unique").on(table.userId, table.date),
-}));
+});
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -92,9 +83,6 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   pronunciationUs: true,
   pronunciationUk: true,
   pronunciationAu: true,
-  audioDataUs: true,
-  audioDataUk: true,
-  audioDataAu: true,
   partOfSpeech: true,
   definition: true,
   exampleSentences: true,
@@ -106,9 +94,6 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   pronunciationUs: true,
   pronunciationUk: true,
   pronunciationAu: true,
-  audioDataUs: true,
-  audioDataUk: true,
-  audioDataAu: true,
   partOfSpeech: true,
   exampleSentences: true,
   difficulty: true,

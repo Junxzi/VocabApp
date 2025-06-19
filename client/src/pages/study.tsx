@@ -1,140 +1,194 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Trophy, Shuffle, BookOpen, ArrowRight } from "lucide-react";
-import { useLanguage } from "@/lib/i18n";
-
-interface DailyChallengeStatus {
-  completed: boolean;
-  date: string;
-  stats?: {
-    totalWords: number;
-    correctWords: number;
-    accuracy: string;
-  };
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { X, Minus, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import type { VocabularyWord } from "@shared/schema";
 
 export function StudyPage() {
-  const { t, language } = useLanguage();
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [showDefinition, setShowDefinition] = useState(false);
+  const [studiedWords, setStudiedWords] = useState<number[]>([]);
+  const [studySession, setStudySession] = useState<{
+    correct: number;
+    total: number;
+  }>({ correct: 0, total: 0 });
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: dailyChallengeStatus } = useQuery<DailyChallengeStatus>({
-    queryKey: ["/api/vocabulary/daily-challenge/status"],
+  const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
+    queryKey: ["/api/vocabulary/study/50"],
   });
+
+  const updateStudyStatsMutation = useMutation({
+    mutationFn: async ({ id, difficulty }: { id: number; difficulty: number }) => {
+      await apiRequest("PUT", `/api/vocabulary/${id}/study`, { difficulty });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/vocabulary"] });
+    },
+  });
+
+  const currentWord = words[currentWordIndex];
+
+  const handleDifficultySelect = (difficulty: number) => {
+    if (!currentWord) return;
+
+    updateStudyStatsMutation.mutate({ id: currentWord.id, difficulty });
+    
+    setStudiedWords(prev => [...prev, currentWord.id]);
+    setStudySession(prev => ({
+      correct: prev.correct + (difficulty === 1 ? 1 : 0),
+      total: prev.total + 1
+    }));
+
+    // Move to next word
+    if (currentWordIndex < words.length - 1) {
+      setCurrentWordIndex(prev => prev + 1);
+      setShowDefinition(false);
+    } else {
+      // Study session complete
+      toast({
+        title: "Study Session Complete!",
+        description: `You studied ${studySession.total + 1} words with ${Math.round(((studySession.correct + (difficulty === 1 ? 1 : 0)) / (studySession.total + 1)) * 100)}% accuracy.`,
+      });
+      setCurrentWordIndex(0);
+      setShowDefinition(false);
+      setStudySession({ correct: 0, total: 0 });
+      setStudiedWords([]);
+    }
+  };
+
+  const resetStudySession = () => {
+    setCurrentWordIndex(0);
+    setShowDefinition(false);
+    setStudySession({ correct: 0, total: 0 });
+    setStudiedWords([]);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="animate-pulse space-y-8">
+          <div className="text-center space-y-4">
+            <div className="h-8 bg-muted rounded w-48 mx-auto"></div>
+            <div className="h-4 bg-muted rounded w-64 mx-auto"></div>
+          </div>
+          <div className="bg-muted rounded-2xl p-8 h-64"></div>
+          <div className="bg-muted rounded-xl p-6 h-32"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (words.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <h2 className="text-3xl font-bold text-foreground mb-4">Study Mode</h2>
+          <p className="text-muted-foreground mb-8">
+            Add some vocabulary words to start studying!
+          </p>
+          <Button onClick={() => window.dispatchEvent(new CustomEvent("openAddWord"))}>
+            Add Your First Word
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const progressPercentage = words.length > 0 ? (studySession.total / words.length) * 100 : 0;
+  const accuracy = studySession.total > 0 ? Math.round((studySession.correct / studySession.total) * 100) : 0;
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll">
       <div className="text-center mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 md:mb-4">
-          {language === "en" ? "Study Mode" : "学習モード"}
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          {language === "en" ? "Choose your learning method" : "学習方法を選択してください"}
-        </p>
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 md:mb-4">Study Mode</h2>
+        <p className="text-sm md:text-base text-muted-foreground">Review your vocabulary with flashcards</p>
       </div>
 
-      {/* Daily Challenge Highlight */}
-      {!dailyChallengeStatus?.completed && (
-        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
-              <Calendar className="w-5 h-5" />
-              {language === "en" ? "Today's Challenge" : "本日の問題"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-blue-700 dark:text-blue-300 mb-4">
-              {language === "en" 
-                ? "Complete today's vocabulary challenge to earn points and track your progress!"
-                : "今日の語彙チャレンジを完了してポイントを獲得し、進捗を追跡しましょう！"
-              }
-            </p>
-            <Button 
-              onClick={() => window.location.href = '/swipe-study'}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              {language === "en" ? "Start Daily Challenge" : "デイリーチャレンジを開始"}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Completed Daily Challenge */}
-      {dailyChallengeStatus?.completed && (
-        <Card className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Trophy className="w-6 h-6 text-yellow-500" />
-                <span className="font-bold text-green-800 dark:text-green-200 text-lg">
-                  {language === "en" ? "Daily Challenge Completed!" : "デイリーチャレンジ完了！"}
-                </span>
-              </div>
-              {dailyChallengeStatus.stats && (
-                <div className="text-green-700 dark:text-green-300">
-                  {dailyChallengeStatus.stats.correctWords}/{dailyChallengeStatus.stats.totalWords} 
-                  ({dailyChallengeStatus.stats.accuracy}%)
-                </div>
-              )}
+      <Card className="mb-8 shadow-lg animate-scale-in">
+        <CardContent className="p-8">
+          <div className="text-center">
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
+                {currentWord?.word}
+              </h3>
+              <p className="text-muted-foreground font-mono text-lg">
+                {currentWord?.pronunciation}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            
+            {showDefinition ? (
+              <div>
+                <p className="text-foreground text-lg leading-relaxed mb-6">
+                  {currentWord?.definition}
+                </p>
+                <div className="flex items-center justify-center space-x-4 mb-6">
+                  <Button
+                    onClick={() => handleDifficultySelect(3)}
+                    variant="outline"
+                    className="border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Hard
+                  </Button>
+                  <Button
+                    onClick={() => handleDifficultySelect(2)}
+                    variant="outline"
+                    className="border-yellow-200 text-yellow-600 hover:bg-yellow-50"
+                  >
+                    <Minus className="w-4 h-4 mr-2" />
+                    Medium
+                  </Button>
+                  <Button
+                    onClick={() => handleDifficultySelect(1)}
+                    variant="outline"
+                    className="border-green-200 text-green-600 hover:bg-green-50"
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    Easy
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                onClick={() => setShowDefinition(true)}
+                className="px-8 py-3 font-medium"
+              >
+                Show Definition
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Study Options */}
-      <div className="space-y-4">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shuffle className="w-5 h-5" />
-              {language === "en" ? "Random Study" : "ランダム学習"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              {language === "en" 
-                ? "Study random vocabulary words with swipe cards"
-                : "スワイプカードでランダムな語彙を学習"
-              }
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = '/swipe-study'}
-              className="w-full"
-            >
-              <ArrowRight className="w-4 h-4 mr-2" />
-              {language === "en" ? "Start Random Study" : "ランダム学習を開始"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              {language === "en" ? "Word List" : "単語帳"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              {language === "en" 
-                ? "Browse and manage your vocabulary collection"
-                : "語彙コレクションを閲覧・管理"
-              }
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = '/vocabulary'}
-              className="w-full"
-            >
-              <BookOpen className="w-4 h-4 mr-2" />
-              {language === "en" ? "View Word List" : "単語帳を見る"}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="bg-muted">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-semibold text-foreground">Study Progress</h4>
+            <span className="text-muted-foreground">
+              {studySession.total} / {words.length}
+            </span>
+          </div>
+          <Progress value={progressPercentage} className="mb-4" />
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Words reviewed: {studySession.total}</span>
+            <span>Accuracy: {accuracy}%</span>
+          </div>
+          {studySession.total > 0 && (
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm" onClick={resetStudySession}>
+                Reset Session
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

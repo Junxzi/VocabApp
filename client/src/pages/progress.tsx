@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,11 +39,6 @@ export function ProgressPage() {
   const { data: words = [], isLoading } = useQuery<VocabularyWord[]>({
     queryKey: ["/api/vocabulary"],
   });
-
-  // Scroll to top when progress page opens
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   if (isLoading) {
     return (

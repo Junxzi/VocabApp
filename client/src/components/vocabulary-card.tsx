@@ -15,14 +15,11 @@ const cleanPronunciation = (pronunciation: string): string => {
 
 interface VocabularyCardProps {
   word: VocabularyWord;
-  onEdit?: (word: VocabularyWord) => void;
-  onDelete?: (id: number) => void;
-  onEnrich?: (id: number) => void;
-  isEnriching?: boolean;
-  className?: string;
+  onEdit: (word: VocabularyWord) => void;
+  onDelete: (id: number) => void;
 }
 
-export function VocabularyCard({ word, onEdit, onDelete, className }: VocabularyCardProps) {
+export function VocabularyCard({ word, onEdit, onDelete }: VocabularyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const { language } = useLanguage();
 
@@ -30,8 +27,7 @@ export function VocabularyCard({ word, onEdit, onDelete, className }: Vocabulary
     <Card
       className={cn(
         "transition-all duration-300 hover:shadow-lg md:hover:scale-105 animate-fade-in touch-manipulation",
-        isHovered && "shadow-lg",
-        className
+        isHovered && "shadow-lg"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -50,7 +46,7 @@ export function VocabularyCard({ word, onEdit, onDelete, className }: Vocabulary
                   </span>
                 )}
               </h3>
-
+              
             </div>
             {word.partOfSpeech && (
               <div className="mb-2">
@@ -72,42 +68,34 @@ export function VocabularyCard({ word, onEdit, onDelete, className }: Vocabulary
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  // Save current scroll position before navigating
-                  sessionStorage.setItem('vocabularyScrollPosition', window.scrollY.toString());
-                }}
                 className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
               >
                 <Eye className="h-4 w-4" />
               </Button>
             </Link>
-            {onEdit && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(word)}
-                className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            )}
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(word.id)}
-                className="h-8 w-8 p-0 hover:text-destructive touch-manipulation"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(word)}
+              className="h-8 w-8 p-0 hover:text-foreground touch-manipulation"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(word.id)}
+              className="h-8 w-8 p-0 hover:text-destructive touch-manipulation"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-
+        
         <p className="text-foreground mb-3 leading-relaxed text-sm md:text-base">
           {word.definition}
         </p>
-
+        
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             {word.tags && word.tags.length > 0 && (

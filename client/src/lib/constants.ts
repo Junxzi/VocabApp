@@ -1,46 +1,55 @@
 
-export const DEFAULT_SETTINGS = {
-  autoplay: false,
-  darkMode: false,
-  studyMode: 'swipe' as const,
-  pronunciationAccent: 'us' as const,
-  notificationsEnabled: false,
-  notificationTime: '09:00',
-  language: 'en' as const,
+export const APP_CONFIG = {
+  NAME: "VocabMaster",
+  DESCRIPTION: "Learn English vocabulary with pronunciation guides and study modes",
+  VERSION: "1.0.0",
+  PORT: 5000,
+  DEFAULT_STUDY_LIMIT: 10,
+  DEFAULT_REVIEW_LIMIT: 50,
+  MAX_DIFFICULTY: 4,
+  MIN_DIFFICULTY: 1,
 } as const;
 
-export type StudyMode = 'swipe' | 'list' | 'flashcard';
-export type PronunciationAccent = 'us' | 'uk' | 'au';
-export type Language = 'en' | 'ja';
+export const ROUTES = {
+  HOME: "/",
+  VOCABULARY: "/",
+  WORD_DETAIL: "/word/:id",
+  SWIPE_STUDY: "/swipe-study",
+  PROGRESS: "/progress",
+  SETTINGS: "/settings",
+} as const;
 
-export interface AppSettings {
-  autoplay: boolean;
-  darkMode: boolean;
-  studyMode: StudyMode;
-  pronunciationAccent: PronunciationAccent;
-  notificationsEnabled: boolean;
-  notificationTime: string;
-  language: Language;
-}
+export const API_ENDPOINTS = {
+  VOCABULARY: "/api/vocabulary",
+  CATEGORIES: "/api/categories",
+  ADMIN_SETUP: "/api/admin/setup-categories",
+  ADMIN_CLEANUP: "/api/admin/cleanup-duplicates",
+} as const;
 
-// Utility functions for settings
-export const getStoredSetting = <K extends keyof AppSettings>(
-  key: K,
-  defaultValue: AppSettings[K]
-): AppSettings[K] => {
-  const stored = localStorage.getItem(key);
-  if (!stored) return defaultValue;
-  
-  if (typeof defaultValue === 'boolean') {
-    return (stored === 'true') as AppSettings[K];
-  }
-  
-  return stored as AppSettings[K];
-};
+export const CATEGORIES = [
+  { name: "Academic", displayName: "Academic", color: "#3B82F6", icon: "GraduationCap" },
+  { name: "Business", displayName: "Business", color: "#10B981", icon: "Briefcase" },
+  { name: "Daily Life", displayName: "Daily Life", color: "#F59E0B", icon: "Home" },
+  { name: "Technical", displayName: "Technical", color: "#8B5CF6", icon: "Cpu" },
+  { name: "TOEFL", displayName: "TOEFL", color: "#EF4444", icon: "BookOpen" },
+] as const;
 
-export const setStoredSetting = <K extends keyof AppSettings>(
-  key: K,
-  value: AppSettings[K]
-): void => {
-  localStorage.setItem(key, String(value));
-};
+export const STUDY_MODES = {
+  SWIPE: "swipe",
+  LIST: "list",
+  REVIEW: "review",
+} as const;
+
+export const DIFFICULTY_LEVELS = {
+  EASY: 1,
+  MEDIUM: 2,
+  HARD: 3,
+  VERY_HARD: 4,
+} as const;
+
+export const PWA_CONFIG = {
+  THEME_COLOR: "#000000",
+  BACKGROUND_COLOR: "#ffffff",
+  DISPLAY: "standalone",
+  ORIENTATION: "portrait",
+} as const;

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-import { speak } from "@/lib/speech";
 import { formatRelativeTime, getLocalizedPartOfSpeech } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord } from "@shared/schema";
@@ -33,12 +32,12 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={async (e) => {
+                      onClick={(e) => {
                         e.stopPropagation();
-                        try {
-                          await speak(word.word, 'us');
-                        } catch (error) {
-                          console.error('Speech synthesis error:', error);
+                        if ('speechSynthesis' in window) {
+                          const utterance = new SpeechSynthesisUtterance(word.word);
+                          utterance.lang = 'en-US';
+                          speechSynthesis.speak(utterance);
                         }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"
@@ -49,12 +48,12 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={async (e) => {
+                      onClick={(e) => {
                         e.stopPropagation();
-                        try {
-                          await speak(word.word, 'uk');
-                        } catch (error) {
-                          console.error('Speech synthesis error:', error);
+                        if ('speechSynthesis' in window) {
+                          const utterance = new SpeechSynthesisUtterance(word.word);
+                          utterance.lang = 'en-GB';
+                          speechSynthesis.speak(utterance);
                         }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"

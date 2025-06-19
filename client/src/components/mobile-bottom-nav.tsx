@@ -9,7 +9,7 @@ export function MobileBottomNav() {
 
   const navItems = [
     { label: t("nav.vocabulary"), href: "/", icon: Home },
-    { label: t("nav.study"), href: "/study", icon: BookOpen },
+    { label: t("nav.study"), href: "/swipe-study", icon: BookOpen },
     { label: t("nav.progress"), href: "/progress", icon: TrendingUp },
   ];
 
@@ -24,8 +24,8 @@ export function MobileBottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/40 safe-area-inset-bottom z-50 md:hidden">
-      <div className="flex items-center py-1 pb-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border safe-area-inset-bottom z-50 md:hidden">
+      <div className="flex items-center py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -41,9 +41,9 @@ export function MobileBottomNav() {
                 }
               }}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-colors duration-200 touch-manipulation min-h-[44px]",
+                "flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation",
                 isActive
-                  ? "text-foreground bg-muted/80"
+                  ? "text-foreground bg-muted"
                   : "text-muted-foreground"
               )}
             >
@@ -65,9 +65,9 @@ export function MobileBottomNav() {
             }
           }}
           className={cn(
-            "flex-1 flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-colors duration-200 touch-manipulation min-h-[44px]",
+            "flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors duration-200 touch-manipulation",
             location === "/settings"
-              ? "text-foreground bg-muted/80"
+              ? "text-foreground bg-muted"
               : "text-muted-foreground"
           )}
         >

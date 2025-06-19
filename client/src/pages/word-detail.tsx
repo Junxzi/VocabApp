@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Volume2, Sparkles, Loader2, Edit2, RefreshCw } from "lucide-react";
-import { speak } from "@/lib/speech";
+import { ArrowLeft, Volume2, Sparkles, Loader2, Edit2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";
@@ -21,9 +20,8 @@ export function WordDetailPage() {
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [isRegeneratingAudio, setIsRegeneratingAudio] = useState(false);
 
-  // Scroll to top when word detail page opens
+  // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -31,23 +29,11 @@ export function WordDetailPage() {
   const { data: word, isLoading } = useQuery<VocabularyWord>({
     queryKey: ['/api/vocabulary', id],
     queryFn: async () => {
-      const response = await fetch(`/api/vocabulary/${id}`, {
-        credentials: 'include'
-      });
+      const response = await fetch(`/api/vocabulary/${id}`);
       if (!response.ok) throw new Error('Word not found');
       return response.json();
     },
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    // Try to get initial data from the vocabulary list cache
-    initialData: () => {
-      const vocabularyData = queryClient.getQueryData<VocabularyWord[]>(['/api/vocabulary']);
-      return vocabularyData?.find(w => w.id === parseInt(id!));
-    },
-    initialDataUpdatedAt: () => {
-      return queryClient.getQueryState(['/api/vocabulary'])?.dataUpdatedAt;
-    }
+    enabled: !!id
   });
 
   const updateEnrichmentMutation = useMutation({
@@ -72,14 +58,14 @@ export function WordDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
       toast({
-        title: t('detail.word_updated'),
-        description: t('detail.word_updated_desc')
+        title: "Word updated successfully",
+        description: "Enrichment data has been saved."
       });
     },
     onError: () => {
       toast({
-        title: t('detail.update_failed'),
-        description: t('detail.update_failed_desc'),
+        title: "Failed to update word",
+        description: "Please try again later.",
         variant: "destructive"
       });
     }
@@ -121,10 +107,10 @@ export function WordDetailPage() {
   if (!word) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
-        <h2 className="text-2xl font-bold">{t('detail.not_found')}</h2>
+        <h2 className="text-2xl font-bold">Word not found</h2>
         <Button onClick={() => setLocation("/")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          {t('detail.back_to_vocabulary')}
+          Back to Vocabulary
         </Button>
       </div>
     );
@@ -163,7 +149,7 @@ export function WordDetailPage() {
             onClick={() => setLocation("/")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t('detail.back')}
+            Back
           </Button>
           
           <div className="flex items-center space-x-2">
@@ -178,7 +164,7 @@ export function WordDetailPage() {
                 ) : (
                   <Sparkles className="h-4 w-4 mr-2" />
                 )}
-{t('detail.enrich_with_ai')}
+                Enrich with AI
               </Button>
             )}
             
@@ -188,7 +174,7 @@ export function WordDetailPage() {
                 onClick={() => setEditModalOpen(true)}
               >
                 <Edit2 className="h-4 w-4 mr-2" />
-{t('detail.edit')}
+                Edit
               </Button>
             )}
           </div>
@@ -220,7 +206,7 @@ export function WordDetailPage() {
                 <Separator />
                 
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">{t('detail.pronunciations')}</h3>
+                  <h3 className="text-lg font-semibold mb-3">Pronunciations</h3>
                   <div className="space-y-2">
                     {word.pronunciationUs && (
                       <div className="flex items-center space-x-3">
@@ -231,11 +217,11 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              await speak(word.word, 'us');
-                            } catch (error) {
-                              console.error('Speech synthesis error:', error);
+                          onClick={() => {
+                            if ('speechSynthesis' in window) {
+                              const utterance = new SpeechSynthesisUtterance(word.word);
+                              utterance.lang = 'en-US';
+                              speechSynthesis.speak(utterance);
                             }
                           }}
                           className="p-1 h-6 w-6"
@@ -253,11 +239,11 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              await speak(word.word, 'uk');
-                            } catch (error) {
-                              console.error('Speech synthesis error:', error);
+                          onClick={() => {
+                            if ('speechSynthesis' in window) {
+                              const utterance = new SpeechSynthesisUtterance(word.word);
+                              utterance.lang = 'en-GB';
+                              speechSynthesis.speak(utterance);
                             }
                           }}
                           className="p-1 h-6 w-6"
@@ -275,11 +261,11 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              await speak(word.word, 'au');
-                            } catch (error) {
-                              console.error('Speech synthesis error:', error);
+                          onClick={() => {
+                            if ('speechSynthesis' in window) {
+                              const utterance = new SpeechSynthesisUtterance(word.word);
+                              utterance.lang = 'en-AU';
+                              speechSynthesis.speak(utterance);
                             }
                           }}
                           className="p-1 h-6 w-6"
@@ -298,7 +284,7 @@ export function WordDetailPage() {
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">{t('detail.example_sentences')}</h3>
+                  <h3 className="text-lg font-semibold mb-3">Example Sentences</h3>
                   <div className="space-y-3">
                     {exampleSentences.map((sentence: any, index: number) => (
                       <div key={index} className="p-3 bg-muted rounded-lg">
@@ -320,17 +306,17 @@ export function WordDetailPage() {
             {/* Study Stats */}
             <Separator />
             <div>
-              <h3 className="text-lg font-semibold mb-3">{t('detail.study_progress')}</h3>
+              <h3 className="text-lg font-semibold mb-3">Study Progress</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <div className="text-2xl font-bold">{word.studyCount ?? 0}</div>
-                  <div className="text-sm text-muted-foreground">{t('detail.times_studied')}</div>
+                  <div className="text-sm text-muted-foreground">Times Studied</div>
                 </div>
                 <div className="text-center p-3 bg-muted rounded-lg">
                   <div className="text-2xl font-bold">
                     {(word.studyCount ?? 0) > 0 ? Math.round(((word.correctAnswers ?? 0) / (word.studyCount ?? 1)) * 100) : 0}%
                   </div>
-                  <div className="text-sm text-muted-foreground">{t('detail.accuracy')}</div>
+                  <div className="text-sm text-muted-foreground">Accuracy</div>
                 </div>
               </div>
             </div>

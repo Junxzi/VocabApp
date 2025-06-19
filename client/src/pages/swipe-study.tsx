@@ -11,7 +11,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
 import { getLocalizedPartOfSpeech } from "@/lib/utils";
 import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags } from "lucide-react";
-import { speak, logAvailableVoices } from "@/lib/speech";
 import type { VocabularyWord } from "@shared/schema";
 
 interface StudyCardProps {
@@ -29,21 +28,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const rotate = useTransform(x, [-200, 0, 200], [-25, 0, 25]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
   const [isFlipping, setIsFlipping] = useState(false);
-
-  // Debug: Log available voices on first render
-  useEffect(() => {
-    if (isVisible) {
-      const checkVoices = () => {
-        logAvailableVoices();
-      };
-      
-      if (speechSynthesis.getVoices().length > 0) {
-        checkVoices();
-      } else {
-        speechSynthesis.addEventListener('voiceschanged', checkVoices, { once: true });
-      }
-    }
-  }, [isVisible]);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     const threshold = 100;
@@ -80,13 +64,27 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     }, 150);
   };
 
-  const speakWord = async (variant: 'us' | 'uk', e: React.MouseEvent) => {
+  const speakWord = (variant: 'us' | 'uk', e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      const audioData = variant === 'us' ? word.audioDataUs : word.audioDataUk;
-      await speak(word.word, variant);
-    } catch (error) {
-      console.error('Speech synthesis error:', error);
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(word.word);
+      utterance.rate = 0.8;
+      utterance.volume = 0.7;
+      
+      const voices = speechSynthesis.getVoices();
+      if (variant === 'us') {
+        const usVoice = voices.find(voice => 
+          voice.lang.startsWith('en-US') || voice.name.includes('US')
+        );
+        if (usVoice) utterance.voice = usVoice;
+      } else if (variant === 'uk') {
+        const ukVoice = voices.find(voice => 
+          voice.lang.startsWith('en-GB') || voice.name.includes('UK')
+        );
+        if (ukVoice) utterance.voice = ukVoice;
+      }
+      
+      speechSynthesis.speak(utterance);
     }
   };
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { VocabularyCard } from "@/components/vocabulary-card";
 import { VocabularyListView } from "@/components/vocabulary-list-view";
@@ -28,10 +28,6 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   const [wordGeneratorModalOpen, setWordGeneratorModalOpen] = useState(false);
   const [generatorTagName, setGeneratorTagName] = useState("");
   const [wordGachaModalOpen, setWordGachaModalOpen] = useState(false);
-  
-  // Scroll position preservation
-  const scrollPositionRef = useRef<number>(0);
-  const containerRef = useRef<HTMLElement | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language, setLanguage } = useLanguage();
@@ -99,21 +95,14 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     currentPage * itemsPerPage
   );
 
-  // Get all available tags from vocabulary words and include default categories
+  // Get all available tags from vocabulary words
   const availableTags = useMemo(() => {
     const tagSet = new Set<string>();
-    
-    // Add default categories as always available tags
-    const defaultCategories = ["Academic", "Business", "Daily Life", "Technical", "TOEFL"];
-    defaultCategories.forEach(category => tagSet.add(category));
-    
-    // Add tags from existing vocabulary words
     words.forEach(word => {
       if (word.tags) {
         word.tags.forEach(tag => tagSet.add(tag));
       }
     });
-    
     return Array.from(tagSet).sort();
   }, [words]);
 
@@ -132,53 +121,6 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
   };
-
-  // Save scroll position when editing a word
-  const handleEditWord = (word: VocabularyWord) => {
-    // Save current scroll position
-    if (containerRef.current) {
-      scrollPositionRef.current = containerRef.current.scrollTop;
-    } else {
-      scrollPositionRef.current = window.scrollY;
-    }
-    onEditWord(word);
-  };
-
-  // Restore scroll position after component mounts/updates
-  useEffect(() => {
-    const restoreScrollPosition = () => {
-      // Check for saved scroll position from session storage (when returning from detail page)
-      const savedScrollPosition = sessionStorage.getItem('vocabularyScrollPosition');
-      if (savedScrollPosition) {
-        const scrollY = parseInt(savedScrollPosition, 10);
-        window.scrollTo(0, scrollY);
-        sessionStorage.removeItem('vocabularyScrollPosition');
-      } else if (scrollPositionRef.current > 0) {
-        if (containerRef.current) {
-          containerRef.current.scrollTop = scrollPositionRef.current;
-        } else {
-          window.scrollTo(0, scrollPositionRef.current);
-        }
-        // Reset after restoration to prevent unwanted scrolling
-        scrollPositionRef.current = 0;
-      }
-    };
-
-    // Use a longer delay to ensure content is fully rendered
-    const timer = setTimeout(restoreScrollPosition, 200);
-    return () => clearTimeout(timer);
-  }, [currentPage, viewMode, filteredAndSortedWords]);
-
-  // Save scroll position on unmount
-  useEffect(() => {
-    return () => {
-      if (containerRef.current) {
-        scrollPositionRef.current = containerRef.current.scrollTop;
-      } else {
-        scrollPositionRef.current = window.scrollY;
-      }
-    };
-  }, []);
 
   if (isLoading) {
     return (
@@ -202,10 +144,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
   }
 
   return (
-    <main 
-      ref={(el) => { containerRef.current = el; }}
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom pt-12 sm:pt-8"
-    >
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 ios-scroll safe-area-inset-bottom pt-12 sm:pt-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-[12px] mb-[12px]">{t("vocab.title")}</h1>
         
@@ -287,7 +226,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
                 <VocabularyCard
                   key={word.id}
                   word={word}
-                  onEdit={handleEditWord}
+                  onEdit={onEditWord}
                   onDelete={handleDeleteWord}
                 />
               ))}
@@ -295,7 +234,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
           ) : (
             <VocabularyListView
               words={paginatedWords}
-              onEdit={handleEditWord}
+              onEdit={onEditWord}
               onDelete={handleDeleteWord}
             />
           )}
