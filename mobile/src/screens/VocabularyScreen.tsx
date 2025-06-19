@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, memo} from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  InteractionManager,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -20,18 +21,28 @@ export default function VocabularyScreen({navigation}: NavigationProps) {
   const {t} = useLanguage();
   const [words, setWords] = useState<VocabularyWord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredWords, setFilteredWords] = useState<VocabularyWord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadVocabulary();
+    // Load vocabulary in background after interactions complete
+    InteractionManager.runAfterInteractions(() => {
+      loadVocabulary();
+    });
   }, []);
 
-  useEffect(() => {
-    filterWords();
+  // Memoize filtered words to prevent unnecessary recalculations
+  const filteredWords = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return words;
+    }
+    const query = searchQuery.toLowerCase();
+    return words.filter(word =>
+      word.word.toLowerCase().includes(query) ||
+      word.definition.toLowerCase().includes(query)
+    );
   }, [searchQuery, words]);
 
-  const loadVocabulary = async () => {
+  const loadVocabulary = useCallback(async () => {
     try {
       const data = await vocabularyService.getAllWords();
       setWords(data);
@@ -40,66 +51,28 @@ export default function VocabularyScreen({navigation}: NavigationProps) {
       console.error('Failed to load vocabulary:', error);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterWords = () => {
-    if (!searchQuery.trim()) {
-      setFilteredWords(words);
-    } else {
-      const filtered = words.filter(word =>
-        word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        word.definition.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredWords(filtered);
-    }
-  };
-
-  const handleWordPress = (word: VocabularyWord) => {
+  const handleWordPress = useCallback((word: VocabularyWord) => {
     navigation.navigate('WordDetail', {word});
-  };
+  }, [navigation]);
 
-  const handleAddWord = () => {
+  const handleAddWord = useCallback(() => {
     // Navigate to add word modal or screen
     Alert.alert('Add Word', 'Add word functionality will be implemented');
-  };
+  }, []);
 
-  const renderWordItem = ({item}: {item: VocabularyWord}) => (
-    <TouchableOpacity
-      style={[styles.wordItem, {backgroundColor: colors.surface, borderColor: colors.border}]}
-      onPress={() => handleWordPress(item)}
-    >
-      <View style={styles.wordHeader}>
-        <Text style={[styles.wordText, {color: colors.text}]}>{item.word}</Text>
-        {item.difficulty && (
-          <View style={[styles.difficultyBadge, getDifficultyColor(item.difficulty)]}>
-            <Text style={styles.difficultyText}>{item.difficulty}</Text>
-          </View>
-        )}
-      </View>
-      <Text style={[styles.definitionText, {color: colors.textSecondary}]} numberOfLines={2}>
-        {item.definition}
-      </Text>
-      {item.tags && item.tags.length > 0 && (
-        <View style={styles.tagsContainer}>
-          {item.tags.slice(0, 3).map((tag, index) => (
-            <View key={index} style={[styles.tag, {backgroundColor: colors.primary + '20'}]}>
-              <Text style={[styles.tagText, {color: colors.primary}]}>{tag}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+  // Memoized item key extractor for FlatList performance
+  const keyExtractor = useCallback((item: VocabularyWord) => `word-${item.id}`, []);
 
-  const getDifficultyColor = (difficulty: number) => {
-    switch (difficulty) {
-      case 1: return {backgroundColor: '#10b981'};
-      case 2: return {backgroundColor: '#f59e0b'};
-      case 3: return {backgroundColor: '#f97316'};
-      case 4: return {backgroundColor: '#ef4444'};
-      default: return {backgroundColor: '#6b7280'};
-    }
-  };
+  // Memoized item render function to prevent unnecessary re-renders
+  const renderWordItem = useCallback(({item}: {item: VocabularyWord}) => (
+    <WordItem 
+      item={item} 
+      colors={colors}
+      onPress={handleWordPress}
+    />
+  ), [colors, handleWordPress]);
 
   const styles = StyleSheet.create({
     container: {
