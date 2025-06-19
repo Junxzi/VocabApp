@@ -614,6 +614,17 @@ export function SwipeStudyPage() {
           restoredStats = savedSession.sessionStats;
           
           console.log(`[Daily Challenge] Restored session: index ${startIndex}/${finalWords.length}`);
+          console.log(`[Daily Challenge] Original words: ${words.length}, Saved IDs: ${savedWordIds.length}, Filtered words: ${finalWords.length}`);
+          
+          // If we have missing words, use the current API response but maintain order
+          if (finalWords.length !== savedWordIds.length) {
+            console.log(`[Daily Challenge] Word count mismatch - rebuilding from API response`);
+            finalWords = words; // Use current API response
+            // Adjust start index if needed
+            if (startIndex >= finalWords.length) {
+              startIndex = Math.max(0, finalWords.length - 1);
+            }
+          }
         } else {
           // New daily challenge session
           finalWords = [...words].sort(() => Math.random() - 0.5);
