@@ -7,6 +7,11 @@ export function MobileBottomNav() {
   const [location] = useLocation();
   const { t } = useLanguage();
 
+  // Hide navigation during swipe study mode
+  if (location === "/swipe-study") {
+    return null;
+  }
+
   const navItems = [
     { label: t("nav.vocabulary"), href: "/", icon: Home },
     { label: t("nav.study"), href: "/swipe-study", icon: BookOpen },
