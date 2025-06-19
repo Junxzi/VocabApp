@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
 import { getLocalizedPartOfSpeech, cn } from "@/lib/utils";
+import { azureTTS } from "@/lib/azure-tts";
 import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags, Calendar, Trophy, Clock } from "lucide-react";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import type { VocabularyWord } from "@shared/schema";
@@ -179,44 +180,10 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     console.log(`[Swipe Card] Speaking "${word.word}" with ${accent.toUpperCase()} accent`);
     
     try {
-      const { azureTTS } = await import('@/lib/azure-tts');
       await azureTTS.speak(word.word, accent);
       console.log(`[Swipe Card] ✓ Azure TTS successful for "${word.word}"`);
     } catch (error) {
-      console.error('[Swipe Card] Azure TTS failed, using browser TTS:', error);
-      
-      if ('speechSynthesis' in window) {
-        speechSynthesis.cancel();
-        
-        setTimeout(() => {
-          const utterance = new SpeechSynthesisUtterance(word.word);
-          utterance.rate = 0.8;
-          utterance.volume = 1.0;
-          utterance.pitch = 1.0;
-
-          const languageMap = {
-            us: 'en-US',
-            uk: 'en-GB', 
-            au: 'en-AU'
-          };
-          utterance.lang = languageMap[accent];
-
-          const voices = speechSynthesis.getVoices();
-          const targetVoice = voices.find(voice => 
-            voice.lang.startsWith(languageMap[accent])
-          );
-          
-          if (targetVoice) {
-            utterance.voice = targetVoice;
-          }
-
-          utterance.onstart = () => console.log(`[Swipe Card] ✓ Browser TTS started for "${word.word}"`);
-          utterance.onend = () => console.log(`[Swipe Card] ✓ Browser TTS completed for "${word.word}"`);
-          utterance.onerror = (err) => console.error('[Swipe Card] Browser TTS error:', err);
-
-          speechSynthesis.speak(utterance);
-        }, 100);
-      }
+      console.error('[Swipe Card] Azure TTS failed:', error);
     }
   };
 
