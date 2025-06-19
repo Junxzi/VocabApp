@@ -21,6 +21,56 @@ export function WordDetailPage() {
   const { t, language } = useLanguage();
   const [editModalOpen, setEditModalOpen] = useState(false);
 
+  // Get default accent from settings
+  const getDefaultAccent = (): 'us' | 'uk' | 'au' => {
+    const stored = localStorage.getItem("pronunciationAccent");
+    return (stored as 'us' | 'uk' | 'au') || 'us';
+  };
+
+  const speakWord = async (variant?: 'us' | 'uk' | 'au') => {
+    if (!word) return;
+    
+    const accent = variant || getDefaultAccent();
+    console.log(`Speaking "${word.word}" with ${accent.toUpperCase()} accent`);
+    
+    try {
+      const { azureTTS } = await import('@/lib/azure-tts');
+      await azureTTS.speak(word.word, accent);
+      console.log(`✓ Azure TTS successful for "${word.word}"`);
+    } catch (error) {
+      console.error('Azure TTS failed, using browser TTS:', error);
+      
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        
+        setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance(word.word);
+          utterance.rate = 0.8;
+          utterance.volume = 1.0;
+          utterance.pitch = 1.0;
+
+          const languageMap = {
+            us: 'en-US',
+            uk: 'en-GB', 
+            au: 'en-AU'
+          };
+          utterance.lang = languageMap[accent];
+
+          const voices = speechSynthesis.getVoices();
+          const targetVoice = voices.find(voice => 
+            voice.lang.startsWith(languageMap[accent])
+          );
+          
+          if (targetVoice) {
+            utterance.voice = targetVoice;
+          }
+
+          speechSynthesis.speak(utterance);
+        }, 100);
+      }
+    }
+  };
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);

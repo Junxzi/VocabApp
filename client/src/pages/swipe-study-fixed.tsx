@@ -157,34 +157,39 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     if (isFlipping) return;
     setIsFlipping(true);
     onTap();
+    
+    // Auto-play pronunciation when flipping to answer
+    if (!showAnswer) {
+      speakWord();
+    }
+    
     setTimeout(() => {
       setIsFlipping(false);
     }, 100);
   };
 
-  const speakWord = async (variant: 'us' | 'uk' | 'au', e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log(`Audio button clicked for "${word.word}" with ${variant.toUpperCase()} accent`);
+  // Get default accent from settings
+  const getDefaultAccent = (): 'us' | 'uk' | 'au' => {
+    const stored = localStorage.getItem("pronunciationAccent");
+    return (stored as 'us' | 'uk' | 'au') || 'us';
+  };
+
+  const speakWord = async (variant?: 'us' | 'uk' | 'au', e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
+    const accent = variant || getDefaultAccent();
+    console.log(`Speaking "${word.word}" with ${accent.toUpperCase()} accent`);
     
     try {
-      // Import Azure TTS service dynamically
       const { azureTTS } = await import('@/lib/azure-tts');
-      console.log(`Attempting Azure TTS for "${word.word}" with ${variant.toUpperCase()} accent`);
-      
-      // Test if Azure TTS is initialized
-      await azureTTS.speak(word.word, variant);
-      console.log(`✓ Azure TTS successful for "${word.word}" with ${variant.toUpperCase()} accent`);
+      await azureTTS.speak(word.word, accent);
+      console.log(`✓ Azure TTS successful for "${word.word}"`);
     } catch (error) {
       console.error('Azure TTS failed, using browser TTS:', error);
       
-      // Immediate fallback to browser TTS
       if ('speechSynthesis' in window) {
-        console.log(`Using browser TTS fallback for "${word.word}"`);
-        
-        // Cancel any ongoing speech
         speechSynthesis.cancel();
         
-        // Wait a bit for cancel to complete
         setTimeout(() => {
           const utterance = new SpeechSynthesisUtterance(word.word);
           utterance.rate = 0.8;
@@ -196,18 +201,15 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
             uk: 'en-GB', 
             au: 'en-AU'
           };
-          utterance.lang = languageMap[variant];
+          utterance.lang = languageMap[accent];
 
           const voices = speechSynthesis.getVoices();
-          console.log(`Available voices: ${voices.length}`);
-          
           const targetVoice = voices.find(voice => 
-            voice.lang.startsWith(languageMap[variant])
+            voice.lang.startsWith(languageMap[accent])
           );
           
           if (targetVoice) {
             utterance.voice = targetVoice;
-            console.log(`Using voice: ${targetVoice.name}`);
           }
 
           utterance.onstart = () => console.log(`✓ Browser TTS started for "${word.word}"`);
@@ -216,8 +218,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
 
           speechSynthesis.speak(utterance);
         }, 100);
-      } else {
-        console.error('Speech synthesis not supported in this browser');
       }
     }
   };
@@ -261,11 +261,11 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 borderColor: getBorderColor()
               }}>
           <CardContent className="p-6 h-full flex flex-col justify-center relative">
-            {/* US pronunciation button in top-left corner */}
+            {/* Pronunciation button in top-left corner (uses settings preference) */}
             <button
-              onClick={(e) => speakWord('us', e)}
+              onClick={(e) => speakWord(undefined, e)}
               className="absolute top-4 left-4 p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-full transition-colors z-10 shadow-sm"
-              title="アメリカ英語で発音"
+              title="発音を聞く"
             >
               <Volume2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </button>
@@ -290,36 +290,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                 )}
               </div>
               
-              {word.pronunciation && (
-                <div className="mb-6">
-                  <p className="text-xl text-muted-foreground font-mono mb-3">
-                    /{word.pronunciation}/
-                  </p>
-                  <div className="flex items-center justify-center gap-3">
-                    <button
-                      onClick={(e) => speakWord('us', e)}
-                      className="px-4 py-2 bg-muted rounded-lg text-sm hover:bg-muted/80 transition-colors flex items-center gap-2"
-                    >
-                      <Volume2 className="w-4 h-4" />
-                      US
-                    </button>
-                    <button
-                      onClick={(e) => speakWord('uk', e)}
-                      className="px-4 py-2 bg-muted rounded-lg text-sm hover:bg-muted/80 transition-colors flex items-center gap-2"
-                    >
-                      <Volume2 className="w-4 h-4" />
-                      UK
-                    </button>
-                    <button
-                      onClick={(e) => speakWord('au' as 'us' | 'uk' | 'au', e)}
-                      className="px-4 py-2 bg-muted rounded-lg text-sm hover:bg-muted/80 transition-colors flex items-center gap-2"
-                    >
-                      <Volume2 className="w-4 h-4" />
-                      AU
-                    </button>
-                  </div>
-                </div>
-              )}
+
               
               
             </div>
