@@ -26,6 +26,7 @@ import {useTheme} from '../contexts/ThemeContext';
 import {useLanguage} from '../contexts/LanguageContext';
 import {VocabularyWord, NavigationProps, StudySession} from '../types';
 import {vocabularyService} from '../services/VocabularyService';
+import OptimizedSwipeCard from '../components/OptimizedSwipeCard';
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 const CARD_WIDTH = screenWidth - 40;
@@ -133,7 +134,7 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
     },
   });
 
-  const handleSwipe = (direction: 'left' | 'right') => {
+  const handleSwipe = useCallback((direction: 'left' | 'right') => {
     const known = direction === 'right';
     
     setSession(prev => ({
@@ -142,8 +143,10 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
       needReview: known ? prev.needReview : prev.needReview + 1,
     }));
 
-    // Update word progress
-    vocabularyService.updateWordProgress(words[currentIndex].id, known);
+    // Update word progress asynchronously
+    InteractionManager.runAfterInteractions(() => {
+      vocabularyService.updateWordProgress(words[currentIndex].id, known);
+    });
 
     setTimeout(() => {
       if (currentIndex >= words.length - 1) {
@@ -152,18 +155,18 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
         nextCard();
       }
     }, 300);
-  };
+  }, [currentIndex, words.length, words]);
 
-  const nextCard = () => {
+  const nextCard = useCallback(() => {
     setCurrentIndex(prev => prev + 1);
     setShowAnswer(false);
     translateX.value = 0;
     translateY.value = 0;
     rotate.value = 0;
     scale.value = 1;
-  };
+  }, [translateX, translateY, rotate, scale]);
 
-  const showResults = () => {
+  const showResults = useCallback(() => {
     const accuracy = Math.round((session.known / words.length) * 100);
     Alert.alert(
       '学習完了',
@@ -173,9 +176,9 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
         {text: 'もう一度', onPress: () => restartStudy()},
       ]
     );
-  };
+  }, [session.known, words.length, navigation]);
 
-  const restartStudy = () => {
+  const restartStudy = useCallback(() => {
     setCurrentIndex(0);
     setShowAnswer(false);
     setSession({known: 0, needReview: 0, total: words.length});
@@ -183,8 +186,9 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
     translateY.value = 0;
     rotate.value = 0;
     scale.value = 1;
-  };
+  }, [words.length, translateX, translateY, rotate, scale]);
 
+  // Optimized animated styles with better performance
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
       {translateX: translateX.value},
@@ -192,7 +196,29 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
       {rotate: `${rotate.value}deg`},
       {scale: scale.value},
     ],
-  }));
+    opacity: interpolate(
+      Math.abs(translateX.value),
+      [0, screenWidth * 0.5],
+      [1, 0.8],
+      Extrapolate.CLAMP
+    ),
+  }), [translateX, translateY, rotate, scale]);
+
+  // Memoized current word to prevent unnecessary re-renders
+  const currentWord = useMemo(() => words[currentIndex], [words, currentIndex]);
+
+  // Memoized handlers for better performance
+  const handleShowAnswer = useCallback(() => {
+    setShowAnswer(!showAnswer);
+  }, [showAnswer]);
+
+  const handleKnownPress = useCallback(() => {
+    handleSwipe('right');
+  }, [handleSwipe]);
+
+  const handleNeedReviewPress = useCallback(() => {
+    handleSwipe('left');
+  }, [handleSwipe]);
 
   if (loading) {
     return (
@@ -385,54 +411,17 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
       </View>
 
       <View style={styles.cardContainer}>
-        <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View style={[styles.card, cardStyle]}>
-            <TouchableOpacity 
-              style={styles.audioButton}
-              onPress={() => speakWord()}
-            >
-              <Icon name="volume-up" size={24} color={colors.primary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
-              onPress={() => setShowAnswer(!showAnswer)}
-            >
-              <Text style={styles.wordText}>{currentWord.word}</Text>
-              
-              {currentWord.pronunciationUs && (
-                <Text style={styles.pronunciation}>/{currentWord.pronunciationUs}/</Text>
-              )}
-
-              {currentWord.partOfSpeech && (
-                <View style={styles.partOfSpeech}>
-                  <Text style={styles.partOfSpeechText}>{currentWord.partOfSpeech}</Text>
-                </View>
-              )}
-
-              {showAnswer && (
-                <>
-                  <Text style={styles.definition}>{currentWord.definition}</Text>
-                  
-                  {currentWord.exampleSentences && (
-                    <View style={styles.examples}>
-                      {JSON.parse(currentWord.exampleSentences).slice(0, 2).map((example: any, index: number) => (
-                        <View key={index} style={styles.exampleItem}>
-                          <Text style={styles.exampleEnglish}>
-                            {typeof example === 'string' ? example : example.english}
-                          </Text>
-                          {typeof example === 'object' && example.japanese && (
-                            <Text style={styles.exampleJapanese}>{example.japanese}</Text>
-                          )}
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                </>
-              )}
-            </TouchableOpacity>
-          </Animated.View>
-        </PanGestureHandler>
+        <OptimizedSwipeCard
+          word={currentWord}
+          showAnswer={showAnswer}
+          gestureHandler={gestureHandler}
+          cardStyle={cardStyle}
+          colors={colors}
+          onShowAnswer={handleShowAnswer}
+          onSpeakWord={speakWord}
+          onKnownPress={handleKnownPress}
+          onNeedReviewPress={handleNeedReviewPress}
+        />
       </View>
 
       <View style={styles.instructions}>
