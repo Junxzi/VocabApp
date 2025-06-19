@@ -107,6 +107,9 @@ class AzureTTSService {
         const audio = new Audio(cachedUrl);
         audio.onended = () => resolve();
         audio.onerror = () => reject('Cached audio playback failed');
+        
+        // Reset audio to allow multiple plays
+        audio.currentTime = 0;
         audio.play().catch(reject);
       });
     }
@@ -122,6 +125,9 @@ class AzureTTSService {
         const audio = new Audio(url);
         audio.onended = () => resolve();
         audio.onerror = () => reject('Cached audio playback failed');
+        
+        // Reset audio to allow multiple plays
+        audio.currentTime = 0;
         audio.play().catch(reject);
       });
     }
