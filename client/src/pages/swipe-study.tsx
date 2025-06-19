@@ -11,7 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/lib/i18n";
 import { getLocalizedPartOfSpeech } from "@/lib/utils";
 import { Volume2, Eye, EyeOff, RotateCcw, CheckCircle2, XCircle, ArrowLeft, Shuffle, Tags } from "lucide-react";
-import { speakWithAccent, logAvailableVoices } from "@/lib/speech";
+import { speak, logAvailableVoices } from "@/lib/speech";
 import type { VocabularyWord } from "@shared/schema";
 
 interface StudyCardProps {

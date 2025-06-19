@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Volume2, Sparkles, Loader2, Edit2, RefreshCw } from "lucide-react";
-import { speakWithAccent } from "@/lib/speech";
+import { speak } from "@/lib/speech";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";

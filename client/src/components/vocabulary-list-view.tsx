@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-import { speakWithAccent } from "@/lib/speech";
+import { speak } from "@/lib/speech";
 import { formatRelativeTime, getLocalizedPartOfSpeech } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import type { VocabularyWord } from "@shared/schema";
@@ -36,7 +36,7 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                       onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                          await speakWithAccent(word.word, 'us', word.audioDataUs);
+                          await speak(word.word, 'us');
                         } catch (error) {
                           console.error('Speech synthesis error:', error);
                         }
@@ -52,7 +52,7 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                       onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                          await speakWithAccent(word.word, 'uk', word.audioDataUk);
+                          await speak(word.word, 'uk');
                         } catch (error) {
                           console.error('Speech synthesis error:', error);
                         }

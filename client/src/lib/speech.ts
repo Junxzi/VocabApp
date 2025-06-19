@@ -1,73 +1,94 @@
-// Speech synthesis utility using OpenAI TTS for high-quality pronunciation
+// Speech synthesis utility using Azure TTS for high-quality pronunciation
 export type AccentType = 'us' | 'uk' | 'au';
 
-interface VoiceInfo {
-  voice: SpeechSynthesisVoice;
-  quality: number; // Higher is better
+// Audio cache to avoid repeated API calls
+const audioCache = new Map<string, string>();
+
+// Generate cache key for audio
+function getCacheKey(text: string, accent: AccentType): string {
+  return `${accent}:${text.toLowerCase()}`;
 }
 
-// Get available voices and rank them by quality for each accent
-export function getVoicesForAccent(accent: AccentType): VoiceInfo[] {
-  const voices = speechSynthesis.getVoices();
-  const voiceInfos: VoiceInfo[] = [];
-
-  for (const voice of voices) {
-    let quality = 0;
-    
-    switch (accent) {
-      case 'us':
-        if (voice.lang === 'en-US') {
-          quality += 100;
-          // Premium quality voices
-          if (voice.name.includes('Enhanced') || voice.name.includes('Premium')) quality += 50;
-          if (voice.name.includes('Samantha')) quality += 40;
-          if (voice.name.includes('Alex')) quality += 35;
-          if (voice.name.includes('Allison')) quality += 30;
-          if (voice.name.includes('Ava')) quality += 25;
-          if (voice.localService) quality += 20;
-          if (voice.name.includes('Natural') || voice.name.includes('Neural')) quality += 15;
-        } else if (voice.lang.startsWith('en-US')) {
-          quality += 50;
-        }
-        break;
-        
-      case 'uk':
-        if (voice.lang === 'en-GB') {
-          quality += 100;
-          // Premium quality voices
-          if (voice.name.includes('Enhanced') || voice.name.includes('Premium')) quality += 50;
-          if (voice.name.includes('Daniel')) quality += 40;
-          if (voice.name.includes('Kate')) quality += 35;
-          if (voice.name.includes('Serena')) quality += 30;
-          if (voice.name.includes('Oliver')) quality += 25;
-          if (voice.localService) quality += 20;
-          if (voice.name.includes('Natural') || voice.name.includes('Neural')) quality += 15;
-        } else if (voice.lang.startsWith('en-GB')) {
-          quality += 50;
-        }
-        break;
-        
-      case 'au':
-        if (voice.lang === 'en-AU') {
-          quality += 100;
-          if (voice.name.includes('Enhanced') || voice.name.includes('Premium')) quality += 50;
-          if (voice.name.includes('Karen')) quality += 40;
-          if (voice.name.includes('Lee')) quality += 35;
-          if (voice.localService) quality += 20;
-          if (voice.name.includes('Natural') || voice.name.includes('Neural')) quality += 15;
-        } else if (voice.lang.startsWith('en-AU')) {
-          quality += 50;
-        }
-        break;
-    }
-    
-    if (quality > 0) {
-      voiceInfos.push({ voice, quality });
-    }
-  }
+// Use Azure TTS API for consistent, high-quality pronunciation
+export async function speakWithAzureTTS(text: string, accent: AccentType): Promise<void> {
+  const cacheKey = getCacheKey(text, accent);
   
-  // Sort by quality (highest first)
-  return voiceInfos.sort((a, b) => b.quality - a.quality);
+  try {
+    let audioData = audioCache.get(cacheKey);
+    
+    if (!audioData) {
+      // Generate audio using Azure TTS API
+      const response = await fetch('/api/tts/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text, accent }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`TTS API error: ${response.status}`);
+      }
+
+      const audioBuffer = await response.arrayBuffer();
+      const base64Audio = btoa(new Uint8Array(audioBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+      audioData = `data:audio/mp3;base64,${base64Audio}`;
+      
+      // Cache the audio data
+      audioCache.set(cacheKey, audioData);
+    }
+
+    // Play the audio
+    const audio = new Audio(audioData);
+    audio.volume = 0.8;
+    await audio.play();
+  } catch (error) {
+    console.error('Azure TTS error:', error);
+    // Fallback to browser speech synthesis if Azure TTS fails
+    fallbackToSpeechSynthesis(text, accent);
+  }
+}
+
+// Fallback to browser speech synthesis
+function fallbackToSpeechSynthesis(text: string, accent: AccentType): void {
+  const voices = speechSynthesis.getVoices();
+  let selectedVoice: SpeechSynthesisVoice | null = null;
+
+  // Voice selection logic for fallback
+  switch (accent) {
+    case 'us':
+      selectedVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Samantha')) ||
+                    voices.find(v => v.lang === 'en-US') ||
+                    voices.find(v => v.lang.startsWith('en-US')) ||
+                    null;
+      break;
+    case 'uk':
+      selectedVoice = voices.find(v => v.lang === 'en-GB' && v.name.includes('Daniel')) ||
+                    voices.find(v => v.lang === 'en-GB') ||
+                    voices.find(v => v.lang.startsWith('en-GB')) ||
+                    null;
+      break;
+    case 'au':
+      selectedVoice = voices.find(v => v.lang === 'en-AU' && v.name.includes('Karen')) ||
+                    voices.find(v => v.lang === 'en-AU') ||
+                    voices.find(v => v.lang.startsWith('en-AU')) ||
+                    null;
+      break;
+  }
+
+  if (selectedVoice) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = selectedVoice;
+    utterance.rate = 0.9;
+    utterance.volume = 0.8;
+    speechSynthesis.speak(utterance);
+  }
+}
+
+// Main function to speak text with specified accent
+export async function speak(text: string, accent: AccentType = 'us'): Promise<void> {
+  // Always try Azure TTS first for consistent quality
+  await speakWithAzureTTS(text, accent);
 }
 
 // Debug function to log available voices
@@ -84,132 +105,15 @@ export function logAvailableVoices() {
   console.log('AU voices:', auVoices.map(v => `${v.name} (${v.lang})`));
 }
 
-// Audio cache for TTS responses
-const audioCache = new Map<string, string>();
-
-// Generate cache key for TTS requests
-function getCacheKey(text: string, accent: AccentType): string {
-  return `${text}-${accent}`;
-}
-
-// Main speech function using stored audio data or API fallback
-export async function speakWithAccent(text: string, accent: AccentType, audioData?: string | null): Promise<void> {
-  try {
-    let audioUrl: string;
-
-    if (audioData) {
-      // Use stored audio data (base64 encoded MP3)
-      const audioBlob = new Blob([Uint8Array.from(atob(audioData), c => c.charCodeAt(0))], {
-        type: 'audio/mpeg'
-      });
-      audioUrl = URL.createObjectURL(audioBlob);
+// Initialize speech synthesis and load voices
+export function initializeSpeech(): Promise<void> {
+  return new Promise((resolve) => {
+    if (speechSynthesis.getVoices().length !== 0) {
+      resolve();
     } else {
-      // Fallback to API if no stored audio data
-      const cacheKey = getCacheKey(text, accent);
-      
-      // Check cache first
-      let cachedUrl = audioCache.get(cacheKey);
-      
-      if (!cachedUrl) {
-        // Generate TTS audio via API
-        const response = await fetch('/api/tts/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text, accent }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`TTS API error: ${response.status}`);
-        }
-
-        // Create blob URL for audio playback
-        const audioBlob = await response.blob();
-        cachedUrl = URL.createObjectURL(audioBlob);
-        
-        // Cache the audio URL
-        audioCache.set(cacheKey, cachedUrl);
-      }
-      
-      audioUrl = cachedUrl;
-    }
-
-    // Play the audio
-    const audio = new Audio(audioUrl);
-    // Adjust volume based on accent - AU voice (fable) tends to be quieter
-    audio.volume = accent === 'au' ? 1.0 : 0.8;
-    
-    return new Promise((resolve, reject) => {
-      audio.onended = () => {
-        // Clean up blob URL if it was created from stored data
-        if (audioData) {
-          URL.revokeObjectURL(audioUrl);
-        }
+      speechSynthesis.addEventListener('voiceschanged', () => {
         resolve();
-      };
-      audio.onerror = () => {
-        // Clean up blob URL if it was created from stored data
-        if (audioData) {
-          URL.revokeObjectURL(audioUrl);
-        }
-        reject(new Error('Audio playback error'));
-      };
-      audio.play().catch(reject);
-    });
-  } catch (error) {
-    console.error('Audio playback error:', error);
-    // Fallback to browser speech synthesis
-    return fallbackToWebSpeech(text, accent);
-  }
-}
-
-// Fallback to browser speech synthesis if OpenAI TTS fails
-function fallbackToWebSpeech(text: string, accent: AccentType): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (!('speechSynthesis' in window)) {
-      reject(new Error('Speech synthesis not supported'));
-      return;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.volume = 0.8;
-    utterance.pitch = 1.0;
-
-    const setVoiceAndSpeak = () => {
-      const voiceInfos = getVoicesForAccent(accent);
-      
-      if (voiceInfos.length > 0) {
-        const bestVoice = voiceInfos[0].voice;
-        utterance.voice = bestVoice;
-        console.log(`Fallback using voice: ${bestVoice.name} (${bestVoice.lang}) for ${accent.toUpperCase()}`);
-      } else {
-        const langMap = { us: 'en-US', uk: 'en-GB', au: 'en-AU' };
-        utterance.lang = langMap[accent];
-        console.log(`Fallback to language: ${utterance.lang} for ${accent.toUpperCase()}`);
-      }
-
-      utterance.onend = () => resolve();
-      utterance.onerror = () => reject(new Error('Speech synthesis error'));
-      
-      speechSynthesis.speak(utterance);
-    };
-
-    const voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      setVoiceAndSpeak();
-    } else {
-      const handleVoicesChanged = () => {
-        speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
-        setVoiceAndSpeak();
-      };
-      speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-      
-      setTimeout(() => {
-        speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
-        setVoiceAndSpeak();
-      }, 1000);
+      });
     }
   });
 }
