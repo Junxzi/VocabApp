@@ -270,61 +270,47 @@ export class DatabaseStorage implements IStorage {
     const DAILY_CHALLENGE_COUNT = 30; // Fixed number of words per day
     
     try {
+      console.log("Fetching all vocabulary words for daily challenge...");
+      
       // Get all words from database
       const allWords = await db
         .select()
         .from(vocabularyWords);
       
+      console.log(`Found ${allWords.length} total words in database`);
+      
       if (allWords.length === 0) {
+        console.log("No words available for daily challenge");
         return [];
       }
       
       const today = new Date().toISOString().split('T')[0];
+      console.log(`Generating daily challenge for date: ${today}`);
       
-      // Filter words using SuperMemo algorithm priorities:
-      // 1. Words due for review (nextReview <= today)
-      // 2. Words with low ease factor (difficult words)
-      // 3. Words that haven't been studied much
-      const prioritizedWords = allWords
-        .filter(word => {
-          const nextReview = word.nextReview ? new Date(word.nextReview) : new Date(0);
-          const isDue = nextReview <= new Date(today + 'T23:59:59');
-          const lowEase = parseFloat(word.easeFactor?.toString() || "2.5") < 2.0;
-          const lowStudyCount = (word.studyCount || 0) < 3;
-          
-          return isDue || lowEase || lowStudyCount;
-        })
-        .sort((a, b) => {
-          // Sort by priority: due date, ease factor, study count
-          const aNextReview = a.nextReview ? new Date(a.nextReview) : new Date(0);
-          const bNextReview = b.nextReview ? new Date(b.nextReview) : new Date(0);
-          const aEase = parseFloat(a.easeFactor?.toString() || "2.5");
-          const bEase = parseFloat(b.easeFactor?.toString() || "2.5");
-          
-          if (aNextReview.getTime() !== bNextReview.getTime()) {
-            return aNextReview.getTime() - bNextReview.getTime();
-          }
-          if (aEase !== bEase) {
-            return aEase - bEase;
-          }
-          return (a.studyCount || 0) - (b.studyCount || 0);
-        });
+      // Use a consistent seed based on today's date for deterministic word selection
+      const seed = new Date(today).getTime();
+      const deterministicRandom = (index: number) => {
+        const x = Math.sin(seed + index) * 10000;
+        return x - Math.floor(x);
+      };
       
-      // If we don't have enough priority words, fill with remaining words
-      const selectedWords = [...prioritizedWords];
-      if (selectedWords.length < DAILY_CHALLENGE_COUNT) {
-        const remainingWords = allWords
-          .filter(word => !selectedWords.find(selected => selected.id === word.id))
-          .sort(() => Math.random() - 0.5);
-        
-        selectedWords.push(...remainingWords.slice(0, DAILY_CHALLENGE_COUNT - selectedWords.length));
-      }
+      // Simple selection: shuffle words deterministically based on date
+      const shuffledWords = allWords
+        .map((word, index) => ({ word, sort: deterministicRandom(index) }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(item => item.word);
       
-      // Return up to DAILY_CHALLENGE_COUNT words, or all available words if fewer
-      return selectedWords.slice(0, Math.min(DAILY_CHALLENGE_COUNT, allWords.length));
+      // Take first 30 words (or all available if fewer)
+      const selectedWords = shuffledWords.slice(0, Math.min(DAILY_CHALLENGE_COUNT, allWords.length));
+      
+      console.log(`Selected ${selectedWords.length} words for daily challenge`);
+      return selectedWords;
+      
     } catch (error) {
       console.error("Error getting daily challenge words:", error);
-      throw error;
+      console.error("Error details:", error.message);
+      console.error("Error stack:", error.stack);
+      throw new Error(`Failed to fetch daily challenge words: ${error.message}`);
     }
   }
 

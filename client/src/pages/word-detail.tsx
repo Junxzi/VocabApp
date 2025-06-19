@@ -233,16 +233,8 @@ export function WordDetailPage() {
         {/* Word Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl font-bold flex items-center gap-3">
+            <CardTitle className="text-3xl font-bold">
               {word.word}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => speakWord()}
-                className="p-2 h-10 w-10 hover:bg-muted"
-              >
-                <Volume2 className="h-5 w-5" />
-              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
