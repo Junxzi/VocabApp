@@ -473,6 +473,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Azure configuration endpoint
+  app.get("/api/azure-config", (req, res) => {
+    try {
+      const speechKey = process.env.AZURE_SPEECH_KEY;
+      const speechRegion = process.env.AZURE_SPEECH_REGION;
+      
+      if (!speechKey || !speechRegion) {
+        return res.status(404).json({ error: "Azure Speech Services not configured" });
+      }
+      
+      res.json({
+        speechKey,
+        speechRegion
+      });
+    } catch (error) {
+      console.error("Error getting Azure config:", error);
+      res.status(500).json({ error: "Failed to get Azure configuration" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

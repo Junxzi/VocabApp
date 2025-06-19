@@ -152,68 +152,41 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     }, 100);
   };
 
-  const speakWord = (variant: 'us' | 'uk' | 'au', e: React.MouseEvent) => {
+  const speakWord = async (variant: 'us' | 'uk' | 'au', e: React.MouseEvent) => {
     e.stopPropagation();
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(word.word);
-      utterance.rate = 0.8;
-      utterance.volume = 0.7;
+    
+    try {
+      // Import Azure TTS service dynamically
+      const { azureTTS } = await import('@/lib/azure-tts');
+      console.log(`Speaking "${word.word}" with ${variant.toUpperCase()} accent using Azure TTS`);
+      await azureTTS.speak(word.word, variant);
+    } catch (error) {
+      console.error('Azure TTS failed, falling back to browser TTS:', error);
       
-      // Wait for voices to load if they haven't already
-      const setVoice = () => {
-        const voices = speechSynthesis.getVoices();
-        console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
-        
-        let selectedVoice = null;
-        
-        if (variant === 'us') {
-          selectedVoice = voices.find(voice => 
-            voice.lang === 'en-US' || 
-            voice.lang.startsWith('en-US') ||
-            voice.name.toLowerCase().includes('us') ||
-            voice.name.toLowerCase().includes('united states') ||
-            voice.name.toLowerCase().includes('american')
-          );
-        } else if (variant === 'uk') {
-          selectedVoice = voices.find(voice => 
-            voice.lang === 'en-GB' || 
-            voice.lang.startsWith('en-GB') ||
-            voice.name.toLowerCase().includes('uk') ||
-            voice.name.toLowerCase().includes('british') ||
-            voice.name.toLowerCase().includes('england')
-          );
-        } else if (variant === 'au') {
-          selectedVoice = voices.find(voice => 
-            voice.lang === 'en-AU' || 
-            voice.lang.startsWith('en-AU') ||
-            voice.name.toLowerCase().includes('au') ||
-            voice.name.toLowerCase().includes('australian') ||
-            voice.name.toLowerCase().includes('australia')
-          );
-        }
-        
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
-          console.log(`Selected ${variant.toUpperCase()} voice:`, selectedVoice.name, selectedVoice.lang);
-        } else {
-          console.log(`No specific ${variant.toUpperCase()} voice found, using default`);
-          // Fallback to any English voice
-          const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
-          if (englishVoice) utterance.voice = englishVoice;
-        }
-        
-        speechSynthesis.speak(utterance);
-      };
-      
-      // Check if voices are already loaded
-      if (speechSynthesis.getVoices().length > 0) {
-        setVoice();
-      } else {
-        // Wait for voices to load
-        speechSynthesis.onvoiceschanged = () => {
-          setVoice();
-          speechSynthesis.onvoiceschanged = null; // Remove listener
+      // Fallback to browser TTS
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(word.word);
+        utterance.rate = 0.8;
+        utterance.volume = 0.7;
+
+        const languageMap = {
+          us: 'en-US',
+          uk: 'en-GB',
+          au: 'en-AU'
         };
+        utterance.lang = languageMap[variant];
+
+        const voices = speechSynthesis.getVoices();
+        const targetVoice = voices.find(voice => 
+          voice.lang.startsWith(languageMap[variant]) ||
+          voice.name.toLowerCase().includes(variant)
+        );
+        
+        if (targetVoice) {
+          utterance.voice = targetVoice;
+        }
+
+        speechSynthesis.speak(utterance);
       }
     }
   };
