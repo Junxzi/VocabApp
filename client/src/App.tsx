@@ -9,6 +9,7 @@ import { ApkgImport } from "@/components/apkg-import";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { VocabularyPage } from "@/pages/vocabulary";
+import { StudyPage } from "@/pages/study";
 import { LanguageProvider } from "@/lib/i18n";
 import { SwipeStudyPage } from "@/pages/swipe-study";
 import { ProgressPage } from "@/pages/progress";
@@ -71,6 +72,7 @@ function AppContent() {
       <div className="pb-[env(safe-area-inset-bottom,80px)] md:pb-0">
         <Switch>
           <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
+          <Route path="/study" component={StudyPage} />
           <Route path="/word/:id" component={WordDetailPage} />
           <Route path="/swipe-study" component={SwipeStudyPage} />
           <Route path="/progress" component={ProgressPage} />
