@@ -509,10 +509,10 @@ export function SwipeStudyPage() {
     return `daily-challenge-session-${today}`;
   };
 
-  const saveDailyChallengeSession = () => {
+  const saveDailyChallengeSession = (indexToSave?: number) => {
     if (currentMode === 'daily') {
       const sessionData = {
-        currentIndex,
+        currentIndex: indexToSave !== undefined ? indexToSave : currentIndex,
         sessionStats,
         studyWords: studyWords.map(w => w.id), // Save only IDs to reduce storage size
         date: new Date().toISOString().split('T')[0]
@@ -728,7 +728,7 @@ export function SwipeStudyPage() {
       // Save session progress for daily challenge
       if (currentMode === 'daily') {
         setTimeout(() => {
-          saveDailyChallengeSession();
+          saveDailyChallengeSession(nextIndex);
           setDailySessionStatus({
             hasSession: true,
             currentIndex: nextIndex,
