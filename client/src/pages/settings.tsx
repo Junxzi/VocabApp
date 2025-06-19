@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/i18n";
 import { Globe, Volume2, Eye, RefreshCw, Trash2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 
 export function SettingsPage() {
   const { language, setLanguage } = useLanguage();
@@ -282,6 +283,7 @@ export function SettingsPage() {
 
         <div className="pb-20" />
       </div>
+      <MobileBottomNav />
     </div>
   );
 }
