@@ -340,9 +340,14 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
 interface ModeSelectionProps {
   onStartStudy: (mode: 'random' | 'tag' | 'daily', selectedTag?: string) => void;
   availableTags: string[];
+  dailySessionStatus: {
+    hasSession: boolean;
+    currentIndex: number;
+    totalWords: number;
+  };
 }
 
-function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
+function ModeSelection({ onStartStudy, availableTags, dailySessionStatus }: ModeSelectionProps) {
   const [selectedTag, setSelectedTag] = useState<string>("");
 
   // Query daily challenge status
@@ -417,6 +422,8 @@ function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
                   <div className={`text-sm ${dailyStatus?.completed ? "text-muted-foreground" : "text-white/90 drop-shadow"}`}>
                     {dailyStatus?.completed 
                       ? `本日は完了済み (${dailyStatus.stats?.correctWords || 0}/${dailyStatus.stats?.totalWords || 0})`
+                      : dailySessionStatus.hasSession
+                      ? `続きから開始 (${dailySessionStatus.currentIndex + 1}/${dailySessionStatus.totalWords})`
                       : "SuperMemoアルゴリズムで選ばれた30問"
                     }
                   </div>
@@ -490,6 +497,11 @@ export function SwipeStudyPage() {
     total: 0,
   });
   const [studyWords, setStudyWords] = useState<VocabularyWord[]>([]);
+  const [dailySessionStatus, setDailySessionStatus] = useState<{
+    hasSession: boolean;
+    currentIndex: number;
+    totalWords: number;
+  }>({ hasSession: false, currentIndex: 0, totalWords: 30 });
 
   // Helper functions for daily challenge session persistence
   const getDailyChallengeSessionKey = () => {
@@ -572,6 +584,18 @@ export function SwipeStudyPage() {
         .filter(tag => tag && tag.trim() !== '')
     )
   ).sort();
+
+  // Check for existing daily challenge session on mount
+  useEffect(() => {
+    const savedSession = loadDailyChallengeSession();
+    if (savedSession) {
+      setDailySessionStatus({
+        hasSession: true,
+        currentIndex: savedSession.currentIndex,
+        totalWords: 30
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (words.length > 0 && studyMode === 'studying') {
@@ -682,12 +706,13 @@ export function SwipeStudyPage() {
     const nextIndex = currentIndex + 1;
     
     // Update stats immediately
-    setSessionStats(prev => ({
-      ...prev,
-      known: known ? prev.known + 1 : prev.known,
-      needReview: known ? prev.needReview : prev.needReview + 1,
-      total: prev.total + 1,
-    }));
+    const newStats = {
+      known: known ? sessionStats.known + 1 : sessionStats.known,
+      needReview: known ? sessionStats.needReview : sessionStats.needReview + 1,
+      total: sessionStats.total
+    };
+    
+    setSessionStats(newStats);
 
     updateWordSpacedRepetitionMutation.mutate({ 
       id: wordId, 
@@ -699,15 +724,30 @@ export function SwipeStudyPage() {
       setCurrentIndex(nextIndex);
       setDisplayedWord(studyWords[nextIndex]);
       setShowAnswer(false);
+      
+      // Save session progress for daily challenge
+      if (currentMode === 'daily') {
+        setTimeout(() => {
+          saveDailyChallengeSession();
+          setDailySessionStatus({
+            hasSession: true,
+            currentIndex: nextIndex,
+            totalWords: studyWords.length
+          });
+        }, 100);
+      }
     } else {
       // Complete daily challenge if it's daily mode
       if (currentMode === 'daily') {
-        const accuracy = sessionStats.total > 0 ? (sessionStats.known / sessionStats.total) * 100 : 0;
+        const accuracy = newStats.total > 0 ? (newStats.known / newStats.total) * 100 : 0;
         completeDailyChallengeMutation.mutate({
-          totalWords: sessionStats.total,
-          correctWords: sessionStats.known,
+          totalWords: newStats.total,
+          correctWords: newStats.known,
           accuracy
         });
+        
+        // Clear session data after completion
+        clearDailyChallengeSession();
       }
       setStudyMode('complete');
     }
@@ -729,7 +769,11 @@ export function SwipeStudyPage() {
     return (
       <>
         <div className="pb-20">
-          <ModeSelection onStartStudy={handleStartStudy} availableTags={availableTags} />
+          <ModeSelection 
+            onStartStudy={handleStartStudy} 
+            availableTags={availableTags}
+            dailySessionStatus={dailySessionStatus}
+          />
         </div>
         <MobileBottomNav />
       </>
