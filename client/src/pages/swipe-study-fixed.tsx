@@ -177,13 +177,16 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     }
     
     const accent = variant || getDefaultAccent();
-    console.log(`[Swipe Card] Speaking "${word.word}" with ${accent.toUpperCase()} accent`);
+    console.log(`[Manual Audio] Attempting to speak "${word.word}" with ${accent.toUpperCase()} accent`);
     
     try {
+      // Force stop any currently playing audio first
+      console.log(`[Manual Audio] Stopping any current audio before playing "${word.word}"`);
+      
       await azureTTS.speak(word.word, accent);
-      console.log(`[Swipe Card] ✓ Azure TTS successful for "${word.word}"`);
+      console.log(`[Manual Audio] ✓ Successfully played "${word.word}" with ${accent.toUpperCase()} accent`);
     } catch (error) {
-      console.error('[Swipe Card] Azure TTS failed:', error);
+      console.error(`[Manual Audio] Failed to play "${word.word}":`, error);
     }
   };
 
@@ -526,9 +529,9 @@ export function SwipeStudyPage() {
         // Delay auto-play to allow card to render
         setTimeout(async () => {
           try {
-            const { azureTTS } = await import('@/lib/azure-tts');
             const defaultAccent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
             await azureTTS.speak(shuffled[0].word, defaultAccent);
+            console.log(`[Auto-play] Successfully played "${shuffled[0].word}" on initial load`);
           } catch (error) {
             console.error('Auto-play failed:', error);
           }
@@ -548,9 +551,9 @@ export function SwipeStudyPage() {
       if (autoplay && newWord && currentIndex > 0) { // Don't auto-play the first card (handled in initial load)
         setTimeout(async () => {
           try {
-            const { azureTTS } = await import('@/lib/azure-tts');
             const defaultAccent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
             await azureTTS.speak(newWord.word, defaultAccent);
+            console.log(`[Auto-play] Successfully played "${newWord.word}" on card change`);
           } catch (error) {
             console.error('Auto-play failed for new card:', error);
           }
