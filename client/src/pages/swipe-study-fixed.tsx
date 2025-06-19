@@ -159,25 +159,62 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       utterance.rate = 0.8;
       utterance.volume = 0.7;
       
-      const voices = speechSynthesis.getVoices();
-      if (variant === 'us') {
-        const usVoice = voices.find(voice => 
-          voice.lang.startsWith('en-US') || voice.name.includes('US')
-        );
-        if (usVoice) utterance.voice = usVoice;
-      } else if (variant === 'uk') {
-        const ukVoice = voices.find(voice => 
-          voice.lang.startsWith('en-GB') || voice.name.includes('UK')
-        );
-        if (ukVoice) utterance.voice = ukVoice;
-      } else if (variant === 'au') {
-        const auVoice = voices.find(voice => 
-          voice.lang.startsWith('en-AU') || voice.name.includes('AU')
-        );
-        if (auVoice) utterance.voice = auVoice;
-      }
+      // Wait for voices to load if they haven't already
+      const setVoice = () => {
+        const voices = speechSynthesis.getVoices();
+        console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
+        
+        let selectedVoice = null;
+        
+        if (variant === 'us') {
+          selectedVoice = voices.find(voice => 
+            voice.lang === 'en-US' || 
+            voice.lang.startsWith('en-US') ||
+            voice.name.toLowerCase().includes('us') ||
+            voice.name.toLowerCase().includes('united states') ||
+            voice.name.toLowerCase().includes('american')
+          );
+        } else if (variant === 'uk') {
+          selectedVoice = voices.find(voice => 
+            voice.lang === 'en-GB' || 
+            voice.lang.startsWith('en-GB') ||
+            voice.name.toLowerCase().includes('uk') ||
+            voice.name.toLowerCase().includes('british') ||
+            voice.name.toLowerCase().includes('england')
+          );
+        } else if (variant === 'au') {
+          selectedVoice = voices.find(voice => 
+            voice.lang === 'en-AU' || 
+            voice.lang.startsWith('en-AU') ||
+            voice.name.toLowerCase().includes('au') ||
+            voice.name.toLowerCase().includes('australian') ||
+            voice.name.toLowerCase().includes('australia')
+          );
+        }
+        
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          console.log(`Selected ${variant.toUpperCase()} voice:`, selectedVoice.name, selectedVoice.lang);
+        } else {
+          console.log(`No specific ${variant.toUpperCase()} voice found, using default`);
+          // Fallback to any English voice
+          const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
+          if (englishVoice) utterance.voice = englishVoice;
+        }
+        
+        speechSynthesis.speak(utterance);
+      };
       
-      speechSynthesis.speak(utterance);
+      // Check if voices are already loaded
+      if (speechSynthesis.getVoices().length > 0) {
+        setVoice();
+      } else {
+        // Wait for voices to load
+        speechSynthesis.onvoiceschanged = () => {
+          setVoice();
+          speechSynthesis.onvoiceschanged = null; // Remove listener
+        };
+      }
     }
   };
 
