@@ -231,18 +231,19 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         rotate, 
         opacity,
         scale,
-        zIndex
+        zIndex,
+        touchAction: 'none'
       }}
       drag
-      dragConstraints={{ left: -300, right: 300, top: -50, bottom: 50 }}
-      dragElastic={0.2}
+      dragConstraints={{ left: -400, right: 400, top: -60, bottom: 60 }}
+      dragElastic={0.15}
+      dragMomentum={false}
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
       whileDrag={{ 
-        scale: 1.05,
-        cursor: "grabbing",
-        transition: { duration: 0.1 }
+        scale: 1.03,
+        transition: { duration: 0.15, ease: "easeOut" }
       }}
       onClick={handleCardTap}
     >
