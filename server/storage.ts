@@ -175,12 +175,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getVocabularyWordsByTag(tag: string): Promise<VocabularyWord[]> {
+    // Create a mapping from English to Japanese tags
+    const tagMapping: { [key: string]: string } = {
+      'Academic': '学術',
+      'Business': '経済',
+      'Daily Life': '日常',
+      'Technical': '技術',
+      'TOEFL': 'TOEFL',
+      'time': 'time',
+      'planning': 'planning'
+    };
+    
+    // Get the Japanese tag name or use the tag as-is if no mapping exists
+    const searchTag = tagMapping[tag] || tag;
+    
     const allWords = await db
       .select()
       .from(vocabularyWords)
       .orderBy(desc(vocabularyWords.createdAt));
     
-    return allWords.filter(word => word.tags && word.tags.includes(tag));
+    return allWords.filter(word => {
+      if (!word.tags || word.tags.length === 0) return false;
+      // Check both the original tag and the mapped tag
+      return word.tags.includes(tag) || word.tags.includes(searchTag);
+    });
   }
 
   async updateWordStudyStats(id: number, difficulty: number): Promise<VocabularyWord | undefined> {
