@@ -214,6 +214,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update word study statistics
+  app.put("/api/vocabulary/:id/study", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { difficulty } = req.body;
+      if (typeof difficulty !== 'number' || difficulty < 1 || difficulty > 3) {
+        return res.status(400).json({ message: "Difficulty must be a number between 1 and 3" });
+      }
+      const word = await storage.updateWordStudyStats(id, difficulty);
+      if (!word) {
+        return res.status(404).json({ message: "Vocabulary word not found" });
+      }
+      res.json(word);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update study statistics" });
+    }
+  });
+
   // Update word with spaced repetition algorithm
   app.put("/api/vocabulary/:id/spaced-repetition", async (req, res) => {
     try {
