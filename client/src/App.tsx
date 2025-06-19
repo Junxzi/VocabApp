@@ -70,7 +70,9 @@ function AppContent() {
     <div className="min-h-screen bg-background">
       <div className="pb-20 md:pb-0">
         <Switch>
-          <Route path="/" component={() => <VocabularyPage onEditWord={handleEditWord} />} />
+          <Route path="/">
+            <VocabularyPage onEditWord={handleEditWord} />
+          </Route>
           <Route path="/word/:id" component={WordDetailPage} />
           <Route path="/swipe-study" component={SwipeStudyPage} />
           <Route path="/progress" component={ProgressPage} />
