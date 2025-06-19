@@ -268,7 +268,8 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
               }}
               onPointerDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
-              className="absolute top-4 left-4 p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-full transition-colors z-10 shadow-sm"
+              className="absolute top-4 left-4 p-3 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-full transition-all duration-150 z-10 shadow-sm haptic-light active:scale-95"
+              style={{ minHeight: '44px', minWidth: '44px' }}
               title="発音を聞く"
             >
               <Volume2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />

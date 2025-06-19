@@ -6,10 +6,47 @@
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "scope": "/",
   "prefer_related_applications": false,
   "categories": ["education", "productivity"],
+  "lang": "en",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "shortcuts": [
+    {
+      "name": "Start Study Session",
+      "short_name": "Study",
+      "description": "Begin vocabulary practice",
+      "url": "/swipe-study",
+      "icons": [
+        {
+          "src": "/icon-192.svg",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "View Vocabulary",
+      "short_name": "Vocabulary",
+      "description": "Browse word collection",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-192.svg",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "/icon-192.svg",
