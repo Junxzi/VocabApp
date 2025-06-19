@@ -32,12 +32,18 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        if ('speechSynthesis' in window) {
-                          const utterance = new SpeechSynthesisUtterance(word.word);
-                          utterance.lang = 'en-US';
-                          speechSynthesis.speak(utterance);
+                        try {
+                          const { azureTTS } = await import('@/lib/azure-tts');
+                          await azureTTS.speak(word.word, 'us');
+                        } catch (error) {
+                          console.error('Azure TTS failed, using fallback:', error);
+                          if ('speechSynthesis' in window) {
+                            const utterance = new SpeechSynthesisUtterance(word.word);
+                            utterance.lang = 'en-US';
+                            speechSynthesis.speak(utterance);
+                          }
                         }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"
@@ -48,12 +54,18 @@ export function VocabularyListView({ words, onEdit, onDelete }: VocabularyListVi
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        if ('speechSynthesis' in window) {
-                          const utterance = new SpeechSynthesisUtterance(word.word);
-                          utterance.lang = 'en-GB';
-                          speechSynthesis.speak(utterance);
+                        try {
+                          const { azureTTS } = await import('@/lib/azure-tts');
+                          await azureTTS.speak(word.word, 'uk');
+                        } catch (error) {
+                          console.error('Azure TTS failed, using fallback:', error);
+                          if ('speechSynthesis' in window) {
+                            const utterance = new SpeechSynthesisUtterance(word.word);
+                            utterance.lang = 'en-GB';
+                            speechSynthesis.speak(utterance);
+                          }
                         }
                       }}
                       className="h-5 px-1 text-xs hover:bg-muted"

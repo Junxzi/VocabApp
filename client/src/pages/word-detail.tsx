@@ -217,11 +217,17 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            if ('speechSynthesis' in window) {
-                              const utterance = new SpeechSynthesisUtterance(word.word);
-                              utterance.lang = 'en-US';
-                              speechSynthesis.speak(utterance);
+                          onClick={async () => {
+                            try {
+                              const { azureTTS } = await import('@/lib/azure-tts');
+                              await azureTTS.speak(word.word, 'us');
+                            } catch (error) {
+                              console.error('Azure TTS failed, using fallback:', error);
+                              if ('speechSynthesis' in window) {
+                                const utterance = new SpeechSynthesisUtterance(word.word);
+                                utterance.lang = 'en-US';
+                                speechSynthesis.speak(utterance);
+                              }
                             }
                           }}
                           className="p-1 h-6 w-6"
@@ -239,11 +245,17 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            if ('speechSynthesis' in window) {
-                              const utterance = new SpeechSynthesisUtterance(word.word);
-                              utterance.lang = 'en-GB';
-                              speechSynthesis.speak(utterance);
+                          onClick={async () => {
+                            try {
+                              const { azureTTS } = await import('@/lib/azure-tts');
+                              await azureTTS.speak(word.word, 'uk');
+                            } catch (error) {
+                              console.error('Azure TTS failed, using fallback:', error);
+                              if ('speechSynthesis' in window) {
+                                const utterance = new SpeechSynthesisUtterance(word.word);
+                                utterance.lang = 'en-GB';
+                                speechSynthesis.speak(utterance);
+                              }
                             }
                           }}
                           className="p-1 h-6 w-6"
@@ -261,11 +273,17 @@ export function WordDetailPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            if ('speechSynthesis' in window) {
-                              const utterance = new SpeechSynthesisUtterance(word.word);
-                              utterance.lang = 'en-AU';
-                              speechSynthesis.speak(utterance);
+                          onClick={async () => {
+                            try {
+                              const { azureTTS } = await import('@/lib/azure-tts');
+                              await azureTTS.speak(word.word, 'au');
+                            } catch (error) {
+                              console.error('Azure TTS failed, using fallback:', error);
+                              if ('speechSynthesis' in window) {
+                                const utterance = new SpeechSynthesisUtterance(word.word);
+                                utterance.lang = 'en-AU';
+                                speechSynthesis.speak(utterance);
+                              }
                             }
                           }}
                           className="p-1 h-6 w-6"
