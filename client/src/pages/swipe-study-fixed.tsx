@@ -491,6 +491,47 @@ export function SwipeStudyPage() {
   });
   const [studyWords, setStudyWords] = useState<VocabularyWord[]>([]);
 
+  // Helper functions for daily challenge session persistence
+  const getDailyChallengeSessionKey = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return `daily-challenge-session-${today}`;
+  };
+
+  const saveDailyChallengeSession = () => {
+    if (currentMode === 'daily') {
+      const sessionData = {
+        currentIndex,
+        sessionStats,
+        studyWords: studyWords.map(w => w.id), // Save only IDs to reduce storage size
+        date: new Date().toISOString().split('T')[0]
+      };
+      localStorage.setItem(getDailyChallengeSessionKey(), JSON.stringify(sessionData));
+    }
+  };
+
+  const loadDailyChallengeSession = () => {
+    const sessionKey = getDailyChallengeSessionKey();
+    const savedSession = localStorage.getItem(sessionKey);
+    if (savedSession) {
+      try {
+        const sessionData = JSON.parse(savedSession);
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Only load if it's from today
+        if (sessionData.date === today) {
+          return sessionData;
+        }
+      } catch (error) {
+        console.error('Failed to parse saved daily challenge session:', error);
+      }
+    }
+    return null;
+  };
+
+  const clearDailyChallengeSession = () => {
+    localStorage.removeItem(getDailyChallengeSessionKey());
+  };
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
@@ -534,30 +575,54 @@ export function SwipeStudyPage() {
 
   useEffect(() => {
     if (words.length > 0 && studyMode === 'studying') {
-      const shuffled = [...words].sort(() => Math.random() - 0.5);
-      setStudyWords(shuffled);
-      setSessionStats(prev => ({ ...prev, total: shuffled.length }));
-      setCurrentIndex(0);
-      setDisplayedWord(shuffled[0]);
+      let finalWords: VocabularyWord[];
+      let startIndex = 0;
+      let restoredStats = { known: 0, needReview: 0, total: 0 };
+
+      // Check for saved daily challenge session
+      if (currentMode === 'daily') {
+        const savedSession = loadDailyChallengeSession();
+        if (savedSession) {
+          // Restore session from saved state
+          const savedWordIds = savedSession.studyWords;
+          finalWords = words.filter(w => savedWordIds.includes(w.id));
+          startIndex = savedSession.currentIndex;
+          restoredStats = savedSession.sessionStats;
+          
+          console.log(`[Daily Challenge] Restored session: index ${startIndex}/${finalWords.length}`);
+        } else {
+          // New daily challenge session
+          finalWords = [...words].sort(() => Math.random() - 0.5);
+          restoredStats.total = finalWords.length;
+        }
+      } else {
+        // Regular study mode - always shuffle
+        finalWords = [...words].sort(() => Math.random() - 0.5);
+        restoredStats.total = finalWords.length;
+      }
+
+      setStudyWords(finalWords);
+      setSessionStats(restoredStats);
+      setCurrentIndex(startIndex);
+      setDisplayedWord(finalWords[startIndex] || null);
       setShowAnswer(false);
       setIsCardSwiping(false);
       
-      // Auto-play pronunciation if enabled
+      // Auto-play pronunciation if enabled and there's a word to play
       const autoplay = localStorage.getItem("autoplay") === "true";
-      if (autoplay && shuffled[0]) {
-        // Delay auto-play to allow card to render
+      if (autoplay && finalWords[startIndex]) {
         setTimeout(async () => {
           try {
             const defaultAccent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
-            await azureTTS.speak(shuffled[0].word, defaultAccent);
-            console.log(`[Auto-play] Successfully played "${shuffled[0].word}" on initial load`);
+            await azureTTS.speak(finalWords[startIndex].word, defaultAccent);
+            console.log(`[Auto-play] Successfully played "${finalWords[startIndex].word}" on initial load`);
           } catch (error) {
             console.error('Auto-play failed:', error);
           }
         }, 500);
       }
     }
-  }, [words, studyMode]);
+  }, [words, studyMode, currentMode]);
 
   // Update displayed word when current index changes
   useEffect(() => {
