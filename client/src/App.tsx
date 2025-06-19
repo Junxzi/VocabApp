@@ -10,7 +10,7 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 import { VocabularyPage } from "@/pages/vocabulary";
 import { LanguageProvider } from "@/lib/i18n";
-import { SwipeStudyPage } from "@/pages/swipe-study-fixed";
+import { SwipeStudyPage } from "@/pages/swipe-study-clean";
 import { ProgressPage } from "@/pages/progress";
 import { SettingsPage } from "@/pages/settings";
 import { WordDetailPage } from "@/pages/word-detail";

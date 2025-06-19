@@ -316,7 +316,9 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   );
 }
 
-export default function SwipeStudyClean() {
+export { SwipeStudyPage };
+
+function SwipeStudyPage() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
