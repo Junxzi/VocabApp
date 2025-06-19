@@ -1,0 +1,6 @@
+{
+	"appId": "com.junxzi.app",
+	"appName": "VocabMaster",
+	"webDir": "dist/public",
+	"packageClassList": []
+}

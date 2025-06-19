@@ -152,7 +152,7 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     }, 100);
   };
 
-  const speakWord = (variant: 'us' | 'uk', e: React.MouseEvent) => {
+  const speakWord = (variant: 'us' | 'uk' | 'au', e: React.MouseEvent) => {
     e.stopPropagation();
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(word.word);
@@ -170,6 +170,11 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
           voice.lang.startsWith('en-GB') || voice.name.includes('UK')
         );
         if (ukVoice) utterance.voice = ukVoice;
+      } else if (variant === 'au') {
+        const auVoice = voices.find(voice => 
+          voice.lang.startsWith('en-AU') || voice.name.includes('AU')
+        );
+        if (auVoice) utterance.voice = auVoice;
       }
       
       speechSynthesis.speak(utterance);
@@ -263,6 +268,13 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                     >
                       <Volume2 className="w-4 h-4" />
                       UK
+                    </button>
+                    <button
+                      onClick={(e) => speakWord('au' as 'us' | 'uk' | 'au', e)}
+                      className="px-4 py-2 bg-muted rounded-lg text-sm hover:bg-muted/80 transition-colors flex items-center gap-2"
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      AU
                     </button>
                   </div>
                 </div>
