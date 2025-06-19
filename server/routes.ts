@@ -174,11 +174,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Complete daily challenge
   app.post("/api/vocabulary/daily-challenge/complete", async (req, res) => {
     try {
-      const { stats } = req.body;
+      const stats = req.body;
+      console.log("Completing daily challenge with stats:", stats);
       await storage.completeDailyChallenge(stats);
       res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ message: "Failed to complete daily challenge" });
+      console.error("Error completing daily challenge:", error);
+      res.status(500).json({ message: "Failed to complete daily challenge", error: error.message });
     }
   });
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, PanInfo, useMotionValue, useTransform, animate } from "framer-motion";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -484,6 +485,7 @@ function ModeSelection({ onStartStudy, availableTags, dailySessionStatus }: Mode
 }
 
 export function SwipeStudyPage() {
+  const [location, setLocation] = useLocation();
   const [studyMode, setStudyMode] = useState<'selection' | 'studying' | 'complete'>('selection');
   const [currentMode, setCurrentMode] = useState<'random' | 'tag' | 'daily'>('random');
   const [selectedTag, setSelectedTag] = useState<string>('');
@@ -835,7 +837,7 @@ export function SwipeStudyPage() {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => window.location.href = '/vocabulary'}
+                onClick={() => setLocation('/')}
                 className="flex-1"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
