@@ -158,11 +158,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
     setIsFlipping(true);
     onTap();
     
-    // Auto-play pronunciation when flipping to answer
-    if (!showAnswer) {
-      speakWord();
-    }
-    
     setTimeout(() => {
       setIsFlipping(false);
     }, 100);
@@ -546,13 +541,43 @@ export function SwipeStudyPage() {
       setDisplayedWord(shuffled[0]);
       setShowAnswer(false);
       setIsCardSwiping(false);
+      
+      // Auto-play pronunciation if enabled
+      const autoplay = localStorage.getItem("autoplay") === "true";
+      if (autoplay && shuffled[0]) {
+        // Delay auto-play to allow card to render
+        setTimeout(async () => {
+          try {
+            const { azureTTS } = await import('@/lib/azure-tts');
+            const defaultAccent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
+            await azureTTS.speak(shuffled[0].word, defaultAccent);
+          } catch (error) {
+            console.error('Auto-play failed:', error);
+          }
+        }, 500);
+      }
     }
   }, [words, studyMode]);
 
   // Update displayed word when current index changes
   useEffect(() => {
     if (studyWords.length > 0 && currentIndex < studyWords.length && !isCardSwiping) {
-      setDisplayedWord(studyWords[currentIndex]);
+      const newWord = studyWords[currentIndex];
+      setDisplayedWord(newWord);
+      
+      // Auto-play pronunciation if enabled for new cards
+      const autoplay = localStorage.getItem("autoplay") === "true";
+      if (autoplay && newWord && currentIndex > 0) { // Don't auto-play the first card (handled in initial load)
+        setTimeout(async () => {
+          try {
+            const { azureTTS } = await import('@/lib/azure-tts');
+            const defaultAccent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
+            await azureTTS.speak(newWord.word, defaultAccent);
+          } catch (error) {
+            console.error('Auto-play failed for new card:', error);
+          }
+        }, 300);
+      }
     }
   }, [currentIndex, studyWords, isCardSwiping]);
 

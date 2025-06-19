@@ -180,6 +180,7 @@ export function SettingsPage() {
                 <SelectContent>
                   <SelectItem value="us">US</SelectItem>
                   <SelectItem value="uk">UK</SelectItem>
+                  <SelectItem value="au">AU</SelectItem>
                 </SelectContent>
               </Select>
             </div>
