@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { calculateAccuracy, formatRelativeTime, CATEGORIES } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 // Note: isDueForReview function will be implemented inline since it's a simple date check
 import type { VocabularyWord } from "@shared/schema";
 
@@ -429,6 +430,7 @@ export function ProgressPage() {
           </div>
         </CardContent>
       </Card>
+      <MobileBottomNav />
     </div>
   );
 }

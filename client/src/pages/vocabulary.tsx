@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage, type Language } from "@/lib/i18n";
 import { Plus, Globe, Upload, Sparkles } from "lucide-react";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import type { VocabularyWord, InsertVocabularyWord } from "@shared/schema";
 
 interface VocabularyPageProps {
@@ -268,6 +269,7 @@ export function VocabularyPage({ onEditWord }: VocabularyPageProps) {
       >
         <Plus className="w-7 h-7" />
       </Button>
+      <MobileBottomNav />
     </main>
   );
 }
