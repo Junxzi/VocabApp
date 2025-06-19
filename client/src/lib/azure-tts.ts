@@ -108,24 +108,31 @@ class AzureTTSService {
     const cachedUrl = this.audioCache.get(cacheKey);
     if (cachedUrl) {
       return new Promise((resolve, reject) => {
-        const audio = new Audio(cachedUrl);
+        // Create fresh audio element each time to avoid replay issues
+        const audio = new Audio();
         this.currentAudio = audio;
+        
+        audio.oncanplaythrough = () => {
+          audio.currentTime = 0;
+          audio.play().catch((error) => {
+            this.currentAudio = null;
+            reject(error);
+          });
+        };
         
         audio.onended = () => {
           this.currentAudio = null;
           resolve();
         };
+        
         audio.onerror = () => {
           this.currentAudio = null;
           reject('Cached audio playback failed');
         };
         
-        // Reset audio to allow multiple plays
-        audio.currentTime = 0;
-        audio.play().catch((error) => {
-          this.currentAudio = null;
-          reject(error);
-        });
+        // Set source after setting up event handlers
+        audio.src = cachedUrl;
+        audio.load();
       });
     }
 
@@ -137,24 +144,31 @@ class AzureTTSService {
       this.audioCache.set(cacheKey, url);
       
       return new Promise((resolve, reject) => {
-        const audio = new Audio(url);
+        // Create fresh audio element each time to avoid replay issues
+        const audio = new Audio();
         this.currentAudio = audio;
+        
+        audio.oncanplaythrough = () => {
+          audio.currentTime = 0;
+          audio.play().catch((error) => {
+            this.currentAudio = null;
+            reject(error);
+          });
+        };
         
         audio.onended = () => {
           this.currentAudio = null;
           resolve();
         };
+        
         audio.onerror = () => {
           this.currentAudio = null;
           reject('Cached audio playback failed');
         };
         
-        // Reset audio to allow multiple plays
-        audio.currentTime = 0;
-        audio.play().catch((error) => {
-          this.currentAudio = null;
-          reject(error);
-        });
+        // Set source after setting up event handlers
+        audio.src = url;
+        audio.load();
       });
     }
 
@@ -165,6 +179,8 @@ class AzureTTSService {
     if (this.currentAudio) {
       this.currentAudio.pause();
       this.currentAudio.currentTime = 0;
+      this.currentAudio.src = '';
+      this.currentAudio.load(); // Reset the audio element
       this.currentAudio = null;
     }
   }
