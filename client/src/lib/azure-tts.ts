@@ -26,6 +26,10 @@ class AzureTTSService {
   private dbName = 'azure-tts-cache';
   private dbVersion = 1;
   private currentAudio: HTMLAudioElement | null = null; // Track current playing audio
+  private isPlaying = false; // Track if audio is currently playing
+  private currentSynthesizer: sdk.SpeechSynthesizer | null = null; // Track current synthesizer
+  private playbackQueue: Array<() => Promise<void>> = []; // Queue for audio requests
+  private isProcessingQueue = false;
 
   constructor() {
     this.initialize();
@@ -101,9 +105,6 @@ class AzureTTSService {
   }
 
   private async playFromCache(cacheKey: string): Promise<void> {
-    // Stop any currently playing audio
-    this.stopCurrentAudio();
-
     // Try in-memory cache first
     const cachedUrl = this.audioCache.get(cacheKey);
     if (cachedUrl) {
@@ -112,12 +113,15 @@ class AzureTTSService {
         const audio = new Audio();
         this.currentAudio = audio;
         
-        audio.oncanplaythrough = () => {
+        audio.onloadeddata = () => {
           audio.currentTime = 0;
-          audio.play().catch((error) => {
-            this.currentAudio = null;
-            reject(error);
-          });
+          const playPromise = audio.play();
+          if (playPromise) {
+            playPromise.catch((error) => {
+              this.currentAudio = null;
+              reject(error);
+            });
+          }
         };
         
         audio.onended = () => {
@@ -128,6 +132,11 @@ class AzureTTSService {
         audio.onerror = () => {
           this.currentAudio = null;
           reject('Cached audio playback failed');
+        };
+        
+        audio.onabort = () => {
+          this.currentAudio = null;
+          reject('Audio playback aborted');
         };
         
         // Set source after setting up event handlers
@@ -148,12 +157,15 @@ class AzureTTSService {
         const audio = new Audio();
         this.currentAudio = audio;
         
-        audio.oncanplaythrough = () => {
+        audio.onloadeddata = () => {
           audio.currentTime = 0;
-          audio.play().catch((error) => {
-            this.currentAudio = null;
-            reject(error);
-          });
+          const playPromise = audio.play();
+          if (playPromise) {
+            playPromise.catch((error) => {
+              this.currentAudio = null;
+              reject(error);
+            });
+          }
         };
         
         audio.onended = () => {
@@ -166,6 +178,11 @@ class AzureTTSService {
           reject('Cached audio playback failed');
         };
         
+        audio.onabort = () => {
+          this.currentAudio = null;
+          reject('Audio playback aborted');
+        };
+        
         // Set source after setting up event handlers
         audio.src = url;
         audio.load();
@@ -176,6 +193,7 @@ class AzureTTSService {
   }
 
   private stopCurrentAudio(): void {
+    // Stop any current audio playback
     if (this.currentAudio) {
       this.currentAudio.pause();
       this.currentAudio.currentTime = 0;
@@ -183,6 +201,58 @@ class AzureTTSService {
       this.currentAudio.load(); // Reset the audio element
       this.currentAudio = null;
     }
+    
+    // Stop any current synthesis
+    if (this.currentSynthesizer) {
+      try {
+        this.currentSynthesizer.close();
+      } catch (error) {
+        console.warn('Error closing synthesizer:', error);
+      }
+      this.currentSynthesizer = null;
+    }
+    
+    // Reset playing state
+    this.isPlaying = false;
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.isProcessingQueue || this.playbackQueue.length === 0) {
+      return;
+    }
+
+    this.isProcessingQueue = true;
+    
+    while (this.playbackQueue.length > 0) {
+      const request = this.playbackQueue.shift();
+      if (request) {
+        try {
+          await request();
+        } catch (error) {
+          console.error('Queue processing error:', error);
+        }
+      }
+    }
+    
+    this.isProcessingQueue = false;
+  }
+
+  private queueAudioRequest(requestFn: () => Promise<void>): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Clear any existing queue to prioritize the latest request
+      this.playbackQueue.length = 0;
+      
+      this.playbackQueue.push(async () => {
+        try {
+          await requestFn();
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+      
+      this.processQueue();
+    });
   }
 
   private async cacheAudioData(key: string, audioData: ArrayBuffer): Promise<void> {
@@ -235,74 +305,94 @@ class AzureTTSService {
   }
 
   async speak(text: string, accent: 'us' | 'uk' | 'au' = 'us'): Promise<void> {
-    const cacheKey = this.getCacheKey(text, accent);
+    console.log(`Speaking "${text}" with ${accent.toUpperCase()} accent`);
     
-    // Stop any currently playing audio first
-    this.stopCurrentAudio();
-    
-    // Try to play from cache first
-    try {
-      await this.playFromCache(cacheKey);
-      console.log(`Played ${text} (${accent.toUpperCase()}) from cache`);
-      return;
-    } catch (error) {
-      // Not in cache, proceed with synthesis
-    }
-
-    if (!this.isInitialized || !this.speechConfig) {
-      // Fallback to browser TTS
-      return this.fallbackToWebTTS(text, accent);
-    }
-
-    try {
-      const voiceName = AZURE_VOICES[accent];
-      this.speechConfig.speechSynthesisVoiceName = voiceName;
-
-      // Create audio config to get raw audio data
-      const audioConfig = sdk.AudioConfig.fromDefaultSpeakerOutput();
+    return this.queueAudioRequest(async () => {
+      // Prevent multiple simultaneous requests
+      if (this.isPlaying) {
+        this.stopCurrentAudio();
+      }
       
-      // Create synthesizer
-      const synthesizer = new sdk.SpeechSynthesizer(this.speechConfig, audioConfig);
+      this.isPlaying = true;
+      const cacheKey = this.getCacheKey(text, accent);
+      
+      try {
+        // Try to play from cache first
+        await this.playFromCache(cacheKey);
+        console.log(`✓ Azure TTS successful for "${text}"`);
+        this.isPlaying = false;
+        return;
+      } catch (error) {
+        // Not in cache, proceed with synthesis
+      }
 
-      return new Promise((resolve, reject) => {
-        synthesizer.speakTextAsync(
-          text,
-          (result) => {
-            if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
-              console.log(`Azure TTS: Successfully synthesized ${text} with ${accent.toUpperCase()} accent`);
+      if (!this.isInitialized || !this.speechConfig) {
+        // Fallback to browser TTS
+        await this.fallbackToWebTTS(text, accent);
+        this.isPlaying = false;
+        return;
+      }
+
+      try {
+        const voiceName = AZURE_VOICES[accent];
+        this.speechConfig.speechSynthesisVoiceName = voiceName;
+
+        // Create audio config to get raw audio data
+        const audioConfig = sdk.AudioConfig.fromDefaultSpeakerOutput();
+        
+        // Create synthesizer and track it
+        const synthesizer = new sdk.SpeechSynthesizer(this.speechConfig, audioConfig);
+        this.currentSynthesizer = synthesizer;
+
+        await new Promise<void>((resolve, reject) => {
+          synthesizer.speakTextAsync(
+            text,
+            (result) => {
+              this.currentSynthesizer = null;
               
-              // Cache the audio data asynchronously (don't wait)
-              if (result.audioData) {
-                this.cacheAudioData(cacheKey, result.audioData)
-                  .then(() => console.log(`Cached audio for ${text} (${accent.toUpperCase()})`))
-                  .catch(error => console.warn('Failed to cache audio:', error));
+              if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
+                console.log(`Azure TTS: Successfully synthesized ${text} with ${accent.toUpperCase()} accent`);
+                console.log(`✓ Azure TTS successful for "${text}"`);
+                
+                // Cache the audio data asynchronously (don't wait)
+                if (result.audioData) {
+                  this.cacheAudioData(cacheKey, result.audioData)
+                    .then(() => console.log(`Cached audio for ${text} (${accent.toUpperCase()})`))
+                    .catch(error => console.warn('Failed to cache audio:', error));
+                }
+                
+                resolve();
+              } else {
+                console.error(`Azure TTS synthesis failed: ${result.errorDetails}`);
+                // Fallback to web TTS on Azure failure
+                this.fallbackToWebTTS(text, accent).then(resolve).catch(reject);
               }
-              
-              resolve();
-            } else {
-              console.error(`Azure TTS synthesis failed: ${result.errorDetails}`);
-              // Fallback to web TTS on Azure failure
+              synthesizer.close();
+            },
+            (error) => {
+              this.currentSynthesizer = null;
+              console.error(`Azure TTS error: ${error}`);
+              synthesizer.close();
+              // Fallback to web TTS on error
               this.fallbackToWebTTS(text, accent).then(resolve).catch(reject);
             }
-            synthesizer.close();
-          },
-          (error) => {
-            console.error(`Azure TTS error: ${error}`);
-            synthesizer.close();
-            // Fallback to web TTS on error
-            this.fallbackToWebTTS(text, accent).then(resolve).catch(reject);
-          }
-        );
-      });
-    } catch (error) {
-      console.error('Azure TTS speak error:', error);
-      return this.fallbackToWebTTS(text, accent);
-    }
+          );
+        });
+      } catch (error) {
+        console.error('Azure TTS speak error:', error);
+        await this.fallbackToWebTTS(text, accent);
+      } finally {
+        this.isPlaying = false;
+      }
+    });
   }
 
   private async fallbackToWebTTS(text: string, accent: 'us' | 'uk' | 'au'): Promise<void> {
     return new Promise((resolve) => {
       if ('speechSynthesis' in window) {
+        // Stop any ongoing speech synthesis
+        speechSynthesis.cancel();
+        
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 0.8;
         utterance.volume = 0.7;
@@ -326,11 +416,19 @@ class AzureTTSService {
           utterance.voice = targetVoice;
         }
 
-        utterance.onend = () => resolve();
-        utterance.onerror = () => resolve(); // Still resolve on error
+        utterance.onend = () => {
+          console.log(`✓ Browser TTS fallback completed`);
+          resolve();
+        };
+        
+        utterance.onerror = () => {
+          console.warn('Browser TTS error, but continuing');
+          resolve(); // Still resolve on error
+        };
         
         speechSynthesis.speak(utterance);
       } else {
+        console.warn('Speech synthesis not available');
         resolve();
       }
     });
