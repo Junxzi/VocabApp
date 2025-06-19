@@ -398,6 +398,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate words using GPT with full enrichment
       const generatedWords = await generateWordGacha(tagName, count);
       
+      // Verify we got the expected number of words
+      if (generatedWords.length < count) {
+        console.warn(`Generated only ${generatedWords.length} words out of requested ${count}. Attempting additional generation...`);
+        
+        // Try to generate additional words to reach the target
+        const remainingCount = count - generatedWords.length;
+        try {
+          const additionalWords = await generateWordGacha(tagName, remainingCount);
+          
+          // Filter out duplicates from the additional batch
+          const existingWords = new Set(generatedWords.map(w => w.word.toLowerCase()));
+          const newAdditionalWords = additionalWords.filter(word => 
+            !existingWords.has(word.word.toLowerCase())
+          );
+          
+          generatedWords.push(...newAdditionalWords);
+          console.log(`Added ${newAdditionalWords.length} additional words. Total: ${generatedWords.length}`);
+        } catch (additionalError) {
+          console.warn("Failed to generate additional words:", additionalError);
+        }
+      }
+      
       // Add generated words to database with multiple tags
       const addedWords = [];
       const skippedWords = [];
@@ -428,13 +450,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Final verification
+      const actualCount = addedWords.length;
+      const warningMessage = actualCount < count ? 
+        ` (Warning: Generated ${actualCount} out of ${count} requested words)` : '';
+
       res.json({
-        message: `Successfully generated ${addedWords.length} words for "${tagName}" tag`,
+        message: `Successfully generated ${addedWords.length} words for "${tagName}" tag${warningMessage}`,
         words: addedWords,
         totalGenerated: generatedWords.length,
         totalAdded: addedWords.length,
         skippedDuplicates: skippedWords.length,
         duplicateWords: skippedWords,
+        requestedCount: count,
+        actualGeneratedCount: generatedWords.length,
         tagName,
         selectedTags: allTags
       });

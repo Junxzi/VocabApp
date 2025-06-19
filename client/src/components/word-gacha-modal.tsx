@@ -46,17 +46,24 @@ export function WordGachaModal({ open, onOpenChange }: WordGachaModalProps) {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/vocabulary'] });
+      
       const duplicateMessage = data.skippedDuplicates > 0 
         ? (language === 'ja' 
           ? ` (${data.skippedDuplicates}個の重複をスキップ)`
           : ` (${data.skippedDuplicates} duplicates skipped)`)
         : '';
+
+      const countMessage = data.requestedCount && data.actualGeneratedCount !== data.requestedCount
+        ? (language === 'ja'
+          ? ` (${data.actualGeneratedCount}/${data.requestedCount}個生成)`
+          : ` (${data.actualGeneratedCount}/${data.requestedCount} generated)`)
+        : '';
       
       toast({
         title: language === 'ja' ? "生成完了" : "Generation Complete",
         description: language === 'ja' 
-          ? `「${data.tagName}」タグで${data.totalAdded}個の単語を生成しました${duplicateMessage}`
-          : `Generated ${data.totalAdded} words with "${data.tagName}" tag${duplicateMessage}`
+          ? `「${data.tagName}」タグで${data.totalAdded}個の単語を生成しました${duplicateMessage}${countMessage}`
+          : `Generated ${data.totalAdded} words with "${data.tagName}" tag${duplicateMessage}${countMessage}`
       });
       onOpenChange(false);
       setTagName("");
