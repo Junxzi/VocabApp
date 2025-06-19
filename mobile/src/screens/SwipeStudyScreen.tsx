@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, memo} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Dimensions,
   TouchableOpacity,
   Alert,
+  InteractionManager,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {PanGestureHandler, State} from 'react-native-gesture-handler';
@@ -16,6 +17,8 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  interpolate,
+  Extrapolate,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Tts from 'react-native-tts';
@@ -47,72 +50,85 @@ export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
     initializeTTS();
   }, []);
 
-  const loadStudyWords = async () => {
+  const loadStudyWords = useCallback(async () => {
     try {
-      const studyMode = route.params?.mode || 'random';
-      let data: VocabularyWord[];
-      
-      if (studyMode === 'random') {
-        data = await vocabularyService.getRandomWords(30);
-      } else if (studyMode === 'daily') {
-        data = await vocabularyService.getDailyChallengeWords();
-      } else {
-        data = await vocabularyService.getWordsByTag(route.params?.tag);
-      }
-      
-      setWords(data);
-      setSession(prev => ({...prev, total: data.length}));
-      setLoading(false);
+      // Use InteractionManager to defer heavy operations after interactions
+      InteractionManager.runAfterInteractions(async () => {
+        const studyMode = route.params?.mode || 'random';
+        let data: VocabularyWord[];
+        
+        if (studyMode === 'random') {
+          data = await vocabularyService.getRandomWords(30);
+        } else if (studyMode === 'daily') {
+          data = await vocabularyService.getDailyChallengeWords();
+        } else {
+          data = await vocabularyService.getWordsByTag(route.params?.tag);
+        }
+        
+        setWords(data);
+        setSession(prev => ({...prev, total: data.length}));
+        setLoading(false);
+      });
     } catch (error) {
       console.error('Failed to load study words:', error);
       setLoading(false);
     }
-  };
+  }, [route.params]);
 
-  const initializeTTS = () => {
+  const initializeTTS = useCallback(() => {
     Tts.setDefaultLanguage('en-US');
     Tts.setDefaultRate(0.8);
     Tts.setDefaultPitch(1.0);
-  };
+  }, []);
 
-  const speakWord = (accent: 'us' | 'uk' | 'au' = 'us') => {
+  // Memoize language map to avoid recreation on each call
+  const languageMap = useMemo(() => ({
+    us: 'en-US',
+    uk: 'en-GB',
+    au: 'en-AU',
+  }), []);
+
+  const speakWord = useCallback((accent: 'us' | 'uk' | 'au' = 'us') => {
     if (!words[currentIndex]) return;
     
     const word = words[currentIndex].word;
-    const languageMap = {
-      us: 'en-US',
-      uk: 'en-GB',
-      au: 'en-AU',
-    };
-    
     Tts.setDefaultLanguage(languageMap[accent]);
     Tts.speak(word);
-  };
+  }, [words, currentIndex, languageMap]);
 
+  // Optimized gesture handler with better performance
   const gestureHandler = useAnimatedGestureHandler({
     onStart: () => {
-      scale.value = withTiming(1.05);
+      scale.value = withTiming(1.05, { duration: 100 });
     },
     onActive: (event) => {
       translateX.value = event.translationX;
-      translateY.value = event.translationY;
-      rotate.value = event.translationX * 0.1;
+      translateY.value = event.translationY * 0.3; // Reduced vertical movement
+      rotate.value = interpolate(
+        event.translationX,
+        [-screenWidth, 0, screenWidth],
+        [-30, 0, 30],
+        Extrapolate.CLAMP
+      );
     },
     onEnd: (event) => {
-      scale.value = withTiming(1);
+      scale.value = withTiming(1, { duration: 200 });
       
-      if (Math.abs(event.translationX) > screenWidth * 0.3) {
-        const direction = event.translationX > 0 ? 'right' : 'left';
-        const targetX = direction === 'right' ? screenWidth : -screenWidth;
+      const threshold = screenWidth * 0.3;
+      const velocity = event.velocityX;
+      
+      if (Math.abs(event.translationX) > threshold || Math.abs(velocity) > 1000) {
+        const direction = event.translationX > 0 || velocity > 0 ? 'right' : 'left';
+        const targetX = direction === 'right' ? screenWidth * 1.2 : -screenWidth * 1.2;
         
-        translateX.value = withTiming(targetX, {duration: 300});
-        rotate.value = withTiming(direction === 'right' ? 30 : -30, {duration: 300});
+        translateX.value = withTiming(targetX, { duration: 300 });
+        rotate.value = withTiming(direction === 'right' ? 30 : -30, { duration: 300 });
         
         runOnJS(handleSwipe)(direction);
       } else {
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-        rotate.value = withSpring(0);
+        translateX.value = withSpring(0, { damping: 15, stiffness: 150 });
+        translateY.value = withSpring(0, { damping: 15, stiffness: 150 });
+        rotate.value = withSpring(0, { damping: 15, stiffness: 150 });
       }
     },
   });
