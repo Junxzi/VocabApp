@@ -26,8 +26,9 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const { t, language } = useLanguage();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 0, 200], [-25, 0, 25]);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
+  const rotate = useTransform(x, [-150, 0, 150], [-15, 0, 15]);
+  const opacity = useTransform(x, [-150, -75, 0, 75, 150], [0.6, 0.9, 1, 0.9, 0.6]);
+  const scale = useTransform(x, [-150, 0, 150], [0.95, 1, 0.95]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
@@ -111,34 +112,42 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
     setDragX(0);
-    const threshold = 100;
+    const threshold = 80; // Reduced threshold for more responsive swiping
     const distance = info.offset.x;
     const velocity = Math.abs(info.velocity.x);
     
-    if (Math.abs(distance) > threshold || velocity > 200) {
+    if (Math.abs(distance) > threshold || velocity > 300) {
       const direction = distance > 0 ? 1 : -1;
-      const exitX = direction * (window.innerWidth + 200);
+      const exitX = direction * (window.innerWidth + 100);
       
       // Trigger word change immediately when finger lifts
       onSwipe(direction > 0 ? 'right' : 'left');
       
+      // Smoother exit animation
       animate(x, exitX, {
         type: "spring",
-        stiffness: 400,
-        damping: 25,
+        stiffness: 600,
+        damping: 30,
         velocity: info.velocity.x
       });
+      
+      // Subtle Y movement for more natural exit
+      animate(y, direction * 50, {
+        type: "spring",
+        stiffness: 600,
+        damping: 30
+      });
     } else {
-      // Return to center position for both x and y
+      // Smooth return to center with better spring physics
       animate(x, 0, {
         type: "spring",
-        stiffness: 500,
-        damping: 35
+        stiffness: 800,
+        damping: 40
       });
       animate(y, 0, {
         type: "spring",
-        stiffness: 500,
-        damping: 35
+        stiffness: 800,
+        damping: 40
       });
     }
   };
@@ -159,15 +168,22 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
       // Import Azure TTS service dynamically
       const { azureTTS } = await import('@/lib/azure-tts');
       console.log(`Speaking "${word.word}" with ${variant.toUpperCase()} accent using Azure TTS`);
+      
+      // Wait for the TTS service to be ready
       await azureTTS.speak(word.word, variant);
+      console.log(`Successfully spoke "${word.word}" with ${variant.toUpperCase()} accent`);
     } catch (error) {
       console.error('Azure TTS failed, falling back to browser TTS:', error);
       
-      // Fallback to browser TTS
+      // Enhanced fallback to browser TTS
       if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
         const utterance = new SpeechSynthesisUtterance(word.word);
         utterance.rate = 0.8;
-        utterance.volume = 0.7;
+        utterance.volume = 0.8;
+        utterance.pitch = 1.0;
 
         const languageMap = {
           us: 'en-US',
@@ -176,17 +192,26 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         };
         utterance.lang = languageMap[variant];
 
-        const voices = speechSynthesis.getVoices();
-        const targetVoice = voices.find(voice => 
-          voice.lang.startsWith(languageMap[variant]) ||
-          voice.name.toLowerCase().includes(variant)
-        );
-        
-        if (targetVoice) {
-          utterance.voice = targetVoice;
-        }
+        // Wait for voices to load if needed
+        const loadVoices = () => {
+          const voices = speechSynthesis.getVoices();
+          const targetVoice = voices.find(voice => 
+            voice.lang.startsWith(languageMap[variant]) ||
+            voice.name.toLowerCase().includes(variant === 'us' ? 'united states' : variant === 'uk' ? 'united kingdom' : 'australia')
+          );
+          
+          if (targetVoice) {
+            utterance.voice = targetVoice;
+          }
 
-        speechSynthesis.speak(utterance);
+          speechSynthesis.speak(utterance);
+        };
+
+        if (speechSynthesis.getVoices().length === 0) {
+          speechSynthesis.addEventListener('voiceschanged', loadVoices, { once: true });
+        } else {
+          loadVoices();
+        }
       }
     }
   };
@@ -634,7 +659,11 @@ export function SwipeStudyPage() {
   };
 
   if (studyMode === 'selection') {
-    return <ModeSelection onStartStudy={handleStartStudy} availableTags={availableTags} />;
+    return (
+      <div className="pb-20">
+        <ModeSelection onStartStudy={handleStartStudy} availableTags={availableTags} />
+      </div>
+    );
   }
 
   if (isLoading) {
@@ -777,6 +806,19 @@ export function SwipeStudyPage() {
             zIndex={10}
           />
         )}
+      </div>
+      
+      {/* Back button at bottom center during study */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+        <Button
+          onClick={resetStudy}
+          variant="outline"
+          size="lg"
+          className="bg-background/80 backdrop-blur-sm border-2 hover:bg-muted/80 transition-all duration-200 shadow-lg"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          戻る
+        </Button>
       </div>
     </div>
   );
