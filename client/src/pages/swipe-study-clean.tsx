@@ -35,135 +35,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
 
-  const handleDragStart = () => {
-    setIsDragging(true);
-  };
-
-  const handleDrag = (event: any, info: PanInfo) => {
-    setDragX(info.offset.x);
-  };
-
-  // Calculate border color with threshold and gradient
-  const getBorderColor = () => {
-    if (!isDragging) return undefined;
-    
-    const threshold = 20; // Center threshold zone - reduced for quicker response
-    const maxDistance = 80; // Maximum distance for full intensity - shorter distance
-    
-    if (Math.abs(dragX) <= threshold) {
-      return undefined; // No highlight in center zone
-    }
-    
-    const distance = Math.abs(dragX) - threshold;
-    const intensity = Math.min(distance / (maxDistance - threshold), 1);
-    
-    if (dragX > threshold) {
-      // Green with gradient opacity
-      return `rgba(34, 197, 94, ${0.3 + intensity * 0.7})`;
-    } else if (dragX < -threshold) {
-      // Red with gradient opacity
-      return `rgba(239, 68, 68, ${0.3 + intensity * 0.7})`;
-    }
-    
-    return undefined;
-  };
-
-  // Calculate content opacity and overlay intensity
-  const getContentOpacity = () => {
-    if (!isDragging) return 1;
-    
-    const threshold = 20;
-    const maxDistance = 80;
-    
-    if (Math.abs(dragX) <= threshold) {
-      return 1; // Full opacity in center zone
-    }
-    
-    const distance = Math.abs(dragX) - threshold;
-    const fadeIntensity = Math.min(distance / (maxDistance - threshold), 1);
-    
-    return 1 - (fadeIntensity * 0.8); // Fade out more aggressively to 20% opacity
-  };
-
-  const getOverlayOpacity = () => {
-    if (!isDragging) return 0;
-    
-    const threshold = 20;
-    const maxDistance = 80;
-    
-    if (Math.abs(dragX) <= threshold) {
-      return 0; // No overlay in center zone
-    }
-    
-    const distance = Math.abs(dragX) - threshold;
-    return Math.min(distance / (maxDistance - threshold), 1);
-  };
-
-  const getOverlayText = () => {
-    if (dragX > 20) return "Know it!";
-    if (dragX < -20) return "Still learning";
-    return "";
-  };
-
-  const getOverlayColor = () => {
-    if (dragX > 20) return "text-green-500";
-    if (dragX < -20) return "text-red-500";
-    return "";
-  };
-
-  const handleDragEnd = (event: any, info: PanInfo) => {
-    setIsDragging(false);
-    setDragX(0);
-    const threshold = 80; // Reduced threshold for more responsive swiping
-    const distance = info.offset.x;
-    const velocity = Math.abs(info.velocity.x);
-    
-    if (Math.abs(distance) > threshold || velocity > 300) {
-      const direction = distance > 0 ? 1 : -1;
-      const exitX = direction * (window.innerWidth + 100);
-      
-      // Trigger word change immediately when finger lifts
-      onSwipe(direction > 0 ? 'right' : 'left');
-      
-      // Slower, more natural exit animation
-      animate(x, exitX, {
-        type: "spring",
-        stiffness: 300,
-        damping: 25,
-        velocity: info.velocity.x * 0.8
-      });
-      
-      // Subtle Y movement for more natural exit
-      animate(y, direction * 30, {
-        type: "spring",
-        stiffness: 300,
-        damping: 25
-      });
-    } else {
-      // Smooth return to center with better spring physics
-      animate(x, 0, {
-        type: "spring",
-        stiffness: 800,
-        damping: 40
-      });
-      animate(y, 0, {
-        type: "spring",
-        stiffness: 800,
-        damping: 40
-      });
-    }
-  };
-
-  const handleCardTap = () => {
-    if (isFlipping) return;
-    setIsFlipping(true);
-    onTap();
-    
-    setTimeout(() => {
-      setIsFlipping(false);
-    }, 100);
-  };
-
   // Simple audio playback system for swipe cards
   const playWordAudio = async (forcePlay: boolean = false) => {
     const accent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
@@ -196,6 +67,128 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
         }, 100);
       }
     }
+  };
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDrag = (event: any, info: PanInfo) => {
+    setDragX(info.offset.x);
+  };
+
+  // Calculate border color with threshold and gradient
+  const getBorderColor = () => {
+    if (!isDragging) return undefined;
+    
+    const threshold = 20;
+    const maxDistance = 80;
+    
+    if (Math.abs(dragX) <= threshold) {
+      return undefined;
+    }
+    
+    const distance = Math.abs(dragX) - threshold;
+    const intensity = Math.min(distance / (maxDistance - threshold), 1);
+    
+    if (dragX > threshold) {
+      return `rgba(34, 197, 94, ${0.3 + intensity * 0.7})`;
+    } else if (dragX < -threshold) {
+      return `rgba(239, 68, 68, ${0.3 + intensity * 0.7})`;
+    }
+    
+    return undefined;
+  };
+
+  const getContentOpacity = () => {
+    if (!isDragging) return 1;
+    
+    const threshold = 20;
+    const maxDistance = 80;
+    
+    if (Math.abs(dragX) <= threshold) {
+      return 1;
+    }
+    
+    const distance = Math.abs(dragX) - threshold;
+    const fadeIntensity = Math.min(distance / (maxDistance - threshold), 1);
+    
+    return 1 - (fadeIntensity * 0.8);
+  };
+
+  const getOverlayOpacity = () => {
+    if (!isDragging) return 0;
+    
+    const threshold = 20;
+    const maxDistance = 80;
+    
+    if (Math.abs(dragX) <= threshold) {
+      return 0;
+    }
+    
+    const distance = Math.abs(dragX) - threshold;
+    return Math.min(distance / (maxDistance - threshold), 1);
+  };
+
+  const getOverlayText = () => {
+    if (dragX > 20) return "Know it!";
+    if (dragX < -20) return "Still learning";
+    return "";
+  };
+
+  const getOverlayColor = () => {
+    if (dragX > 20) return "text-green-500";
+    if (dragX < -20) return "text-red-500";
+    return "";
+  };
+
+  const handleDragEnd = (event: any, info: PanInfo) => {
+    setIsDragging(false);
+    setDragX(0);
+    const threshold = 80;
+    const distance = info.offset.x;
+    const velocity = Math.abs(info.velocity.x);
+    
+    if (Math.abs(distance) > threshold || velocity > 300) {
+      const direction = distance > 0 ? 1 : -1;
+      const exitX = direction * (window.innerWidth + 100);
+      
+      onSwipe(direction > 0 ? 'right' : 'left');
+      
+      animate(x, exitX, {
+        type: "spring",
+        stiffness: 300,
+        damping: 25,
+        velocity: info.velocity.x * 0.8
+      });
+      
+      animate(y, direction * 30, {
+        type: "spring",
+        stiffness: 300,
+        damping: 25
+      });
+    } else {
+      animate(x, 0, {
+        type: "spring",
+        stiffness: 800,
+        damping: 40
+      });
+      animate(y, 0, {
+        type: "spring",
+        stiffness: 800,
+        damping: 40
+      });
+    }
+  };
+
+  const handleCardTap = () => {
+    if (isFlipping) return;
+    setIsFlipping(true);
+    onTap();
+    
+    setTimeout(() => {
+      setIsFlipping(false);
+    }, 100);
   };
 
   if (!isVisible) return null;
@@ -274,10 +267,6 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
                   </Badge>
                 )}
               </div>
-              
-
-              
-              
             </div>
             
             {/* Overlay text that appears when dragging */}
@@ -327,163 +316,20 @@ function StudyCard({ word, onSwipe, onTap, showAnswer, isVisible, zIndex }: Stud
   );
 }
 
-interface ModeSelectionProps {
-  onStartStudy: (mode: 'random' | 'tag' | 'daily', selectedTag?: string) => void;
-  availableTags: string[];
-}
-
-function ModeSelection({ onStartStudy, availableTags }: ModeSelectionProps) {
-  const [selectedTag, setSelectedTag] = useState<string>("");
-
-  // Query daily challenge status
-  const { data: dailyStatus } = useQuery<{ completed: boolean; date: string; stats?: any }>({
-    queryKey: ["/api/vocabulary/daily-challenge/status"],
-  });
-
-  // Disable scrolling when component mounts
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, []);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      <Card className="w-full max-w-md">
-        <CardContent className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-4">学習モード選択</h1>
-            <p className="text-muted-foreground">学習方法を選択してください</p>
-          </div>
-
-          <div className="space-y-4">
-            {/* Daily Challenge */}
-            <Button
-              onClick={() => onStartStudy('daily')}
-              className={`w-full h-auto p-6 flex items-center gap-4 relative overflow-hidden transition-all duration-300 ${
-                dailyStatus?.completed 
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 opacity-60"
-                  : "bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 text-white shadow-xl border-0 hover:shadow-2xl hover:scale-[1.02] before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:via-transparent before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
-              }`}
-              variant="ghost"
-              disabled={dailyStatus?.completed}
-            >
-              {/* Animated sparkle overlay for uncompleted daily challenge */}
-              {!dailyStatus?.completed && (
-                <div className="absolute top-2 right-2 z-10">
-                  <div className="relative">
-                    <div className="animate-pulse">
-                      <Trophy className="w-5 h-5 text-yellow-300" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex items-center gap-3 relative z-20">
-                <div className="relative">
-                  <div className={`p-2 rounded-full ${dailyStatus?.completed ? "" : "bg-white/20 backdrop-blur-sm"}`}>
-                    <Calendar className={`w-6 h-6 ${dailyStatus?.completed ? "" : "text-white drop-shadow-lg"}`} />
-                  </div>
-                  {dailyStatus?.completed && (
-                    <CheckCircle2 className="w-4 h-4 absolute -top-1 -right-1 text-green-500" />
-                  )}
-                </div>
-                <div className="text-left">
-                  <div className="font-bold flex items-center gap-2 text-lg">
-                    <span className={dailyStatus?.completed ? "" : "text-white drop-shadow-lg"}>
-                      今日の問題
-                    </span>
-                    {dailyStatus?.completed ? (
-                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">完了</Badge>
-                    ) : (
-                      <Badge className="text-xs bg-yellow-400 text-yellow-900 font-bold animate-pulse">特別</Badge>
-                    )}
-                  </div>
-                  <div className={`text-sm ${dailyStatus?.completed ? "text-muted-foreground" : "text-white/90 drop-shadow"}`}>
-                    {dailyStatus?.completed 
-                      ? `本日は完了済み (${dailyStatus.stats?.correctWords || 0}/${dailyStatus.stats?.totalWords || 0})`
-                      : "SuperMemoアルゴリズムで選ばれた30問"
-                    }
-                  </div>
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => onStartStudy('random')}
-              className="w-full h-auto p-6 flex items-center gap-4"
-              variant="outline"
-            >
-              <div className="flex items-center gap-3">
-                <Shuffle className="w-6 h-6" />
-                <div className="text-left">
-                  <div className="font-semibold">ランダム学習</div>
-                  <div className="text-sm text-muted-foreground">全語彙から30問出題</div>
-                </div>
-              </div>
-            </Button>
-
-            <div className="space-y-3">
-              <Button
-                onClick={() => selectedTag && onStartStudy('tag', selectedTag)}
-                disabled={!selectedTag}
-                className="w-full h-auto p-6 flex flex-col items-center gap-3"
-                variant="outline"
-              >
-                <div className="flex items-center gap-3">
-                  <Tags className="w-6 h-6" />
-                  <div className="text-left">
-                    <div className="font-semibold">タグ別学習</div>
-                    <div className="text-sm text-muted-foreground">特定のタグから出題</div>
-                  </div>
-                </div>
-              </Button>
-
-              <Select value={selectedTag} onValueChange={setSelectedTag}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="学習するタグを選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTags.map((tag) => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-export function SwipeStudyPage() {
+export default function SwipeStudyClean() {
+  const { t, language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [studyMode, setStudyMode] = useState<'selection' | 'studying' | 'complete'>('selection');
   const [currentMode, setCurrentMode] = useState<'random' | 'tag' | 'daily'>('random');
   const [selectedTag, setSelectedTag] = useState<string>('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [isCardSwiping, setIsCardSwiping] = useState(false);
-  const [displayedWord, setDisplayedWord] = useState<VocabularyWord | null>(null);
-  const [sessionStats, setSessionStats] = useState({
-    known: 0,
-    needReview: 0,
-    total: 0,
-  });
   const [studyWords, setStudyWords] = useState<VocabularyWord[]>([]);
-
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [displayedWord, setDisplayedWord] = useState<VocabularyWord | null>(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [sessionStats, setSessionStats] = useState({ known: 0, needReview: 0, total: 0 });
+  const [isCardSwiping, setIsCardSwiping] = useState(false);
 
   const { data: allWords = [] } = useQuery<VocabularyWord[]>({
     queryKey: ["/api/vocabulary"],
@@ -502,7 +348,6 @@ export function SwipeStudyPage() {
     mutationFn: async ({ id, known }: { id: number; known: boolean }) => {
       await apiRequest("PUT", `/api/vocabulary/${id}/spaced-repetition`, { known });
     },
-    // Don't invalidate queries during study session to prevent refetching
   });
 
   const completeDailyChallengeMutation = useMutation({
@@ -521,6 +366,29 @@ export function SwipeStudyPage() {
         .filter(tag => tag && tag.trim() !== '')
     )
   ).sort();
+
+  // Simple auto-play function
+  const playWordAudio = async (forcePlay: boolean = false) => {
+    if (!displayedWord) return;
+    
+    const accent = (localStorage.getItem("pronunciationAccent") as 'us' | 'uk' | 'au') || 'us';
+    const autoplayEnabled = localStorage.getItem("autoplay") === "true";
+    
+    if (!forcePlay && !autoplayEnabled) {
+      console.log(`[Audio] Skipping auto-play - disabled in settings`);
+      return;
+    }
+    
+    const playType = forcePlay ? 'Manual' : 'Auto';
+    console.log(`[${playType} Audio] Playing "${displayedWord.word}" with ${accent.toUpperCase()} accent`);
+    
+    try {
+      await azureTTS.speak(displayedWord.word, accent);
+      console.log(`[${playType} Audio] ✓ Playback completed`);
+    } catch (error) {
+      console.error(`[${playType} Audio] ❌ Azure TTS failed:`, error);
+    }
+  };
 
   useEffect(() => {
     if (words.length > 0 && studyMode === 'studying') {
@@ -548,7 +416,7 @@ export function SwipeStudyPage() {
       setDisplayedWord(newWord);
       
       // Auto-play pronunciation if enabled for new cards
-      if (newWord && currentIndex > 0) { // Don't auto-play the first card (handled in initial load)
+      if (newWord && currentIndex > 0) {
         setTimeout(() => {
           playWordAudio(false); // Auto-play (not forced)
         }, 300);
@@ -556,44 +424,32 @@ export function SwipeStudyPage() {
     }
   }, [currentIndex, studyWords, isCardSwiping]);
 
-  useEffect(() => {
-    if (studyMode === 'studying') {
-      document.body.style.overflow = 'hidden';
-      document.body.style.height = '100vh';
-      document.documentElement.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.height = '';
-      document.documentElement.style.overflow = '';
-    }
-    
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.height = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, [studyMode]);
-
   const handleStartStudy = (mode: 'random' | 'tag' | 'daily', tag?: string) => {
     setCurrentMode(mode);
-    if (tag) setSelectedTag(tag);
+    if (mode === 'tag' && tag) {
+      setSelectedTag(tag);
+    }
     setStudyMode('studying');
-    setSessionStats({ known: 0, needReview: 0, total: 0 });
-    setStudyWords([]); // Clear existing words to trigger new fetch
     setCurrentIndex(0);
-    setIsCardSwiping(false);
+    setShowAnswer(false);
+    setSessionStats({ known: 0, needReview: 0, total: 0 });
+    setStudyWords([]);
   };
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (!displayedWord) return;
-
+    
     const known = direction === 'right';
     const wordId = displayedWord.id;
     const nextIndex = currentIndex + 1;
     
-    // Update stats immediately
+    setIsCardSwiping(true);
+    
+    setTimeout(() => {
+      setIsCardSwiping(false);
+    }, 300);
+
     setSessionStats(prev => ({
-      ...prev,
       known: known ? prev.known + 1 : prev.known,
       needReview: known ? prev.needReview : prev.needReview + 1,
       total: prev.total + 1,
@@ -604,13 +460,11 @@ export function SwipeStudyPage() {
       known 
     });
 
-    // Show next word instantly without any delay state
     if (nextIndex < studyWords.length) {
       setCurrentIndex(nextIndex);
       setDisplayedWord(studyWords[nextIndex]);
       setShowAnswer(false);
     } else {
-      // Complete daily challenge if it's daily mode
       if (currentMode === 'daily') {
         const accuracy = sessionStats.total > 0 ? (sessionStats.known / sessionStats.total) * 100 : 0;
         completeDailyChallengeMutation.mutate({
@@ -639,7 +493,52 @@ export function SwipeStudyPage() {
     return (
       <>
         <div className="pb-20">
-          <ModeSelection onStartStudy={handleStartStudy} availableTags={availableTags} />
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardContent className="p-6">
+                <h1 className="text-2xl font-bold text-center mb-6">学習モード選択</h1>
+                
+                <div className="space-y-4">
+                  <Button 
+                    onClick={() => handleStartStudy('random')}
+                    className="w-full h-16 text-lg"
+                    variant="outline"
+                  >
+                    <Shuffle className="w-6 h-6 mr-3" />
+                    ランダム学習 (30問)
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleStartStudy('daily')}
+                    className="w-full h-16 text-lg"
+                    variant="outline"
+                  >
+                    <Calendar className="w-6 h-6 mr-3" />
+                    今日の問題
+                  </Button>
+                  
+                  {availableTags.length > 0 && (
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium">タグ別学習:</label>
+                      <div className="space-y-2">
+                        {availableTags.slice(0, 5).map(tag => (
+                          <Button
+                            key={tag}
+                            onClick={() => handleStartStudy('tag', tag)}
+                            className="w-full h-12"
+                            variant="outline"
+                          >
+                            <Tags className="w-4 h-4 mr-2" />
+                            {tag}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
         <MobileBottomNav />
       </>
@@ -703,102 +602,65 @@ export function SwipeStudyPage() {
     );
   }
 
-  if (!studyWords.length) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">
-              {currentMode === 'random' ? '学習可能な単語がありません' : 
-               currentMode === 'daily' ? '今日の問題が準備できませんでした' :
-               `${selectedTag}タグの単語が見つかりません`}
-            </p>
-            <Button onClick={resetStudy}>
-              モード選択に戻る
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const progress = ((currentIndex + 1) / studyWords.length) * 100;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 overflow-hidden">
-      {/* Safe area spacing for Dynamic Island */}
-      <div className="pt-12 sm:pt-8">
-        <div className="max-w-md mx-auto mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold">
-                {currentMode === 'random' ? 'ランダム学習' : 
-                 currentMode === 'daily' ? '今日の問題' : 
-                 `${selectedTag}`}
-              </h1>
-              {currentMode === 'random' ? (
-                <Shuffle className="w-5 h-5 text-muted-foreground" />
-              ) : currentMode === 'daily' ? (
-                <Calendar className="w-5 h-5 text-muted-foreground" />
-              ) : (
-                <Tags className="w-5 h-5 text-muted-foreground" />
-              )}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {currentIndex + 1} / {studyWords.length}
-            </div>
-          </div>
-          <Progress value={progress} className="h-3 mb-4" />
-        </div>
-      </div>
-      {/* Card Container - positioned with Dynamic Island consideration */}
-      <div className="max-w-md mx-auto h-[580px] relative mt-8">
-        {/* Large counters in upper corners */}
-        <div className="absolute -top-20 left-0 z-20">
-          <div className="flex items-center justify-center w-16 h-16 bg-red-500 text-white rounded-full shadow-lg mt-[705px] mb-[705px]">
-            <div className="text-center">
-              <XCircle className="w-6 h-6 mx-auto mb-1" />
-              <span className="text-lg font-bold">{sessionStats.needReview}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="absolute -top-20 right-0 z-20">
-          <div className="flex items-center justify-center w-16 h-16 bg-green-500 text-white rounded-full shadow-lg mt-[705px] mb-[705px]">
-            <div className="text-center">
-              <CheckCircle2 className="w-6 h-6 mx-auto mb-1" />
-              <span className="text-lg font-bold">{sessionStats.known}</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Background blank card frame for smoother transitions */}
-        <div className="absolute inset-0 bg-card border-2 border-border/30 rounded-2xl shadow-lg opacity-50 z-0"></div>
-        
-        {displayedWord && (
-          <StudyCard
-            key={`card-${currentIndex}-${displayedWord.id}`}
-            word={displayedWord}
-            onSwipe={handleSwipe}
-            onTap={handleCardTap}
-            showAnswer={showAnswer}
-            isVisible={true}
-            zIndex={10}
-          />
-        )}
-      </div>
-      
-      {/* Back button at bottom center during study */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-        <Button
+    <div className="min-h-screen bg-background overflow-hidden relative">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-background/90 backdrop-blur-sm">
+        <Button 
+          variant="ghost" 
+          size="sm"
           onClick={resetStudy}
-          variant="outline"
-          size="lg"
-          className="bg-background/80 backdrop-blur-sm border-2 hover:bg-muted/80 transition-all duration-200 shadow-lg"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-4 h-4 mr-2" />
           戻る
         </Button>
+        
+        <div className="text-center">
+          <div className="text-sm text-muted-foreground">
+            {currentIndex + 1} / {studyWords.length}
+          </div>
+          <Progress 
+            value={((currentIndex + 1) / studyWords.length) * 100} 
+            className="w-32 h-2 mt-1"
+          />
+        </div>
+        
+        <div className="text-sm text-muted-foreground">
+          {sessionStats.known}✓ / {sessionStats.needReview}✗
+        </div>
+      </div>
+
+      {/* Cards Container */}
+      <div className="absolute inset-0 p-4 pt-20">
+        <div className="relative w-full h-full max-w-md mx-auto">
+          {displayedWord && (
+            <StudyCard
+              key={`${currentIndex}-${displayedWord.id}`}
+              word={displayedWord}
+              onSwipe={handleSwipe}
+              onTap={handleCardTap}
+              showAnswer={showAnswer}
+              isVisible={true}
+              zIndex={1}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Instructions */}
+      <div className="absolute bottom-4 left-0 right-0 p-4">
+        <div className="max-w-md mx-auto">
+          <div className="flex justify-between items-center text-sm text-muted-foreground bg-background/90 backdrop-blur-sm rounded-lg p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+              <span>もう一度</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>習得済み</span>
+              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
