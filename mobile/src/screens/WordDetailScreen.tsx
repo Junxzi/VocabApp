@@ -14,6 +14,7 @@ import {useTheme} from '../contexts/ThemeContext';
 import {useLanguage} from '../contexts/LanguageContext';
 import {VocabularyWord, NavigationProps, AccentType} from '../types';
 import {vocabularyService} from '../services/VocabularyService';
+import {azureTTS} from '../services/AzureTTSService';
 
 export default function WordDetailScreen({navigation, route}: NavigationProps) {
   const {colors} = useTheme();
@@ -46,42 +47,42 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
     Tts.setDefaultPitch(1.0);
   };
 
-  const speakWord = (accent: AccentType = 'us') => {
+  const speakWord = async (accent: AccentType = 'us') => {
     if (!word) return;
-    
-    const languageMap = {
-      us: 'en-US',
-      uk: 'en-GB',
-      au: 'en-AU',
-    };
-    
-    Tts.setDefaultLanguage(languageMap[accent]);
-    Tts.speak(word.word);
+
+    try {
+      await azureTTS.speak(word.word, accent);
+    } catch (error) {
+      console.warn('Fallback to TTS due to error:', error);
+      const languageMap = {
+        us: 'en-US',
+        uk: 'en-GB',
+        au: 'en-AU',
+      };
+      Tts.setDefaultLanguage(languageMap[accent]);
+      Tts.speak(word.word);
+      Alert.alert('🗣️ Fallback TTS', `Azure に失敗したので fallback 使用（${accent}）`);
+    }
   };
 
   const handleEnrichWord = async () => {
     if (!word) return;
-    
-    Alert.alert(
-      'AI強化',
-      '発音、品詞、例文をAIで生成しますか？',
-      [
-        {text: 'キャンセル', style: 'cancel'},
-        {
-          text: '実行',
-          onPress: async () => {
-            try {
-              const enrichedWord = await vocabularyService.enrichWord(word.id);
-              setWord(enrichedWord);
-              Alert.alert('完了', 'AI強化が完了しました');
-            } catch (error) {
-              console.error('Failed to enrich word:', error);
-              Alert.alert('エラー', 'AI強化に失敗しました');
-            }
-          },
+    Alert.alert('AI強化', '発音、品詞、例文をAIで生成しますか？', [
+      {text: 'キャンセル', style: 'cancel'},
+      {
+        text: '実行',
+        onPress: async () => {
+          try {
+            const enrichedWord = await vocabularyService.enrichWord(word.id);
+            setWord(enrichedWord);
+            Alert.alert('完了', 'AI強化が完了しました');
+          } catch (error) {
+            console.error('Failed to enrich word:', error);
+            Alert.alert('エラー', 'AI強化に失敗しました');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const getDifficultyColor = (difficulty: number | undefined) => {
@@ -107,10 +108,7 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
   };
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
+    container: {flex: 1, backgroundColor: colors.background},
     header: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -119,19 +117,14 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    backButton: {
-      marginRight: 16,
-    },
+    backButton: {marginRight: 16},
     headerTitle: {
       fontSize: 18,
       fontWeight: '600',
       color: colors.text,
       flex: 1,
     },
-    content: {
-      flex: 1,
-      padding: 20,
-    },
+    content: {flex: 1, padding: 20},
     wordHeader: {
       alignItems: 'center',
       marginBottom: 32,
@@ -177,9 +170,7 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
       fontSize: 14,
       fontWeight: '600',
     },
-    section: {
-      marginBottom: 24,
-    },
+    section: {marginBottom: 24},
     sectionTitle: {
       fontSize: 18,
       fontWeight: '600',
@@ -207,9 +198,7 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
       borderWidth: 1,
       borderColor: colors.border,
     },
-    pronunciationItem: {
-      alignItems: 'center',
-    },
+    pronunciationItem: {alignItems: 'center'},
     pronunciationLabel: {
       fontSize: 14,
       color: colors.textSecondary,
@@ -314,29 +303,21 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
     );
   }
 
-  const exampleSentences = word.exampleSentences 
-    ? JSON.parse(word.exampleSentences) 
-    : [];
-
+  const exampleSentences = word.exampleSentences ? JSON.parse(word.exampleSentences) : [];
   const hasEnrichedData = word.pronunciationUs || word.pronunciationUk || word.pronunciationAu || exampleSentences.length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>単語詳細</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Word Header */}
         <View style={styles.wordHeader}>
           <Text style={styles.wordText}>{word.word}</Text>
-          
           {word.pronunciation && (
             <View style={styles.pronunciationContainer}>
               <Text style={styles.pronunciationText}>/{word.pronunciation}/</Text>
@@ -345,7 +326,6 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
               </TouchableOpacity>
             </View>
           )}
-
           {word.difficulty && (
             <View style={[styles.difficultyBadge, {backgroundColor: getDifficultyColor(word.difficulty)}]}>
               <Text style={styles.difficultyText}>
@@ -355,7 +335,6 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
           )}
         </View>
 
-        {/* Definition */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>意味</Text>
           <View style={styles.definitionCard}>
@@ -363,7 +342,6 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
           </View>
         </View>
 
-        {/* Pronunciations */}
         {hasEnrichedData && (word.pronunciationUs || word.pronunciationUk || word.pronunciationAu) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>発音</Text>
@@ -372,36 +350,25 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
                 <View style={styles.pronunciationItem}>
                   <Text style={styles.pronunciationLabel}>US</Text>
                   <Text style={styles.pronunciationValue}>/{word.pronunciationUs}/</Text>
-                  <TouchableOpacity 
-                    style={styles.pronunciationButton}
-                    onPress={() => speakWord('us')}
-                  >
+                  <TouchableOpacity style={styles.pronunciationButton} onPress={() => speakWord('us')}>
                     <Text style={styles.pronunciationButtonText}>再生</Text>
                   </TouchableOpacity>
                 </View>
               )}
-
               {word.pronunciationUk && (
                 <View style={styles.pronunciationItem}>
                   <Text style={styles.pronunciationLabel}>UK</Text>
                   <Text style={styles.pronunciationValue}>/{word.pronunciationUk}/</Text>
-                  <TouchableOpacity 
-                    style={styles.pronunciationButton}
-                    onPress={() => speakWord('uk')}
-                  >
+                  <TouchableOpacity style={styles.pronunciationButton} onPress={() => speakWord('uk')}>
                     <Text style={styles.pronunciationButtonText}>再生</Text>
                   </TouchableOpacity>
                 </View>
               )}
-
               {word.pronunciationAu && (
                 <View style={styles.pronunciationItem}>
                   <Text style={styles.pronunciationLabel}>AU</Text>
                   <Text style={styles.pronunciationValue}>/{word.pronunciationAu}/</Text>
-                  <TouchableOpacity 
-                    style={styles.pronunciationButton}
-                    onPress={() => speakWord('au')}
-                  >
+                  <TouchableOpacity style={styles.pronunciationButton} onPress={() => speakWord('au')}>
                     <Text style={styles.pronunciationButtonText}>再生</Text>
                   </TouchableOpacity>
                 </View>
@@ -410,7 +377,6 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
           </View>
         )}
 
-        {/* Example Sentences */}
         {exampleSentences.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>例文</Text>
@@ -427,7 +393,6 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
           </View>
         )}
 
-        {/* Tags */}
         {word.tags && word.tags.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>タグ</Text>
@@ -441,7 +406,6 @@ export default function WordDetailScreen({navigation, route}: NavigationProps) {
           </View>
         )}
 
-        {/* AI Enrichment Button */}
         {!hasEnrichedData && (
           <TouchableOpacity style={styles.enrichButton} onPress={handleEnrichWord}>
             <Text style={styles.enrichButtonText}>AI で強化</Text>

@@ -1,0 +1,58 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# TypeScript
+dist/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*.local
+
+# React Native build outputs
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/build/
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# React Native specific
+*.keystore
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro cache
+.metro-cache/
+.cache/
+tmp/
+logs/
+
+# VSCode
+.vscode/
+.history/
+
+# Coverage
+coverage/
+
+# Bundle output
+*.bundle
+*.tar.gz
+
+# Local dev builds or screenshots
+server/public/
+screenshots/

@@ -1,7 +1,8 @@
 import {VocabularyWord, Category} from '../types';
+import { InsertVocabularyWord } from '../../../shared/schema'; // 相対パスはプロジェクト構成に応じて調整
 
 // Base API URL - in production this would come from environment config
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5002/api';
 
 class VocabularyService {
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
@@ -29,7 +30,7 @@ class VocabularyService {
     return this.makeRequest(`/vocabulary/${id}`);
   }
 
-  async createWord(word: Partial<VocabularyWord>): Promise<VocabularyWord> {
+  async createWord(word: InsertVocabularyWord): Promise<VocabularyWord> {
     return this.makeRequest('/vocabulary', {
       method: 'POST',
       body: JSON.stringify(word),

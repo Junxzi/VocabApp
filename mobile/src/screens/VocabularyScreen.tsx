@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Alert,
   InteractionManager,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -16,15 +15,12 @@ import {useLanguage} from '../contexts/LanguageContext';
 import {VocabularyWord, NavigationProps} from '../types';
 import {vocabularyService} from '../services/VocabularyService';
 
-// Optimized WordItem component with React.memo for performance
 const WordItem = memo(({item, colors, onPress}: {
   item: VocabularyWord;
   colors: any;
   onPress: (word: VocabularyWord) => void;
 }) => {
-  const handlePress = useCallback(() => {
-    onPress(item);
-  }, [item, onPress]);
+  const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
   const getDifficultyColor = useCallback((difficulty: number) => {
     switch (difficulty) {
@@ -38,26 +34,26 @@ const WordItem = memo(({item, colors, onPress}: {
 
   return (
     <TouchableOpacity
-      style={[wordItemStyles.wordItem, {backgroundColor: colors.surface, borderColor: colors.border}]}
+      style={[styles.wordItem, {backgroundColor: colors.surface, borderColor: colors.border}]}
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <View style={wordItemStyles.wordHeader}>
-        <Text style={[wordItemStyles.wordText, {color: colors.text}]}>{item.word}</Text>
+      <View style={styles.wordHeader}>
+        <Text style={[styles.wordText, {color: colors.text}]}>{item.word}</Text>
         {item.difficulty && (
-          <View style={[wordItemStyles.difficultyBadge, getDifficultyColor(item.difficulty)]}>
-            <Text style={wordItemStyles.difficultyText}>{item.difficulty}</Text>
+          <View style={[styles.difficultyBadge, getDifficultyColor(item.difficulty)]}>
+            <Text style={styles.difficultyText}>{item.difficulty}</Text>
           </View>
         )}
       </View>
-      <Text style={[wordItemStyles.definitionText, {color: colors.textSecondary}]} numberOfLines={2}>
+      <Text style={[styles.definitionText, {color: colors.textSecondary}]} numberOfLines={2}>
         {item.definition}
       </Text>
-      {item.tags && item.tags.length > 0 && (
-        <View style={wordItemStyles.tagsContainer}>
+      {Array.isArray(item.tags) && item.tags.length > 0 && (
+        <View style={styles.tagsContainer}>
           {item.tags.slice(0, 3).map((tag, index) => (
-            <View key={`${item.id}-${tag}-${index}`} style={[wordItemStyles.tag, {backgroundColor: colors.primary + '20'}]}>
-              <Text style={[wordItemStyles.tagText, {color: colors.primary}]}>{tag}</Text>
+            <View key={`${item.id}-${tag}-${index}`} style={[styles.tag, {backgroundColor: colors.primary + '20'}]}>
+              <Text style={[styles.tagText, {color: colors.primary}]}>{tag}</Text>
             </View>
           ))}
         </View>
@@ -66,7 +62,118 @@ const WordItem = memo(({item, colors, onPress}: {
   );
 });
 
-const wordItemStyles = StyleSheet.create({
+export default function VocabularyScreen({navigation}: NavigationProps) {
+  const {colors} = useTheme();
+  const {t} = useLanguage();
+  const [words, setWords] = useState<VocabularyWord[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const loadVocabulary = useCallback(async () => {
+    try {
+      const data = await vocabularyService.getAllWords();
+      setWords(data);
+    } catch (error) {
+      console.error('Failed to load vocabulary:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      loadVocabulary();
+    });
+  }, [loadVocabulary]);
+
+  // 👇 追加：戻ってきたときに再読み込み
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadVocabulary();
+    });
+    return unsubscribe;
+  }, [navigation, loadVocabulary]);
+
+  const filteredWords = useMemo(() => {
+    if (!searchQuery.trim()) return words;
+    const query = searchQuery.toLowerCase();
+    return words.filter(word =>
+      word.word.toLowerCase().includes(query) ||
+      word.definition.toLowerCase().includes(query)
+    );
+  }, [searchQuery, words]);
+
+  const handleWordPress = useCallback((word: VocabularyWord) => {
+    navigation.navigate('WordDetail', {word});
+  }, [navigation]);
+
+  const handleAddWord = useCallback(() => {
+    navigation.navigate('AddWord');
+  }, [navigation]);
+
+  const keyExtractor = useCallback((item: VocabularyWord) => `word-${item.id}`, []);
+
+  const renderWordItem = useCallback(({item}: {item: VocabularyWord}) => (
+    <WordItem item={item} colors={colors} onPress={handleWordPress} />
+  ), [colors, handleWordPress]);
+
+  return (
+    <SafeAreaView style={[styles.container, {backgroundColor: colors.background}]}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={[styles.searchInput, {color: colors.text, borderColor: colors.border}]}
+          placeholder="単語を検索..."
+          placeholderTextColor={colors.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {filteredWords.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, {color: colors.textSecondary}]}>
+            {loading ? '読み込み中...' : '単語が見つかりません'}
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredWords}
+          renderItem={renderWordItem}
+          keyExtractor={keyExtractor}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+
+      <TouchableOpacity style={[styles.fab, {backgroundColor: colors.primary}]} onPress={handleAddWord}>
+        <Icon name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  searchContainer: {
+    padding: 16,
+  },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    borderWidth: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
   wordItem: {
     padding: 16,
     marginHorizontal: 16,
@@ -121,210 +228,19 @@ const wordItemStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 8,
+  },
 });
-
-export default function VocabularyScreen({navigation}: NavigationProps) {
-  const {colors} = useTheme();
-  const {t} = useLanguage();
-  const [words, setWords] = useState<VocabularyWord[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Load vocabulary in background after interactions complete
-    InteractionManager.runAfterInteractions(() => {
-      loadVocabulary();
-    });
-  }, []);
-
-  // Memoize filtered words to prevent unnecessary recalculations
-  const filteredWords = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return words;
-    }
-    const query = searchQuery.toLowerCase();
-    return words.filter(word =>
-      word.word.toLowerCase().includes(query) ||
-      word.definition.toLowerCase().includes(query)
-    );
-  }, [searchQuery, words]);
-
-  const loadVocabulary = useCallback(async () => {
-    try {
-      const data = await vocabularyService.getAllWords();
-      setWords(data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Failed to load vocabulary:', error);
-      setLoading(false);
-    }
-  }, []);
-
-  const handleWordPress = useCallback((word: VocabularyWord) => {
-    navigation.navigate('WordDetail', {word});
-  }, [navigation]);
-
-  const handleAddWord = useCallback(() => {
-    // Navigate to add word modal or screen
-    Alert.alert('Add Word', 'Add word functionality will be implemented');
-  }, []);
-
-  // Memoized item key extractor for FlatList performance
-  const keyExtractor = useCallback((item: VocabularyWord) => `word-${item.id}`, []);
-
-  // Memoized item render function to prevent unnecessary re-renders
-  const renderWordItem = useCallback(({item}: {item: VocabularyWord}) => (
-    <WordItem 
-      item={item} 
-      colors={colors}
-      onPress={handleWordPress}
-    />
-  ), [colors, handleWordPress]);
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: colors.text,
-      flex: 1,
-    },
-    addButton: {
-      backgroundColor: colors.primary,
-      borderRadius: 24,
-      width: 48,
-      height: 48,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    searchContainer: {
-      padding: 16,
-      backgroundColor: colors.surface,
-    },
-    searchInput: {
-      backgroundColor: colors.background,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 16,
-      color: colors.text,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    wordItem: {
-      marginHorizontal: 16,
-      marginVertical: 8,
-      padding: 16,
-      borderRadius: 12,
-      borderWidth: 1,
-    },
-    wordHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    wordText: {
-      fontSize: 18,
-      fontWeight: '600',
-      flex: 1,
-    },
-    difficultyBadge: {
-      borderRadius: 12,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-    },
-    difficultyText: {
-      color: 'white',
-      fontSize: 12,
-      fontWeight: 'bold',
-    },
-    definitionText: {
-      fontSize: 14,
-      lineHeight: 20,
-      marginBottom: 8,
-    },
-    tagsContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-    },
-    tag: {
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      marginRight: 8,
-      marginBottom: 4,
-    },
-    tagText: {
-      fontSize: 12,
-      fontWeight: '500',
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 32,
-    },
-    emptyText: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      textAlign: 'center',
-    },
-  });
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('nav.vocabulary')}</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddWord}>
-          <Icon name="add" size={24} color={colors.background} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="単語を検索..."
-          placeholderTextColor={colors.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {filteredWords.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
-            {loading ? '読み込み中...' : '単語が見つかりません'}
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredWords}
-          renderItem={renderWordItem}
-          keyExtractor={keyExtractor}
-          showsVerticalScrollIndicator={false}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={50}
-          initialNumToRender={15}
-          windowSize={10}
-          getItemLayout={(data, index) => ({
-            length: 100,
-            offset: 100 * index,
-            index,
-          })}
-        />
-      )}
-    </SafeAreaView>
-  );
-}
