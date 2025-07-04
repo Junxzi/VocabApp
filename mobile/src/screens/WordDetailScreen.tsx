@@ -19,6 +19,7 @@ import { VocabularyWord, NavigationProps, AccentType } from '../types';
 import { vocabularyService } from '../services/VocabularyService';
 import { azureTTS } from '../services/AzureTTSService';
 import { useQueryClient } from '../contexts/QueryContext';
+import { getDifficultyColor, getDifficultyLabel } from '../lib/difficulty';
 
 export default function WordDetailScreen({ navigation, route }: NavigationProps) {
   const { colors } = useTheme();
@@ -119,27 +120,6 @@ export default function WordDetailScreen({ navigation, route }: NavigationProps)
     }
   }, [tags, word?.id, queryClient]);
 
-  const getDifficultyColor = (d?: number) => {
-    if (!d) return colors.textSecondary;
-    switch (d) {
-      case 1: return '#10b981';
-      case 2: return '#f59e0b';
-      case 3: return '#f97316';
-      case 4: return '#ef4444';
-      default: return colors.textSecondary;
-    }
-  };
-
-  const getDifficultyLabel = (d?: number) => {
-    if (!d) return '未評価';
-    switch (d) {
-      case 1: return 'レベル１';
-      case 2: return 'レベル２';
-      case 3: return 'レベル３';
-      case 4: return 'レベル４';
-      default: return '未評価';
-    }
-  };
 
   if (loading) {
     return (
