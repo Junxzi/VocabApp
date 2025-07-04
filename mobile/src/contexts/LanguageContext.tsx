@@ -1,15 +1,23 @@
-import React, {createContext, useContext, useState, useEffect} from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Language = 'en' | 'ja';
 
 interface LanguageContextType {
   language: Language;
-  setLanguage: (lang: Language) => void;
+  setLanguage: (lang: Language) => Promise<void>;
   t: (key: string) => string;
+  loading: boolean;
 }
 
-const translations = {
+const translations: Record<Language, Record<string, string>> = {
   en: {
     'nav.vocabulary': 'Words',
     'nav.study': 'Study',
@@ -30,6 +38,13 @@ const translations = {
     'button.delete': 'Delete',
     'button.save': 'Save',
     'button.cancel': 'Cancel',
+    'progress.totalWords': 'Total words',
+    'progress.reviewed': 'Learned',
+    'progress.averageDifficulty': 'Average Difficulty',
+    'progress.distribution.easy': 'Easy (Rank 1)',
+    'progress.distribution.medium': 'Medium (Rank 2)',
+    'progress.distribution.hard': 'Hard (Rank 3-4)',
+    'progress.sectionDistribution': 'Difficulty Distribution',
   },
   ja: {
     'nav.vocabulary': '単語',
@@ -51,44 +66,61 @@ const translations = {
     'button.delete': '削除',
     'button.save': '保存',
     'button.cancel': 'キャンセル',
+    'progress.totalWords': '総単語数',
+    'progress.reviewed': '学習済み',
+    'progress.averageDifficulty': '平均難易度',
+    'progress.distribution.easy': '簡単 (ランク 1)',
+    'progress.distribution.medium': '普通 (ランク 2)',
+    'progress.distribution.hard': '難しい (ランク 3-4)',
+    'progress.sectionDistribution': '難易度別分布',
   },
 };
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+);
 
 export function LanguageProvider({children}: {children: React.ReactNode}) {
   const [language, setLanguageState] = useState<Language>('ja');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('language');
+        if (savedLanguage === 'en' || savedLanguage === 'ja') {
+          setLanguageState(savedLanguage);
+        }
+      } catch (error) {
+        console.error('[LanguageContext] Failed to load language:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     loadLanguage();
   }, []);
 
-  const loadLanguage = async () => {
-    try {
-      const savedLanguage = await AsyncStorage.getItem('language');
-      if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ja')) {
-        setLanguageState(savedLanguage);
-      }
-    } catch (error) {
-      console.error('Failed to load language:', error);
-    }
-  };
-
-  const setLanguage = async (lang: Language) => {
+  const setLanguage = useCallback(async (lang: Language) => {
     try {
       await AsyncStorage.setItem('language', lang);
       setLanguageState(lang);
     } catch (error) {
-      console.error('Failed to save language:', error);
+      console.error('[LanguageContext] Failed to save language:', error);
     }
-  };
+  }, []);
 
-  const t = (key: string): string => {
-    return translations[language][key] || key;
-  };
+  const t = useCallback(
+    (key: string): string => translations[language][key] || key,
+    [language]
+  );
+
+  const contextValue = useMemo(
+    () => ({language, setLanguage, t, loading}),
+    [language, setLanguage, t, loading]
+  );
 
   return (
-    <LanguageContext.Provider value={{language, setLanguage, t}}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

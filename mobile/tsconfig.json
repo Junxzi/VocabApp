@@ -1,29 +1,30 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "typeRoots": ["./types", "./node_modules/@types"],
     "module": "esnext",
-    "lib": ["esnext"],
     "jsx": "react-native",
     "moduleResolution": "node",
-    "allowJs": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "isolatedModules": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": "./src",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+
+    // もし '@/...' のエイリアスを使いたいならこのまま
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"]
     }
   },
+  // global.d.ts を必ず含める
   "include": [
     "src",
-    "env.d.ts"
+    "global.d.ts"
   ],
-  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js"
+  ]
 }

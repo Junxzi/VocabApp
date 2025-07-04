@@ -1,247 +1,231 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+// mobile/src/screens/SwipeStudyScreen.tsx
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
+  SafeAreaView,
   Alert,
+  Dimensions,
   InteractionManager,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {PanGestureHandler, State} from 'react-native-gesture-handler';
+import { PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import Animated, {
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
   withTiming,
-  runOnJS,
+  withSpring,
   interpolate,
   Extrapolate,
+  runOnJS,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import Tts from 'react-native-tts';
-import {useTheme} from '../contexts/ThemeContext';
-import {useLanguage} from '../contexts/LanguageContext';
-import {VocabularyWord, NavigationProps, StudySession} from '../types';
-import {vocabularyService} from '../services/VocabularyService';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import {
+  VocabularyWord,
+  NavigationProps,
+  StudySession,
+  AccentType,
+} from '../types';
+import { vocabularyService } from '../services/VocabularyService';
 import OptimizedSwipeCard from '../components/OptimizedSwipeCard';
 
-// ...[imports は変更なし]
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+type GestureEvent = PanGestureHandlerGestureEvent;
 
-const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
-const CARD_WIDTH = screenWidth - 40;
-const CARD_HEIGHT = screenHeight * 0.6;
+export default function SwipeStudyScreen({ navigation, route }: NavigationProps) {
+  const { colors } = useTheme();
+  const { t } = useLanguage();
 
-export default function SwipeStudyScreen({navigation, route}: NavigationProps) {
-  const {colors} = useTheme();
-  const {t} = useLanguage();
   const [words, setWords] = useState<VocabularyWord[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [session, setSession] = useState<StudySession>({known: 0, needReview: 0, total: 0});
+  const [session, setSession] = useState<StudySession>({ known: 0, needReview: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
+  // shared values for animation
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
-  const rotate = useSharedValue(0);
-  const scale = useSharedValue(1);
+  const rotate     = useSharedValue(0);
+  const scale      = useSharedValue(1);
+
+  const nextCard = useCallback(() => {
+    translateX.value = 0;
+    translateY.value = 0;
+    rotate.value     = 0;
+    scale.value      = 1;
+    setShowAnswer(false);
+    setCurrentIndex(i => i + 1);
+  }, [translateX, translateY, rotate, scale]);
+
+  const showResults = useCallback(() => {
+    const { known, total } = session;
+    const pct = total ? Math.round((known / total) * 100) : 0;
+    Alert.alert(
+      t('study.resultsTitle') ?? '学習完了',
+      `正解: ${known}/${total}\n正解率: ${pct}%`,
+      [
+        { text: t('button.back') ?? 'ホームに戻る', onPress: () => navigation.navigate('Main') },
+        { text: t('button.retry') ?? 'もう一度', onPress: () => {
+            setSession({ known: 0, needReview: 0, total });
+            setCurrentIndex(0);
+          }
+        },
+      ]
+    );
+  }, [navigation, session, t]);
 
   useEffect(() => {
-    loadStudyWords();
-    initializeTTS();
-  }, []);
-
-  const loadStudyWords = useCallback(async () => {
-    try {
-      InteractionManager.runAfterInteractions(async () => {
-        const studyMode = route.params?.mode || 'random';
+    InteractionManager.runAfterInteractions(async () => {
+      try {
+        const mode = (route.params?.mode as 'random' | 'daily' | 'tag') || 'random';
         let data: VocabularyWord[];
-
-        if (studyMode === 'random') {
-          data = await vocabularyService.getRandomWords(30);
-        } else if (studyMode === 'daily') {
-          data = await vocabularyService.getDailyChallengeWords();
-        } else {
-          data = await vocabularyService.getWordsByTag(route.params?.tag);
-        }
-
+        if (mode === 'daily')         data = await vocabularyService.getDailyChallenge();
+        else if (mode === 'tag')      data = await vocabularyService.getByTag(route.params.tag as string);
+        else                          data = await vocabularyService.getRandom(30);
         setWords(data);
-        setSession(prev => ({...prev, total: data.length}));
+        setSession({ known: 0, needReview: 0, total: data.length });
+      } catch (e) {
+        console.error(e);
+        Alert.alert('エラー', '単語の取得に失敗しました');
+      } finally {
         setLoading(false);
-      });
-    } catch (error) {
-      console.error('Failed to load study words:', error);
-      setLoading(false);
-    }
+      }
+    });
   }, [route.params]);
 
-  const initializeTTS = useCallback(() => {
-    Tts.setDefaultLanguage('en-US');
+  useEffect(() => {
     Tts.setDefaultRate(0.8);
     Tts.setDefaultPitch(1.0);
   }, []);
 
-  const languageMap = useMemo(() => ({
-    us: 'en-US',
-    uk: 'en-GB',
-    au: 'en-AU',
-  }), []);
+  const languageMap: Record<AccentType, string> = useMemo(
+    () => ({ us: 'en-US', uk: 'en-GB', au: 'en-AU' }), []
+  );
 
-  const speakWord = useCallback((accent: 'us' | 'uk' | 'au' = 'us') => {
-    const word = words[currentIndex]?.word;
-    if (!word) return;
+  const speakWord = useCallback((accent: AccentType = 'us') => {
+    const w = words[currentIndex]?.word;
+    if (!w) return;
     Tts.setDefaultLanguage(languageMap[accent]);
-    Tts.speak(word);
+    Tts.speak(w);
   }, [words, currentIndex, languageMap]);
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      scale.value = withTiming(1.05, { duration: 100 });
-    },
-    onActive: (event) => {
-      translateX.value = event.translationX;
-      translateY.value = event.translationY * 0.3;
-      rotate.value = interpolate(
-        event.translationX,
-        [-screenWidth, 0, screenWidth],
-        [-30, 0, 30],
+  const gestureHandler = useAnimatedGestureHandler<GestureEvent>({
+    onStart: () => { scale.value = withTiming(1.05, { duration: 100 }); },
+    onActive: ({ translationX, translationY }) => {
+      translateX.value = translationX;
+      translateY.value = translationY * 0.2;
+      rotate.value     = interpolate(
+        translationX,
+        [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
+        [-25, 0, 25],
         Extrapolate.CLAMP
       );
     },
-    onEnd: (event) => {
-      scale.value = withTiming(1, { duration: 200 });
-      const threshold = screenWidth * 0.3;
-      const velocity = event.velocityX;
-
-      if (Math.abs(event.translationX) > threshold || Math.abs(velocity) > 1000) {
-        const direction = event.translationX > 0 || velocity > 0 ? 'right' : 'left';
-        const targetX = direction === 'right' ? screenWidth * 1.2 : -screenWidth * 1.2;
-
-        translateX.value = withTiming(targetX, { duration: 300 });
-        rotate.value = withTiming(direction === 'right' ? 30 : -30, { duration: 300 });
-        runOnJS(handleSwipe)(direction);
-      } else {
-        translateX.value = withSpring(0, { damping: 15, stiffness: 150 });
-        translateY.value = withSpring(0, { damping: 15, stiffness: 150 });
-        rotate.value = withSpring(0, { damping: 15, stiffness: 150 });
+    onEnd: ({ translationX }) => {
+      scale.value = withSpring(1, { damping: 10, stiffness: 150 });
+      const threshold = SCREEN_WIDTH * 0.3;
+      if (Math.abs(translationX) < threshold) {
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+        rotate.value     = withSpring(0);
+        return;
       }
+      const dir = translationX > 0 ? 'right' : 'left';
+      const toX = dir === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH;
+      translateX.value = withTiming(toX, { duration: 200 });
+      rotate.value     = withTiming(dir === 'right' ? 25 : -25, { duration: 200 });
+
+      runOnJS(() => {
+        const known = dir === 'right';
+        setSession(s => ({
+          known:      s.known + (known ? 1 : 0),
+          needReview: s.needReview + (known ? 0 : 1),
+          total:      s.total,
+        }));
+        vocabularyService
+          .updateProgress(words[currentIndex].id, known)
+          .catch(() => {});
+        if (currentIndex + 1 >= words.length) showResults();
+        else nextCard();
+      })();
     },
   });
-
-  const handleSwipe = useCallback((direction: 'left' | 'right') => {
-    const known = direction === 'right';
-    setSession(prev => ({
-      ...prev,
-      known: known ? prev.known + 1 : prev.known,
-      needReview: known ? prev.needReview : prev.needReview + 1,
-    }));
-    InteractionManager.runAfterInteractions(() => {
-      vocabularyService.updateWordProgress(words[currentIndex].id, known);
-    });
-    setTimeout(() => {
-      if (currentIndex >= words.length - 1) {
-        showResults();
-      } else {
-        nextCard();
-      }
-    }, 300);
-  }, [currentIndex, words.length, words]);
-
-  const nextCard = useCallback(() => {
-    setCurrentIndex(prev => prev + 1);
-    setShowAnswer(false);
-    translateX.value = 0;
-    translateY.value = 0;
-    rotate.value = 0;
-    scale.value = 1;
-  }, [translateX, translateY, rotate, scale]);
-
-  const showResults = useCallback(() => {
-    const accuracy = Math.round((session.known / words.length) * 100);
-    Alert.alert(
-      '学習完了',
-      `正解: ${session.known}/${words.length}\n正解率: ${accuracy}%`,
-      [
-        {text: 'ホームに戻る', onPress: () => navigation.navigate('Main')},
-        {text: 'もう一度', onPress: () => restartStudy()},
-      ]
-    );
-  }, [session.known, words.length, navigation]);
-
-  const restartStudy = useCallback(() => {
-    setCurrentIndex(0);
-    setShowAnswer(false);
-    setSession({known: 0, needReview: 0, total: words.length});
-    translateX.value = 0;
-    translateY.value = 0;
-    rotate.value = 0;
-    scale.value = 1;
-  }, [words.length, translateX, translateY, rotate, scale]);
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
-      {translateX: translateX.value},
-      {translateY: translateY.value},
-      {rotate: `${rotate.value}deg`},
-      {scale: scale.value},
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { rotate:      `${rotate.value}deg` },
+      { scale:        scale.value },
     ],
     opacity: interpolate(
       Math.abs(translateX.value),
-      [0, screenWidth * 0.5],
+      [0, SCREEN_WIDTH * 0.5],
       [1, 0.8],
       Extrapolate.CLAMP
     ),
-  }), [translateX, translateY, rotate, scale]);
-
-  const currentWord = useMemo(() => words[currentIndex], [words, currentIndex]);
-  const handleShowAnswer = useCallback(() => setShowAnswer(!showAnswer), [showAnswer]);
-  const handleKnownPress = useCallback(() => handleSwipe('right'), [handleSwipe]);
-  const handleNeedReviewPress = useCallback(() => handleSwipe('left'), [handleSwipe]);
-
-  const styles = StyleSheet.create({
-    container: {flex: 1},
-    cardContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-    },
-    // 必要に応じてここにスタイル定義を続けてね
-  });
+  }));
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, {backgroundColor: colors.background}]}>
-        <Text>読み込み中...</Text>
+      <SafeAreaView style={{
+        flex: 1, backgroundColor: colors.background,
+        justifyContent: 'center', alignItems: 'center'
+      }}>
+        <Text>{t('loading') ?? '読み込み中…'}</Text>
       </SafeAreaView>
     );
   }
-
-  if (words.length === 0) {
+  if (!words.length) {
     return (
-      <SafeAreaView style={[styles.container, {backgroundColor: colors.background}]}>
-        <Text>単語が見つかりません</Text>
+      <SafeAreaView style={{
+        flex: 1, backgroundColor: colors.background,
+        justifyContent: 'center', alignItems: 'center'
+      }}>
+        <Text>{t('noWords') ?? '単語が見つかりません'}</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, {backgroundColor: colors.background}]}>
-      <View style={styles.cardContainer}>
-        <OptimizedSwipeCard
-          word={currentWord}
-          showAnswer={showAnswer}
-          gestureHandler={gestureHandler}
-          cardStyle={cardStyle}
-          colors={colors}
-          onShowAnswer={handleShowAnswer}
-          onSpeakWord={speakWord}
-          onKnownPress={handleKnownPress}
-          onNeedReviewPress={handleNeedReviewPress}
-        />
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View
+          style={[
+            { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+            cardStyle,
+          ]}
+        >
+          <OptimizedSwipeCard
+            word={words[currentIndex]}
+            showAnswer={showAnswer}
+            colors={{
+              surface:       colors.surface,
+              text:          colors.text,
+              textSecondary: colors.textSecondary,
+              border:        colors.border,
+              primary:       colors.primary,
+            }}
+            gestureHandler={gestureHandler}
+            cardStyle={cardStyle}
+            onShowAnswer={() => setShowAnswer(v => !v)}
+            onSpeakWord={speakWord}
+            onKnownPress={() => {
+              vocabularyService.updateProgress(words[currentIndex].id, true).catch(() => {});
+              setSession(s => ({ ...s, known: s.known + 1 }));
+              nextCard();
+            }}
+            onNeedReviewPress={() => {
+              vocabularyService.updateProgress(words[currentIndex].id, false).catch(() => {});
+              setSession(s => ({ ...s, needReview: s.needReview + 1 }));
+              nextCard();
+            }}
+          />
+        </Animated.View>
+      </PanGestureHandler>
     </SafeAreaView>
   );
 }

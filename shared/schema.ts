@@ -1,6 +1,8 @@
 import { pgTable, text, serial, integer, timestamp, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { json } from "drizzle-orm/pg-core";
 import { z } from "zod";
+
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -29,10 +31,10 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   pronunciationUs: text("pronunciation_us"), // IPA for American English
   pronunciationUk: text("pronunciation_uk"), // IPA for British English
   pronunciationAu: text("pronunciation_au"), // IPA for Australian English
-  partOfSpeech: text("part_of_speech"), // noun, verb, adjective, etc.
+  partOfSpeech: text("part_of_speech").array(), // noun, verb, adjective, etc.
   definition: text("definition").notNull(),
   exampleSentences: text("example_sentences"), // JSON array of example sentences
-  tags: text("tags").array().notNull().default([]), // Multiple tags support
+  tags: json("tags").default("[]").notNull(), // Multiple tags support
   language: text("language").notNull().default("en"), // 'en' for English, 'ja' for Japanese
   difficulty: integer("difficulty"), // Rank 1-4 (4 = hardest), null = unset
   studyCount: integer("study_count").default(0),
@@ -42,6 +44,7 @@ export const vocabularyWords = pgTable("vocabulary_words", {
   nextReview: timestamp("next_review"), // When to show this word next
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastStudied: timestamp("last_studied"),
+  userId: integer("user_id").notNull().references(() => users.id),
 });
 
 export const dailyChallenges = pgTable("daily_challenges", {
@@ -77,6 +80,14 @@ export const insertCategorySchema = createInsertSchema(categories).pick({
   notionId: true,
 });
 
+export const TagSchema = z.object({
+  name: z.string().min(1),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "カラーは #xxxxxx の 16 進表記のみです"),
+});
+export type Tag = z.infer<typeof TagSchema>;
+
 export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pick({
   word: true,
   pronunciation: true,
@@ -89,7 +100,12 @@ export const insertVocabularyWordSchema = createInsertSchema(vocabularyWords).pi
   tags: true,
   language: true,
   difficulty: true,
-}).partial({
+  userId: true,
+})
+.extend({
+  tags: z.array(TagSchema).default([]), // タグは配列で、デフォルトは空
+})
+.partial({
   pronunciation: true,
   pronunciationUs: true,
   pronunciationUk: true,

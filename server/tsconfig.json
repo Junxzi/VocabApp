@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                   // 実行環境に合わせて調整
+    "module": "CommonJS",                 // Node.js で動かす場合は CommonJS
+    "lib": ["ES2020"],                    // 利用する標準ライブラリ
+    "strict": true,                       // 厳格モード
+    "esModuleInterop": true,              // import の互換性
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "dist",                     // トランスパイル後の出力先
+    "rootDir": "..",                       // ソースルート
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "src/**/*.ts",           // サーバーコードすべて
+    "../shared/**/*.ts"        // 型拡張ファイル
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

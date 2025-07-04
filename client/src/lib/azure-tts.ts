@@ -19,6 +19,7 @@ interface AudioCacheEntry {
 }
 
 class AzureTTSService {
+  private initializedPromise: Promise<void>; // 👈 追加
   private speechConfig: sdk.SpeechConfig | null = null;
   private isInitialized = false;
   private audioCache: Map<string, string> = new Map(); // In-memory cache for current session
@@ -36,7 +37,7 @@ class AzureTTSService {
   private readonly CACHE_EXPIRY_DAYS = 30; // Cache expiry in days
 
   constructor() {
-    this.initialize();
+    this.initializedPromise = this.initialize();;
     this.initIndexedDB();
   }
 
@@ -382,18 +383,26 @@ class AzureTTSService {
   private async initialize() {
     try {
       // Get Azure credentials from server
+      console.log('🟡 Step 1: Fetching Azure config...');
       const response = await fetch('/api/azure-config');
+      console.log('🟢 Step 2: Got response:', response);
       if (!response.ok) {
-        console.warn('Azure Speech Services credentials not available, falling back to browser TTS');
+        Alert.alert('Azure Init', '❌ Config fetch failed');
         return;
       }
       
-      const { speechKey, speechRegion } = await response.json();
-      
+      const json = await response.json();
+      console.log('🟢 Step 4: Parsed JSON:', json);
+
+      const { speechKey, speechRegion } = json;
+
       if (!speechKey || !speechRegion) {
-        console.warn('Azure Speech Services credentials not found, falling back to browser TTS');
+        Alert.alert('Azure Init', '❌ Missing speechKey or speechRegion');
         return;
       }
+
+      this.speechConfig = sdk.SpeechConfig.fromSubscription(speechKey, speechRegion);
+      console.log('🟢 Step 6: Created speechConfig');
 
       this.speechConfig = sdk.SpeechConfig.fromSubscription(speechKey, speechRegion);
 
@@ -401,14 +410,20 @@ class AzureTTSService {
       this.speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3;
       
       this.isInitialized = true;
-      console.log('Azure TTS service initialized successfully');
+      Alert.alert('Azure Init', '✅ Azure initialized');
     } catch (error) {
-      console.error('Failed to initialize Azure TTS service:', error);
+      
       this.isInitialized = false;
     }
   }
 
+  // 👇 新メソッド追加
+  private async ready(): Promise<void> {
+    await this.initializedPromise;
+  }
+
   async speak(text: string, accent: 'us' | 'uk' | 'au' = 'us'): Promise<void> {
+    await this.ready(); // Ensure service is initialized before speaking
     console.log(`Speaking "${text}" with ${accent.toUpperCase()} accent`);
     
     return this.queueAudioRequest(async () => {
@@ -454,6 +469,14 @@ class AzureTTSService {
             (result) => {
               this.currentSynthesizer = null;
               
+              console.log('🎧 Azure result:', result);
+
+              if (result.audioData) {
+                console.log('✅ audioData length:', result.audioData.byteLength);
+              } else {
+                console.warn('❌ audioData is empty');
+              }
+
               if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
                 console.log(`Azure TTS: Successfully synthesized ${text} with ${accent.toUpperCase()} accent`);
                 console.log(`✓ Azure TTS successful for "${text}"`);

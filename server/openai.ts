@@ -15,7 +15,7 @@ export interface ExampleSentence {
 
 export interface WordEnrichmentData {
   pronunciations: PronunciationData;
-  primaryPartOfSpeech: string;
+  partsOfSpeech: string[];
   exampleSentences: ExampleSentence[];
 }
 
@@ -23,7 +23,6 @@ export interface WordEnrichmentData {
 const wordDataCache = new Map<string, WordEnrichmentData>();
 
 export async function enrichWordData(word: string): Promise<WordEnrichmentData> {
-  // Check cache first
   const cacheKey = word.toLowerCase();
   if (wordDataCache.has(cacheKey)) {
     return wordDataCache.get(cacheKey)!;
@@ -31,26 +30,28 @@ export async function enrichWordData(word: string): Promise<WordEnrichmentData> 
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are a linguistic expert. For any given English word, provide:
+          content: `
+You are a linguistic expert. For any given English word, provide:
 
 1. IPA pronunciation for American English, British English, and Australian English (without slashes or brackets)
-2. The most common part of speech in Japanese (名詞, 動詞, 形容詞, 副詞, etc.)
+2. **All applicable parts of speech in Japanese** (名詞, 動詞, 形容詞, 副詞, etc.), not just the most common one
 3. Exactly 2 natural, funny, and memorable example sentences that are humorous and entertaining, with their Japanese translations
 
-Make the examples funny, quirky, or amusing - like something that would make people chuckle or smile. Use casual language with humor, wit, or amusing situations that help people remember the word better.
+Make the examples funny, quirky, or amusing—like something that would make people chuckle or smile. Use casual language with humor, wit, or amusing situations that help people remember the word better.
 
 Respond with valid JSON in this exact format:
+\`\`\`json
 {
   "pronunciations": {
     "us": "ˈbɪtər",
-    "uk": "ˈbɪtə", 
+    "uk": "ˈbɪtə",
     "au": "ˈbɪtə"
   },
-  "primaryPartOfSpeech": "形容詞",
+  "partsOfSpeech": ["形容詞", "副詞"],
   "exampleSentences": [
     {
       "english": "My ex's cooking was so bitter, even the flies wouldn't touch it!",
@@ -62,8 +63,10 @@ Respond with valid JSON in this exact format:
     }
   ]
 }
+\`\`\`
 
-Be creative, funny, and memorable. Use situations that are relatable but amusing.`
+Be creative, funny, and memorable. Use situations that are relatable but amusing.
+`
         },
         {
           role: "user",
@@ -74,21 +77,32 @@ Be creative, funny, and memorable. Use situations that are relatable but amusing
       temperature: 0.3
     });
 
+    // Parse the GPT response
     const result = JSON.parse(response.choices[0].message.content || "{}");
-    
+
+    // Normalize and filter partsOfSpeech
+    let parts: string[] = [];
+    if (result.partsOfSpeech) {
+      parts = Array.isArray(result.partsOfSpeech)
+        ? result.partsOfSpeech
+        : [result.partsOfSpeech];
+    }
+    parts = parts.filter((s: string) => typeof s === "string" && s.trim().length > 0);
+
     const enrichmentData: WordEnrichmentData = {
       pronunciations: {
         us: result.pronunciations?.us || "",
         uk: result.pronunciations?.uk || "",
         au: result.pronunciations?.au || ""
       },
-      primaryPartOfSpeech: result.primaryPartOfSpeech || "",
-      exampleSentences: Array.isArray(result.exampleSentences) ? result.exampleSentences : []
+      partsOfSpeech: parts,
+      exampleSentences: Array.isArray(result.exampleSentences)
+        ? result.exampleSentences
+        : []
     };
 
-    // Cache the result
+    // Cache and return
     wordDataCache.set(cacheKey, enrichmentData);
-    
     return enrichmentData;
   } catch (error) {
     console.error("Error enriching word data:", error);

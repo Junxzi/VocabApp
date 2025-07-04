@@ -1,45 +1,52 @@
-import React, {memo, useCallback, useMemo} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Dimensions} from 'react-native';
-import {PanGestureHandler} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+// mobile/src/components/OptimizedSwipeCard.tsx
+
+import React, { memo, useCallback, useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
+import { PanGestureHandlerGestureEvent, PanGestureHandler } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {VocabularyWord} from '../types';
+import { VocabularyWord, AccentType } from '../types';
 
-const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
-const CARD_WIDTH = screenWidth - 40;
-const CARD_HEIGHT = screenHeight * 0.6;
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const CARD_W = SCREEN_W - 40;
+const CARD_H = SCREEN_H * 0.6;
 
-interface OptimizedSwipeCardProps {
+export interface OptimizedSwipeCardProps {
   word: VocabularyWord;
   showAnswer: boolean;
-  gestureHandler: any;
+  colors: {
+    surface: string;
+    text: string;
+    textSecondary: string;
+    border: string;
+    primary: string;
+  };
+  gestureHandler: (e: PanGestureHandlerGestureEvent) => void;
   cardStyle: any;
-  colors: any;
   onShowAnswer: () => void;
-  onSpeakWord: (accent: 'us' | 'uk' | 'au') => void;
+  onSpeakWord: (accent: AccentType) => void;
   onKnownPress: () => void;
   onNeedReviewPress: () => void;
 }
 
-// Optimized SwipeCard component with React.memo
-const OptimizedSwipeCard = memo(({
+const OptimizedSwipeCard = memo(({ 
   word,
   showAnswer,
+  colors,
   gestureHandler,
   cardStyle,
-  colors,
   onShowAnswer,
   onSpeakWord,
   onKnownPress,
   onNeedReviewPress,
 }: OptimizedSwipeCardProps) => {
-  
-  // Memoized accent handlers
-  const handleSpeakUS = useCallback(() => onSpeakWord('us'), [onSpeakWord]);
-  const handleSpeakUK = useCallback(() => onSpeakWord('uk'), [onSpeakWord]);
-  const handleSpeakAU = useCallback(() => onSpeakWord('au'), [onSpeakWord]);
-
-  // Memoized difficulty color
+  const handleSpeak = useCallback((acc: AccentType) => onSpeakWord(acc), [onSpeakWord]);
   const difficultyColor = useMemo(() => {
     switch (word.difficulty) {
       case 1: return '#10b981';
@@ -52,195 +59,86 @@ const OptimizedSwipeCard = memo(({
 
   const styles = StyleSheet.create({
     card: {
-      width: CARD_WIDTH,
-      height: CARD_HEIGHT,
-      borderRadius: 20,
-      padding: 24,
-      margin: 20,
-      elevation: 8,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      justifyContent: 'space-between',
-    },
-    cardHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    wordText: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      flex: 1,
-      color: colors.text,
-    },
-    difficultyBadge: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: difficultyColor,
-    },
-    difficultyText: {
-      color: 'white',
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-    pronunciationContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginBottom: 20,
-    },
-    pronunciationButton: {
-      padding: 12,
-      borderRadius: 12,
+      width: CARD_W, height: CARD_H,
+      borderRadius: 20, padding: 24, margin: 20,
       backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
+      borderWidth: 1, borderColor: colors.border,
+      shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3, shadowRadius: 8, elevation: 8,
+      justifyContent: 'space-between',
     },
-    pronunciationText: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      fontWeight: '600',
-    },
-    contentContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    showAnswerButton: {
-      paddingVertical: 16,
-      paddingHorizontal: 32,
-      borderRadius: 12,
-      backgroundColor: colors.primary,
-      marginBottom: 20,
-    },
-    showAnswerText: {
-      color: 'white',
-      fontSize: 16,
-      fontWeight: '600',
-      textAlign: 'center',
-    },
-    definitionText: {
-      fontSize: 18,
-      color: colors.text,
-      textAlign: 'center',
-      marginBottom: 16,
-      lineHeight: 28,
-    },
-    exampleText: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      fontStyle: 'italic',
-      lineHeight: 22,
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingTop: 20,
-    },
-    actionButton: {
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 12,
-      minWidth: 100,
-      alignItems: 'center',
-    },
-    knownButton: {
-      backgroundColor: '#10b981',
-    },
-    reviewButton: {
-      backgroundColor: '#ef4444',
-    },
-    buttonText: {
-      color: 'white',
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    swipeHint: {
-      position: 'absolute',
-      bottom: 8,
-      alignSelf: 'center',
-      fontSize: 12,
-      color: colors.textSecondary,
-      opacity: 0.7,
-    },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    word: { fontSize: 32, fontWeight: 'bold', flex: 1, color: colors.text },
+    badge: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', backgroundColor: difficultyColor },
+    badgeText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+    pron: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 20 },
+    pronBtn: { padding: 12, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
+    pronText: { marginTop: 4, fontSize: 12, color: colors.textSecondary },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    showBtn: { padding: 16, borderRadius: 12, backgroundColor: colors.primary },
+    showText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+    def: { fontSize: 18, color: colors.text, textAlign: 'center', marginVertical: 20, lineHeight: 28 },
+    example: { fontSize: 14, fontStyle: 'italic', color: colors.textSecondary, textAlign: 'center' },
+    actions: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 20 },
+    actionBtn: { padding: 12, borderRadius: 12, minWidth: 100, alignItems: 'center' },
+    known: { backgroundColor: '#10b981' },
+    review: { backgroundColor: '#ef4444' },
+    actionText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+    hint: { position: 'absolute', bottom: 8, alignSelf: 'center', fontSize: 12, color: colors.textSecondary, opacity: 0.7 },
   });
 
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
-      <Animated.View style={[styles.card, {backgroundColor: colors.surface}, cardStyle]}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.wordText}>{word.word}</Text>
-          {word.difficulty && (
-            <View style={styles.difficultyBadge}>
-              <Text style={styles.difficultyText}>{word.difficulty}</Text>
+      <Animated.View style={[styles.card, cardStyle]}>
+        <View style={styles.header}>
+          <Text style={styles.word}>{word.word}</Text>
+          {word.difficulty != null && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{word.difficulty}</Text>
             </View>
           )}
         </View>
-
-        <View style={styles.pronunciationContainer}>
-          <TouchableOpacity style={styles.pronunciationButton} onPress={handleSpeakUS}>
-            <Icon name="volume-up" size={20} color={colors.primary} />
-            <Text style={styles.pronunciationText}>US</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.pronunciationButton} onPress={handleSpeakUK}>
-            <Icon name="volume-up" size={20} color={colors.primary} />
-            <Text style={styles.pronunciationText}>UK</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.pronunciationButton} onPress={handleSpeakAU}>
-            <Icon name="volume-up" size={20} color={colors.primary} />
-            <Text style={styles.pronunciationText}>AU</Text>
-          </TouchableOpacity>
+        <View style={styles.pron}>
+          {(['us','uk','au'] as AccentType[]).map(acc => (
+            <TouchableOpacity key={acc} style={styles.pronBtn} onPress={() => handleSpeak(acc)}>
+              <Icon name="volume-up" size={20} color={colors.primary} />
+              <Text style={styles.pronText}>{acc.toUpperCase()}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
-
-        <View style={styles.contentContainer}>
+        <View style={styles.center}>
           {!showAnswer ? (
-            <TouchableOpacity style={styles.showAnswerButton} onPress={onShowAnswer}>
-              <Text style={styles.showAnswerText}>答えを見る</Text>
+            <TouchableOpacity style={styles.showBtn} onPress={onShowAnswer}>
+              <Text style={styles.showText}>答えを見る</Text>
             </TouchableOpacity>
           ) : (
             <>
-              <Text style={styles.definitionText}>{word.definition}</Text>
+              <Text style={styles.def}>{word.definition}</Text>
               {word.exampleSentences && (
-                <Text style={styles.exampleText}>
-                  {typeof word.exampleSentences === 'string' 
-                    ? word.exampleSentences.split('\n')[0]
-                    : word.exampleSentences[0]?.english || ''
-                  }
+                <Text style={styles.example}>
+                  {typeof word.exampleSentences === 'string'
+                    ? JSON.parse(word.exampleSentences)[0]?.english || ''
+                    : ''}
                 </Text>
               )}
             </>
           )}
         </View>
-
         {showAnswer && (
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.reviewButton]} 
-              onPress={onNeedReviewPress}
-            >
-              <Text style={styles.buttonText}>復習</Text>
+          <View style={styles.actions}>
+            <TouchableOpacity style={[styles.actionBtn, styles.review]} onPress={onNeedReviewPress}>
+              <Text style={styles.actionText}>復習</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.knownButton]} 
-              onPress={onKnownPress}
-            >
-              <Text style={styles.buttonText}>知っている</Text>
+            <TouchableOpacity style={[styles.actionBtn, styles.known]} onPress={onKnownPress}>
+              <Text style={styles.actionText}>知っている</Text>
             </TouchableOpacity>
           </View>
         )}
-
-        <Text style={styles.swipeHint}>スワイプして次へ</Text>
+        <Text style={styles.hint}>スワイプして次へ</Text>
       </Animated.View>
     </PanGestureHandler>
   );
 });
 
 OptimizedSwipeCard.displayName = 'OptimizedSwipeCard';
-
 export default OptimizedSwipeCard;

@@ -1,113 +1,139 @@
-import {VocabularyWord, Category} from '../types';
-import { InsertVocabularyWord } from '../../../shared/schema'; // 相対パスはプロジェクト構成に応じて調整
+// mobile/src/services/VocabularyService.ts
 
-// Base API URL - in production this would come from environment config
-const API_BASE_URL = 'http://localhost:5002/api';
+import { VocabularyWord, Category } from '../types';
+import { InsertVocabularyWord } from '../../../shared/schema';
+
+const API_BASE = 'http://localhost:5002/api';
 
 class VocabularyService {
-  private async makeRequest(endpoint: string, options: RequestInit = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
+  private async makeRequest<T>(url: string, init: RequestInit = {}): Promise<T> {
+    const res = await fetch(`${API_BASE}${url}`, {
+      headers: { 'Content-Type': 'application/json', ...(init.headers || {}) },
+      ...init,
     });
 
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+    let body: any
+    try {
+      body = await res.json();
+    } catch {
+      body = null;
     }
 
-    return response.json();
+    if (!res.ok) {
+      // サーバーが { message, error } を返しているならそれを優先
+      const serverMsg = body?.error ?? body?.message;
+      throw new Error(
+        typeof serverMsg === 'string'
+          ? serverMsg
+          : `API request failed: ${res.status} ${res.statusText}`
+      );
+    }
+
+    return body as T;
   }
 
-  async getAllWords(): Promise<VocabularyWord[]> {
-    return this.makeRequest('/vocabulary');
+  /** 全単語取得 */
+  async getAll(): Promise<VocabularyWord[]> {
+    return this.makeRequest<VocabularyWord[]>('/vocabulary');
   }
 
-  async getWordById(id: number): Promise<VocabularyWord> {
-    return this.makeRequest(`/vocabulary/${id}`);
+  /** IDで単語取得 */
+  async getById(id: number): Promise<VocabularyWord> {
+    return this.makeRequest<VocabularyWord>(`/vocabulary/${id}`);
   }
 
-  async createWord(word: InsertVocabularyWord): Promise<VocabularyWord> {
-    return this.makeRequest('/vocabulary', {
+  /** 単語作成 */
+  async create(payload: InsertVocabularyWord): Promise<VocabularyWord> {
+    return this.makeRequest<VocabularyWord>('/vocabulary', {
       method: 'POST',
-      body: JSON.stringify(word),
+      body: JSON.stringify(payload),
     });
   }
 
-  async updateWord(id: number, word: Partial<VocabularyWord>): Promise<VocabularyWord> {
-    return this.makeRequest(`/vocabulary/${id}`, {
+  /** 単語更新 */
+  async update(id: number, updates: Partial<VocabularyWord>): Promise<VocabularyWord> {
+    return this.makeRequest<VocabularyWord>(`/vocabulary/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(word),
+      body: JSON.stringify(updates),
     });
   }
 
-  async deleteWord(id: number): Promise<void> {
-    return this.makeRequest(`/vocabulary/${id}`, {
-      method: 'DELETE',
-    });
+  /** 単語削除 */
+  async delete(id: number): Promise<void> {
+    await this.makeRequest<void>(`/vocabulary/${id}`, { method: 'DELETE' });
   }
 
-  async searchWords(query: string): Promise<VocabularyWord[]> {
-    return this.makeRequest(`/vocabulary/search?q=${encodeURIComponent(query)}`);
+  /** 検索（空文字なら即時に空配列返し） */
+  async search(query: string): Promise<VocabularyWord[]> {
+    const q = query.trim();
+    if (!q) return [];
+    return this.makeRequest<VocabularyWord[]>(
+      `/vocabulary/search?q=${encodeURIComponent(q)}`
+    );
   }
 
-  async getRandomWords(limit: number = 30): Promise<VocabularyWord[]> {
-    return this.makeRequest(`/vocabulary/random/${limit}`);
+  /** ランダム学習用 */
+  async getRandom(limit = 30): Promise<VocabularyWord[]> {
+    return this.makeRequest<VocabularyWord[]>(`/vocabulary/random/${limit}`);
   }
 
-  async getWordsByCategory(category: string): Promise<VocabularyWord[]> {
-    return this.makeRequest(`/vocabulary/category/${encodeURIComponent(category)}`);
+  /** タグ別学習用 */
+  async getByTag(tag: string): Promise<VocabularyWord[]> {
+    return this.makeRequest<VocabularyWord[]>(
+      `/vocabulary/tag/${encodeURIComponent(tag)}`
+    );
   }
 
-  async getWordsByTag(tag: string): Promise<VocabularyWord[]> {
-    return this.makeRequest(`/vocabulary/tag/${encodeURIComponent(tag)}`);
+  /** デイリーチャレンジ用単語取得 */
+  async getDailyChallenge(): Promise<VocabularyWord[]> {
+    return this.makeRequest<VocabularyWord[]>('/vocabulary/daily-challenge');
   }
 
-  async getDailyChallengeWords(): Promise<VocabularyWord[]> {
-    return this.makeRequest('/vocabulary/daily-challenge');
+  /** デイリーチャレンジステータス取得 */
+  async getDailyChallengeStatus(): Promise<{ completed: boolean; date: string }> {
+    return this.makeRequest<{ completed: boolean; date: string }>(
+      '/vocabulary/daily-challenge/status'
+    );
   }
 
-  async getDailyChallengeStatus(): Promise<{completed: boolean; date: string}> {
-    return this.makeRequest('/vocabulary/daily-challenge/status');
+  /** デイリーチャレンジ完了通知 */
+  async completeDailyChallenge(stats: {
+    totalWords: number;
+    correctWords: number;
+    accuracy: number;
+  }): Promise<void> {
+    await this.makeRequest<void>(
+      '/vocabulary/daily-challenge/complete',
+      { method: 'POST', body: JSON.stringify(stats) }
+    );
   }
 
-  async completeDailyChallenge(stats: {totalWords: number; correctWords: number; accuracy: number}): Promise<void> {
-    return this.makeRequest('/vocabulary/daily-challenge/complete', {
-      method: 'POST',
-      body: JSON.stringify(stats),
-    });
+  /** 間隔反復データ更新 */
+  async updateProgress(id: number, known: boolean): Promise<VocabularyWord> {
+    return this.makeRequest<VocabularyWord>(
+      `/vocabulary/${id}/spaced-repetition`,
+      { method: 'PUT', body: JSON.stringify({ known }) }
+    );
   }
 
-  async updateWordProgress(id: number, known: boolean): Promise<VocabularyWord> {
-    return this.makeRequest(`/vocabulary/${id}/spaced-repetition`, {
-      method: 'PUT',
-      body: JSON.stringify({known}),
-    });
+  /** AI強化 */
+  async enrich(id: number): Promise<VocabularyWord> {
+    return this.makeRequest<VocabularyWord>(
+      `/vocabulary/${id}/enrich`,
+      { method: 'POST' }
+    );
   }
 
-  async enrichWord(id: number): Promise<VocabularyWord> {
-    return this.makeRequest(`/vocabulary/${id}/enrich`, {
-      method: 'POST',
-    });
+  /** カテゴリ一覧取得 */
+  async getCategories(): Promise<Category[]> {
+    return this.makeRequest<Category[]>('/categories');
   }
 
-  async getAllCategories(): Promise<Category[]> {
-    return this.makeRequest('/categories');
-  }
-
-  async getAvailableTags(): Promise<string[]> {
-    const words = await this.getAllWords();
+  /** タグ一覧取得 */
+  async getTags(): Promise<string[]> {
+    const list = await this.getAll();
     const tags = new Set<string>();
-    
-    words.forEach(word => {
-      if (word.tags) {
-        word.tags.forEach(tag => tags.add(tag));
-      }
-    });
-    
+    list.forEach(w => w.tags?.forEach(tag => tags.add(tag)));
     return Array.from(tags).sort();
   }
 }

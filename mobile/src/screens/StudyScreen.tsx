@@ -1,3 +1,5 @@
+// mobile/src/screens/StudyScreen.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -17,29 +19,28 @@ import { vocabularyService } from '../services/VocabularyService';
 export default function StudyScreen({ navigation }: NavigationProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [dailyStatus, setDailyStatus] = useState<{ completed: boolean; date: string } | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [daily, setDaily] = useState<{ completed: boolean; date: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
-        const [tags, status] = await Promise.all([
-          vocabularyService.getAvailableTags(),
+        const [avail, status] = await Promise.all([
+          vocabularyService.getTags(),
           vocabularyService.getDailyChallengeStatus(),
         ]);
-        setAvailableTags(tags);
-        setDailyStatus(status);
-      } catch (error) {
-        console.error('StudyScreen load error:', error);
+        setTags(avail);
+        setDaily(status);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
-    };
-    fetchData();
+    })();
   }, []);
 
-  const startStudy = useCallback((mode: string, tag?: string) => {
+  const start = useCallback((mode: 'random' | 'daily' | 'tag', tag?: string) => {
     navigation.navigate('SwipeStudy', tag ? { mode, tag } : { mode });
   }, [navigation]);
 
@@ -54,59 +55,56 @@ export default function StudyScreen({ navigation }: NavigationProps) {
     );
   }
 
-  const StudyCard = ({ icon, title, description, onPress, badge }: any) => (
+  const Card = ({ icon, title, desc, onPress, badge }: any) => (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      <View style={styles.cardHeader}>
-        <Icon name={icon} size={24} color={colors.primary} style={styles.cardIcon} />
-        <Text style={[styles.cardTitle, { color: colors.text }]}>{title}</Text>
+      <View style={styles.header}>
+        <Icon name={icon} size={24} color={colors.primary} style={styles.icon} />
+        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
         {badge && (
-          <View style={[styles.badge, badge.completed && styles.badgeCompleted]}>
+          <View style={[styles.badge, badge.completed && styles.badgeDone]}>
             <Text style={styles.badgeText}>{badge.completed ? '完了' : '未完了'}</Text>
           </View>
         )}
       </View>
-      <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{description}</Text>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: colors.primary }]}
-        onPress={onPress}
-      >
-        <Text style={[styles.buttonText, { color: colors.background }]}>開始</Text>
+      <Text style={[styles.desc, { color: colors.textSecondary }]}>{desc}</Text>
+      <TouchableOpacity style={[styles.btn, { backgroundColor: colors.primary }]} onPress={onPress}>
+        <Text style={[styles.btnText, { color: colors.background }]}>開始</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.title, { color: colors.text }]}>{t('nav.study')}</Text>
-
-        <StudyCard
+      <ScrollView contentContainerStyle={styles.content}>
+        <Card
           icon="shuffle"
           title="ランダム学習"
-          description="全ての単語からランダムに30問出題します。バランス良く学習できます。"
-          onPress={() => startStudy('random')}
+          desc="全単語からランダムに30問出題"
+          onPress={() => start('random')}
         />
 
-        <StudyCard
+        <Card
           icon="today"
           title="今日のチャレンジ"
-          description="復習が必要な単語を中心に出題します。継続的な学習に最適です。"
-          onPress={() => startStudy('daily')}
-          badge={dailyStatus}
+          desc="復習が必要な単語を出題"
+          onPress={() => start('daily')}
+          badge={daily}
         />
 
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.cardHeader}>
-            <Icon name="label" size={24} color={colors.error} style={styles.cardIcon} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>タグ別学習</Text>
+          <View style={styles.header}>
+            <Icon name="label" size={24} color={colors.error} style={styles.icon} />
+            <Text style={[styles.title, { color: colors.text }]}>タグ別学習</Text>
           </View>
-          <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>特定のタグの単語のみを学習します。苦手分野の集中学習に効果的です。</Text>
+          <Text style={[styles.desc, { color: colors.textSecondary }]}>
+            特定のタグの単語のみ学習
+          </Text>
           <View style={styles.tagGrid}>
-            {availableTags.slice(0, 12).map((tag, i) => (
+            {tags.slice(0, 12).map(tag => (
               <TouchableOpacity
-                key={i}
+                key={tag}
                 style={[styles.tag, { borderColor: colors.border }]}
-                onPress={() => startStudy('tag', tag)}
+                onPress={() => start('tag', tag)}
               >
                 <Text style={[styles.tagText, { color: colors.text }]}>{tag}</Text>
               </TouchableOpacity>
@@ -123,7 +121,6 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 40 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: 16 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
   card: {
     borderWidth: 1,
     borderRadius: 16,
@@ -135,19 +132,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  cardIcon: { marginRight: 12 },
-  cardTitle: { fontSize: 18, fontWeight: '600', flex: 1 },
-  cardDesc: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
-  button: { borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
-  buttonText: { fontSize: 16, fontWeight: '600' },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  icon: { marginRight: 12 },
+  title: { fontSize: 18, fontWeight: '600', flex: 1 },
+  desc: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
+  btn: { borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  btnText: { fontSize: 16, fontWeight: '600' },
   badge: {
     backgroundColor: '#10b981',
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  badgeCompleted: { backgroundColor: '#9ca3af' },
+  badgeDone: { backgroundColor: '#9ca3af' },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   tagGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag: {

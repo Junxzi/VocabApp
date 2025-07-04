@@ -1,3 +1,4 @@
+// App.tsx
 import React from 'react';
 import {
   StatusBar,
@@ -5,14 +6,17 @@ import {
   useColorScheme,
   TouchableOpacity,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { NavigationContainer } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-// Import screens
+// 良い例：そのまま使う
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+
 import VocabularyScreen from './src/screens/VocabularyScreen';
 import StudyScreen from './src/screens/StudyScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
@@ -21,96 +25,82 @@ import WordDetailScreen from './src/screens/WordDetailScreen';
 import SwipeStudyScreen from './src/screens/SwipeStudyScreen';
 import AddWordScreen from './src/screens/AddWordScreen';
 
-// Import providers
-import { LanguageProvider } from './src/contexts/LanguageContext';
 import { QueryProvider } from './src/contexts/QueryContext';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 import { ThemeProvider } from './src/contexts/ThemeContext';
+import { insertUserSchema } from '../shared/schema';
 
-const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+type TabParamList = {
+  Vocabulary: undefined;
+  Study: undefined;
+  Progress: undefined;
+  Settings: undefined;
+};
+type StackParamList = {
+  Main: undefined;
+  WordDetail: { wordId: number };
+  SwipeStudy: undefined;
+  AddWord: undefined;
+};
 
-function TabNavigator({ navigation }: any) {
+const Tab = createBottomTabNavigator<TabParamList>();
+const Stack = createStackNavigator<StackParamList>();
+export function TabNavigator({ navigation }: any) {
+  const insets = useSafeAreaInsets()
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
-          let iconName: string;
-
-          switch (route.name) {
-            case 'Vocabulary':
-              iconName = 'library-books';
-              break;
-            case 'Study':
-              iconName = 'school';
-              break;
-            case 'Progress':
-              iconName = 'bar-chart';
-              break;
-            case 'Settings':
-              iconName = 'settings';
-              break;
-            default:
-              iconName = 'circle';
+          const icons: Record<string, string> = {
+            Vocabulary: 'library-books',
+            Study:      'school',
+            Progress:   'bar-chart',
+            Settings:   'settings',
           }
-
-          return <MaterialIcons name={iconName} size={size} color={color} />;
+          return <MaterialIcons name={icons[route.name] ?? 'circle'} size={size} color={color} />
         },
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: '#666666',
+        tabBarActiveTintColor:   '#000',
+        tabBarInactiveTintColor: '#666',
+        // add bottom inset so bar sits above the home-indicator
+        tabBarStyle: {
+          height:          65 + insets.bottom,
+          paddingTop:      8,
+          paddingBottom:   insets.bottom + 8,
+          backgroundColor: '#fff',
+          borderTopColor:  '#e0e0e0',
+        },
         headerRight: () =>
           route.name === 'Vocabulary' ? (
             <TouchableOpacity onPress={() => navigation.navigate('AddWord')}>
               <MaterialIcons name="add" size={28} style={{ marginRight: 16 }} />
             </TouchableOpacity>
           ) : null,
-        tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopColor: '#e0e0e0',
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 65,
-        },
-        headerShown: true,
       })}
     >
-      <Tab.Screen
-        name="Vocabulary"
-        component={VocabularyScreen}
-        options={{ tabBarLabel: '単語', title: 'Vocabulary' }}
-      />
-      <Tab.Screen
-        name="Study"
-        component={StudyScreen}
-        options={{ tabBarLabel: '学習', title: 'Study' }}
-      />
-      <Tab.Screen
-        name="Progress"
-        component={ProgressScreen}
-        options={{ tabBarLabel: '進捗', title: 'Progress' }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ tabBarLabel: '設定', title: 'Settings' }}
-      />
+      <Tab.Screen name="Vocabulary" component={VocabularyScreen} options={{ title: '単語' }} />
+      <Tab.Screen name="Study"      component={StudyScreen}      options={{ title: '学習' }} />
+      <Tab.Screen name="Progress"   component={ProgressScreen}   options={{ title: '進捗' }} />
+      <Tab.Screen name="Settings"   component={SettingsScreen}   options={{ title: '設定' }} />
     </Tab.Navigator>
-  );
+  )
 }
 
-function App(): React.JSX.Element {
+const App: React.FC = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <QueryProvider>
-          <ThemeProvider>
-            <LanguageProvider>
+          <LanguageProvider>
+            <ThemeProvider>
               <NavigationContainer>
                 <StatusBar
                   barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-                  backgroundColor="#ffffff"
+                  backgroundColor={isDarkMode ? '#000' : '#fff'}
                 />
+
                 <Stack.Navigator screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="Main" component={TabNavigator} />
                   <Stack.Screen
@@ -125,10 +115,7 @@ function App(): React.JSX.Element {
                   <Stack.Screen
                     name="SwipeStudy"
                     component={SwipeStudyScreen}
-                    options={{
-                      headerShown: false,
-                      gestureEnabled: false,
-                    }}
+                    options={{ headerShown: false, gestureEnabled: false }}
                   />
                   <Stack.Screen
                     name="AddWord"
@@ -141,14 +128,16 @@ function App(): React.JSX.Element {
                     }}
                   />
                 </Stack.Navigator>
+
+                <Toast />
               </NavigationContainer>
-            </LanguageProvider>
-          </ThemeProvider>
+            </ThemeProvider>
+          </LanguageProvider>
         </QueryProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

@@ -1,537 +1,302 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertVocabularyWordSchema, updateVocabularyWordSchema, insertCategorySchema } from "@shared/schema";
-import { z } from "zod";
-import { enrichWordData, generatePronunciation } from "./openai";
-import { calculateNextReview, swipeToQuality, isDueForReview } from "./spaced-repetition";
-import { syncCategoriesFromNotion, initializeDefaultCategories, syncVocabularyWordsFromNotion } from "./setup-categories";
-import { generateWordsForCategory, getSampleWordsForCategory } from "./word-generator";
-import { generateWordGacha, getSampleGachaCategories } from "./word-gacha";
+import type { Express, Request, Response } from 'express';
+import { createServer, type Server } from 'http';
+import { storage } from './storage';
+import {
+  insertVocabularyWordSchema,
+  updateVocabularyWordSchema,
+  insertCategorySchema,
+  Category
+} from '../shared/schema';
+import { z } from 'zod';
+import { enrichWordData, generatePronunciation } from './openai';
+import { calculateNextReview, swipeToQuality, isDueForReview } from './spaced-repetition';
+import { syncCategoriesFromNotion, initializeDefaultCategories, syncVocabularyWordsFromNotion } from './setup-categories';
+import { generateWordsForCategory, getSampleWordsForCategory } from './word-generator';
+import { generateWordGacha, getSampleGachaCategories } from './word-gacha';
+
+// Utility to create tag objects
+const makeTagObject = (name: string, color: string | null): { name: string; color: string } => ({
+  name,
+  color: color ?? '#000000',
+});
+
+type CreateCategoryBody = z.infer<typeof insertCategorySchema>;
+type GenerateWordsBody = { count?: number };
+
+
+const getUserId = async (req: Request): Promise<number | null> => {
+  return req.user?.id ?? null;
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize categories on startup
+  // Initialize default categories
   try {
     await initializeDefaultCategories();
-    console.log("✓ Default categories initialized");
-  } catch (error) {
-    console.warn("⚠ Failed to initialize categories:", error);
+    console.log('✓ Default categories initialized');
+  } catch (error: any) {
+    console.warn('⚠ Failed to initialize categories:', error);
   }
 
-  // Category routes
-  app.get("/api/categories", async (req, res) => {
+  // --- CATEGORY ROUTES ---
+  app.get('/api/categories', async (_req, res) => {
     try {
-      const categories = await storage.getAllCategories();
-      res.json(categories);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch categories" });
+      const cats = await storage.getAllCategories();
+      res.json(cats);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to fetch categories', error: String(error) });
     }
   });
 
-  app.post("/api/categories", async (req, res) => {
+  app.post('/api/categories', async (req, res) => {
     try {
-      const validatedData = insertCategorySchema.parse(req.body);
-      const category = await storage.createCategory(validatedData);
-      res.status(201).json(category);
-    } catch (error) {
+      const validated = insertCategorySchema.parse(req.body);
+      const cat = await storage.createCategory(validated);
+      return res.status(201).json(cat);
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+        return res.status(400).json({
+          message: 'Invalid category data',
+          errors: error.errors,
+        });
       }
-      res.status(500).json({ message: "Failed to create category" });
+      return res.status(500).json({
+        message: 'Failed to create category',
+        error: String(error),
+      });
     }
   });
 
-  app.post("/api/categories/sync", async (req, res) => {
+  app.post('/api/categories/sync', async (_req, res) => {
     try {
       await syncCategoriesFromNotion();
-      const categories = await storage.getAllCategories();
-      res.json({ message: "Categories synced from Notion", categories });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to sync categories from Notion" });
+      const cats = await storage.getAllCategories();
+      res.json({ message: 'Categories synced', categories: cats });
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to sync categories from Notion', error: String(error) });
     }
   });
 
-  app.post("/api/vocabulary/sync", async (req, res) => {
+  // --- VOCABULARY SYNC & CRUD ---
+  app.post('/api/vocabulary/sync', async (_req, res) => {
     try {
       await syncVocabularyWordsFromNotion();
       const words = await storage.getAllVocabularyWords();
-      res.json({ message: "Vocabulary words synced from Notion", count: words.length });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to sync vocabulary from Notion" });
+      res.json({ message: 'Vocabulary synced', count: words.length });
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to sync vocabulary from Notion', error: String(error) });
     }
   });
 
-  // Get all vocabulary words
-  app.get("/api/vocabulary", async (req, res) => {
+  app.get('/api/vocabulary', async (_req, res) => {
     try {
       const words = await storage.getAllVocabularyWords();
       res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch vocabulary words" });
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to fetch words', error: String(error) });
     }
   });
 
-  // Search vocabulary words
-  app.get("/api/vocabulary/search", async (req, res) => {
+  app.get('/api/vocabulary/search', async (req, res) => {
     try {
-      const query = req.query.q as string;
-      if (!query) {
-        return res.status(400).json({ message: "Search query is required" });
+      const q = String(req.query.q || '');
+      if (!q.trim()) return res.status(400).json({ message: 'Search query is required' });
+      const words = await storage.searchVocabularyWords(q);
+      res.json(words);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to search words', error: String(error) });
+    }
+  });
+
+  app.get('/api/vocabulary/category/:category', async (req, res) => {
+    try {
+      const words = await storage.getVocabularyWordsByCategory(req.params.category);
+      res.json(words);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to fetch by category', error: String(error) });
+    }
+  });
+
+  app.get('/api/vocabulary/:id', async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const w = await storage.getVocabularyWord(id);
+      if (!w) return res.status(404).json({ message: 'Word not found' });
+      res.json(w);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to fetch word', error: String(error) });
+    }
+  });
+
+  app.post('/api/vocabulary', async (req, res) => {
+    try {
+      const data = insertVocabularyWordSchema.parse(req.body);
+      let enriched = data;
+      try {
+        const gpt = await enrichWordData(data.word);
+        enriched = {
+          ...data,
+          pronunciationUs: gpt.pronunciations.us,
+          pronunciationUk: gpt.pronunciations.uk,
+          pronunciationAu: gpt.pronunciations.au,
+          partOfSpeech: Array.isArray(gpt.partsOfSpeech)
+            ? gpt.partsOfSpeech
+            : [gpt.partsOfSpeech],
+          exampleSentences: JSON.stringify(gpt.exampleSentences),
+        };
+      } catch {
+        console.warn('GPT enrichment failed, skipping');
       }
-      const words = await storage.searchVocabularyWords(query);
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to search vocabulary words" });
-    }
-  });
-
-  // Get vocabulary words by category
-  app.get("/api/vocabulary/category/:category", async (req, res) => {
-    try {
-      const category = req.params.category;
-      const words = await storage.getVocabularyWordsByCategory(category);
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch vocabulary words by category" });
-    }
-  });
-
-  // Get random words for study
-  app.get("/api/vocabulary/study/:limit", async (req, res) => {
-    try {
-      const limit = parseInt(req.params.limit) || 10;
-      const words = await storage.getRandomWordsForStudy(limit);
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch words for study" });
-    }
-  });
-
-  // Get random words for study (specific endpoint for swipe study)
-  app.get("/api/vocabulary/random/:limit", async (req, res) => {
-    try {
-      const limit = parseInt(req.params.limit) || 30;
-      const words = await storage.getRandomWordsForStudy(limit);
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch random words for study" });
-    }
-  });
-
-  // Get words for spaced repetition review
-  app.get("/api/vocabulary/review/:limit", async (req, res) => {
-    try {
-      const limit = parseInt(req.params.limit) || 10;
-      const words = await storage.getWordsForReview(limit);
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch review words" });
-    }
-  });
-
-  // Get daily challenge words
-  app.get("/api/vocabulary/daily-challenge", async (req, res) => {
-    try {
-      console.log("Getting daily challenge words...");
-      const words = await storage.getDailyChallengeWords();
-      console.log(`Found ${words.length} words for daily challenge`);
-      res.json(words);
-    } catch (error) {
-      console.error("Error fetching daily challenge words:", error);
-      console.error("Error details:", error.message);
-      console.error("Error stack:", error.stack);
-      res.status(500).json({ 
-        message: "Failed to fetch daily challenge words",
-        error: error.message 
-      });
-    }
-  });
-
-  // Get single vocabulary word by ID (must come after specific routes)
-  app.get("/api/vocabulary/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const word = await storage.getVocabularyWord(id);
-      if (!word) {
-        return res.status(404).json({ message: "Vocabulary word not found" });
-      }
-      res.json(word);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch vocabulary word" });
-    }
-  });
-
-  // Check if daily challenge is completed
-  app.get("/api/vocabulary/daily-challenge/status", async (req, res) => {
-    try {
-      const status = await storage.getDailyChallengeStatus();
-      res.json(status);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to check daily challenge status" });
-    }
-  });
-
-  // Complete daily challenge
-  app.post("/api/vocabulary/daily-challenge/complete", async (req, res) => {
-    try {
-      const stats = req.body;
-      console.log("Completing daily challenge with stats:", stats);
-      await storage.completeDailyChallenge(stats);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error completing daily challenge:", error);
-      res.status(500).json({ message: "Failed to complete daily challenge", error: error.message });
-    }
-  });
-
-  // Update word with spaced repetition algorithm
-  app.put("/api/vocabulary/:id/spaced-repetition", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { known } = req.body;
-      if (typeof known !== 'boolean') {
-        return res.status(400).json({ message: "Known must be a boolean value" });
-      }
-      const word = await storage.updateWordSpacedRepetition(id, known);
-      if (!word) {
-        return res.status(404).json({ message: "Vocabulary word not found" });
-      }
-      res.json(word);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update spaced repetition data" });
-    }
-  });
-
-  // Create vocabulary word
-  app.post("/api/vocabulary", async (req, res) => {
-    try {
-      const validatedData = insertVocabularyWordSchema.parse(req.body);
-      
-      // Automatically enrich new words with GPT-4o data
-      let enrichedData = validatedData;
-      if (validatedData.word) {
-        try {
-          const gptEnrichment = await enrichWordData(validatedData.word);
-          enrichedData = {
-            ...validatedData,
-            pronunciationUs: gptEnrichment.pronunciations.us,
-            pronunciationUk: gptEnrichment.pronunciations.uk,
-            pronunciationAu: gptEnrichment.pronunciations.au,
-            partOfSpeech: gptEnrichment.primaryPartOfSpeech,
-            exampleSentences: JSON.stringify(gptEnrichment.exampleSentences)
-          };
-        } catch (enrichError) {
-          console.warn("Failed to enrich word, proceeding without enrichment:", enrichError);
-        }
-      }
-      
-      const word = await storage.createVocabularyWord(enrichedData);
-      res.status(201).json(word);
-    } catch (error) {
+      const created = await storage.createVocabularyWord(enriched);
+      res.status(201).json(created);
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid input data", errors: error.errors });
+        res.status(400).json({ message: 'Invalid input', errors: error.errors });
       } else {
-        res.status(500).json({ message: "Failed to create vocabulary word" });
+        res.status(500).json({ message: 'Failed to create word', error: String(error) });
       }
     }
   });
 
-  // Update vocabulary word
-  app.put("/api/vocabulary/:id", async (req, res) => {
+  app.put('/api/vocabulary/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const validatedData = updateVocabularyWordSchema.parse(req.body);
-      const word = await storage.updateVocabularyWord(id, validatedData);
-      if (!word) {
-        return res.status(404).json({ message: "Vocabulary word not found" });
-      }
-      res.json(word);
-    } catch (error) {
+      const id = Number(req.params.id);
+      const data = updateVocabularyWordSchema.parse(req.body);
+      const updated = await storage.updateVocabularyWord(id, data);
+      if (!updated) return res.status(404).json({ message: 'Word not found' });
+      res.json(updated);
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid input data", errors: error.errors });
+        res.status(400).json({ message: 'Invalid input', errors: error.errors });
       } else {
-        res.status(500).json({ message: "Failed to update vocabulary word" });
+        res.status(500).json({ message: 'Failed to update word', error: String(error) });
       }
     }
   });
 
-  // Update word study stats
-  app.put("/api/vocabulary/:id/study", async (req, res) => {
+  app.delete('/api/vocabulary/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const { difficulty } = req.body;
-      if (typeof difficulty !== 'number' || difficulty < 1 || difficulty > 3) {
-        return res.status(400).json({ message: "Difficulty must be a number between 1 and 3" });
-      }
-      const word = await storage.updateWordStudyStats(id, difficulty);
-      if (!word) {
-        return res.status(404).json({ message: "Vocabulary word not found" });
-      }
-      res.json(word);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update word study stats" });
+      const id = Number(req.params.id);
+      const ok = await storage.deleteVocabularyWord(id);
+      if (!ok) return res.status(404).json({ message: 'Word not found' });
+      res.sendStatus(204);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to delete word', error: String(error) });
     }
   });
 
-  // Delete vocabulary word
-  app.delete("/api/vocabulary/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteVocabularyWord(id);
-      if (!success) {
-        return res.status(404).json({ message: "Vocabulary word not found" });
-      }
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete vocabulary word" });
-    }
-  });
+  // --- CATEGORY WORD GENERATION ---
+  app.post<{ categoryName: string }, unknown, GenerateWordsBody>(
+    '/api/categories/:categoryName/generate-words',
+    async (req, res) => {
+      const userId = await getUserId(req);
+      if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
-  // Enrich word with GPT-4o data (pronunciation + examples + comprehensive parts of speech)
-  app.post("/api/vocabulary/:id/enrich", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const word = await storage.getVocabularyWord(id);
-      
-      if (!word) {
-        return res.status(404).json({ message: "Vocabulary word not found" });
-      }
-
-      // Get enriched data from GPT-4o
-      const enrichmentData = await enrichWordData(word.word);
-      
-      // Update the word with enriched data
-      const updatedWord = await storage.updateVocabularyWord(id, {
-        pronunciationUs: enrichmentData.pronunciations.us,
-        pronunciationUk: enrichmentData.pronunciations.uk,
-        pronunciationAu: enrichmentData.pronunciations.au,
-        partOfSpeech: enrichmentData.primaryPartOfSpeech,
-        exampleSentences: JSON.stringify(enrichmentData.exampleSentences)
-      });
-
-      res.json({
-        ...updatedWord,
-        enrichmentDetails: {
-          primaryPartOfSpeech: enrichmentData.primaryPartOfSpeech,
-          exampleSentences: enrichmentData.exampleSentences
-        }
-      });
-    } catch (error) {
-      console.error("Error enriching word:", error);
-      res.status(500).json({ message: "Failed to enrich word data" });
-    }
-  });
-
-  // Generate words for category
-  app.post("/api/categories/:categoryName/generate-words", async (req, res) => {
-    try {
-      const categoryName = req.params.categoryName;
       const { count = 10 } = req.body;
-      
-      // Don't allow TOEFL category
-      if (categoryName === "TOEFL") {
-        return res.status(400).json({ message: "Word generation not available for TOEFL category" });
+      const catName = req.params.categoryName;
+      if (catName === 'TOEFL') {
+        return res.status(400).json({ message: 'Not available for TOEFL' });
       }
 
-      // Validate category exists
-      const category = await storage.getCategoryByName(categoryName);
-      if (!category) {
-        return res.status(404).json({ message: "Category not found" });
-      }
+      const cat = await storage.getCategoryByName(catName);
+      if (!cat) return res.status(404).json({ message: 'Category not found' });
 
-      // Generate words using GPT
-      const generatedWords = await generateWordsForCategory(categoryName, count);
-      
-      // Add generated words to database
-      const addedWords = [];
-      for (const wordData of generatedWords) {
-        try {
-          const newWord = await storage.createVocabularyWord({
-            word: wordData.word,
-            definition: wordData.definition,
-            tags: [wordData.category],
-            language: "en"
-          });
-          addedWords.push(newWord);
-        } catch (error) {
-          console.warn(`Failed to add word: ${wordData.word}`, error);
-        }
-      }
+      const tagObj = makeTagObject(cat.name, cat.color);
 
-      res.json({
-        message: `Successfully generated ${addedWords.length} words for ${categoryName}`,
-        words: addedWords,
-        totalGenerated: generatedWords.length,
-        totalAdded: addedWords.length
-      });
-    } catch (error) {
-      console.error("Error generating words:", error);
-      res.status(500).json({ message: "Failed to generate words" });
-    }
-  });
-
-  // Get sample words for category (preview)
-  app.get("/api/categories/:categoryName/sample-words", async (req, res) => {
-    try {
-      const categoryName = req.params.categoryName;
-      
-      if (categoryName === "TOEFL") {
-        return res.status(400).json({ message: "Word generation not available for TOEFL category" });
-      }
-
-      const sampleWords = getSampleWordsForCategory(categoryName);
-      res.json({ sampleWords });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get sample words" });
-    }
-  });
-
-  // Word Gacha - Generate custom tag words
-  app.post("/api/word-gacha/generate", async (req, res) => {
-    try {
-      const { tagName, selectedTags = [], count = 30 } = req.body;
-      
-      if (!tagName) {
-        return res.status(400).json({ message: "Tag name is required" });
-      }
-
-      // Validate tag name length (max 20 characters)
-      if (tagName.length > 20) {
-        return res.status(400).json({ message: "Tag name must be 20 characters or less" });
-      }
-
-      console.log(`Generating ${count} words for tag: ${tagName}, with additional tags: ${selectedTags.join(", ")}`);
-
-      // Generate words using GPT with full enrichment
-      const generatedWords = await generateWordGacha(tagName, count);
-      
-      // Verify we got the expected number of words
-      if (generatedWords.length < count) {
-        console.warn(`Generated only ${generatedWords.length} words out of requested ${count}. Attempting additional generation...`);
-        
-        // Try to generate additional words to reach the target
-        const remainingCount = count - generatedWords.length;
-        try {
-          const additionalWords = await generateWordGacha(tagName, remainingCount);
-          
-          // Filter out duplicates from the additional batch
-          const existingWords = new Set(generatedWords.map(w => w.word.toLowerCase()));
-          const newAdditionalWords = additionalWords.filter(word => 
-            !existingWords.has(word.word.toLowerCase())
-          );
-          
-          generatedWords.push(...newAdditionalWords);
-          console.log(`Added ${newAdditionalWords.length} additional words. Total: ${generatedWords.length}`);
-        } catch (additionalError) {
-          console.warn("Failed to generate additional words:", additionalError);
-        }
-      }
-      
-      // Add generated words to database with multiple tags
-      const addedWords = [];
-      const skippedWords = [];
-      const allTags = [tagName, ...selectedTags];
-      
-      for (const wordData of generatedWords) {
-        try {
-          const newWord = await storage.createVocabularyWord({
-            word: wordData.word,
-            definition: wordData.definition,
-            pronunciationUs: wordData.pronunciationUs,
-            pronunciationUk: wordData.pronunciationUk,
-            pronunciationAu: wordData.pronunciationAu,
-            partOfSpeech: wordData.partOfSpeech,
-            exampleSentences: JSON.stringify(wordData.exampleSentences),
-            tags: allTags, // Multiple tags using new tags column
-            language: "en"
-          });
-          addedWords.push(newWord);
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          if (errorMessage.includes("already exists")) {
-            skippedWords.push(wordData.word);
-            console.warn(`Skipped duplicate word: ${wordData.word}`);
-          } else {
-            console.warn(`Failed to add word: ${wordData.word}`, error);
+      try {
+        const generated = await generateWordsForCategory(catName, count);
+        const added = [] as any[];
+        for (const w of generated) {
+          try {
+            const nw = await storage.createVocabularyWord({
+              userId,
+              word: w.word,
+              definition: w.definition,
+              tags: [tagObj],
+              language: 'en',
+            });
+            added.push(nw);
+          } catch (err: any) {
+            console.warn(`Failed to add ${w.word}:`, err);
           }
         }
+        res.json({ message: `Generated ${added.length}/${count} words`, words: added });
+      } catch (error: any) {
+        console.error('Generate category words error:', error);
+        res.status(500).json({ message: 'Failed to generate words', error: String(error) });
+      }
+    }
+  );
+
+  // --- WORD GACHA ---
+  app.post('/api/word-gacha/generate', async (req, res) => {
+    const userId = await getUserId(req);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const { tagName, selectedTags = [], count = 30 } = req.body as { tagName: string; selectedTags?: string[]; count?: number };
+    if (!tagName || tagName.length > 20) {
+      return res.status(400).json({ message: 'Tag name required and ≤20 chars' });
+    }
+
+    try {
+      let generated = await generateWordGacha(tagName, count);
+      if (generated.length < count) {
+        const extra = count - generated.length;
+        const more = await generateWordGacha(tagName, extra);
+        const existing = new Set(generated.map(x => x.word.toLowerCase()));
+        generated.push(...more.filter(x => !existing.has(x.word.toLowerCase())));
       }
 
-      // Final verification
-      const actualCount = addedWords.length;
-      const warningMessage = actualCount < count ? 
-        ` (Warning: Generated ${actualCount} out of ${count} requested words)` : '';
+      // Fetch category colors for tags
+      const mainCat = await storage.getCategoryByName(tagName);
+      const mainTagObj = makeTagObject(tagName, mainCat?.color ?? null);
+      const extraTagObjs = await Promise.all(
+        selectedTags.map(async name => {
+          const c = await storage.getCategoryByName(name);
+          return makeTagObject(name, c?.color ?? null);
+        })
+      );
+      const allTags = [mainTagObj, ...extraTagObjs];
 
-      res.json({
-        message: `Successfully generated ${addedWords.length} words for "${tagName}" tag${warningMessage}`,
-        words: addedWords,
-        totalGenerated: generatedWords.length,
-        totalAdded: addedWords.length,
-        skippedDuplicates: skippedWords.length,
-        duplicateWords: skippedWords,
-        requestedCount: count,
-        actualGeneratedCount: generatedWords.length,
-        tagName,
-        selectedTags: allTags
-      });
-    } catch (error) {
-      console.error("Error generating word gacha:", error);
-      res.status(500).json({ message: "Failed to generate word gacha" });
-    }
-  });
-
-  // Get sample gacha categories for inspiration
-  app.get("/api/word-gacha/sample-categories", async (req, res) => {
-    try {
-      const sampleCategories = getSampleGachaCategories();
-      res.json({ sampleCategories });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get sample categories" });
-    }
-  });
-
-  // Get random vocabulary for study (SuperMemo-style spaced repetition)
-  app.get("/api/vocabulary/random/:count", async (req, res) => {
-    try {
-      const count = parseInt(req.params.count) || 30;
-      const words = await storage.getRandomWordsForStudy(count);
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch random vocabulary" });
-    }
-  });
-
-  // Get vocabulary by specific tag for study
-  app.get("/api/vocabulary/tag/:tagName", async (req, res) => {
-    try {
-      const tagName = req.params.tagName;
-      const words = await storage.getVocabularyWordsByTag(tagName);
-      res.json(words);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch vocabulary by tag" });
-    }
-  });
-
-  // Azure configuration endpoint
-  app.get("/api/azure-config", (req, res) => {
-    try {
-      const speechKey = process.env.AZURE_SPEECH_KEY;
-      const speechRegion = process.env.AZURE_SPEECH_REGION;
-      
-      if (!speechKey || !speechRegion) {
-        return res.status(404).json({ error: "Azure Speech Services not configured" });
+      const added: any[] = [];
+      const skipped: string[] = [];
+      for (const g of generated) {
+        const posArray = Array.isArray(g.partOfSpeech) ? g.partOfSpeech : [g.partOfSpeech];
+        try {
+          const nw = await storage.createVocabularyWord({
+            userId,
+            word: g.word,
+            definition: g.definition,
+            pronunciationUs: g.pronunciationUs,
+            pronunciationUk: g.pronunciationUk,
+            pronunciationAu: g.pronunciationAu,
+            partOfSpeech: posArray,
+            exampleSentences: JSON.stringify(g.exampleSentences),
+            tags: allTags,
+            language: 'en',
+            difficulty: 1,
+          });
+          added.push(nw);
+        } catch (err: any) {
+          if (err.message.includes('already exists')) skipped.push(g.word);
+          else console.warn(`Failed to add ${g.word}:`, err);
+        }
       }
-      
-      res.json({
-        speechKey,
-        speechRegion
-      });
-    } catch (error) {
-      console.error("Error getting Azure config:", error);
-      res.status(500).json({ error: "Failed to get Azure configuration" });
+
+      res.json({ message: `Added ${added.length}/${count} words`, words: added, skippedDuplicates: skipped });
+    } catch (error: any) {
+      console.error('Gacha error:', error);
+      res.status(500).json({ message: 'Failed word gacha', error: String(error) });
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // --- AZURE TTS CONFIG ---
+  app.get('/api/azure-config', async (_req, res) => {
+    const key = process.env.AZURE_SPEECH_KEY;
+    const region = process.env.AZURE_SPEECH_REGION;
+    if (!key || !region) return res.status(404).json({ error: 'Azure not configured' });
+    res.json({ speechKey: key, speechRegion: region });
+  });
+
+  // --- START SERVER ---
+  return createServer(app);
 }

@@ -6,7 +6,7 @@ export interface VocabularyWord {
   pronunciationUk?: string;
   pronunciationAu?: string;
   definition: string;
-  partOfSpeech?: string;
+  partOfSpeech?: string[];
   exampleSentences?: string;
   tags?: string[];
   difficulty?: number;

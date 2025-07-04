@@ -1,8 +1,17 @@
+// mobile/src/components/VocabularyCard.tsx
+
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { VocabularyWord } from '../types';
 import { Badge } from './Badge';
+import { useLanguage } from '../contexts/LanguageContext';
+import { getLocalizedPartOfSpeech } from '../lib/utils';
 
 interface Props {
   item: VocabularyWord;
@@ -11,25 +20,44 @@ interface Props {
 }
 
 export function VocabularyCard({ item, onEdit, onDelete }: Props) {
+  const { language } = useLanguage();
+
+  // 品詞とタグのフォールバック
+  const parts = item.partOfSpeech ?? [];
+  const tags  = item.tags ?? [];
+
   return (
-    <TouchableOpacity style={styles.card} onPress={() => onEdit(item)}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onEdit(item)}
+      activeOpacity={0.7}
+    >
+      {/* ヘッダー */}
       <View style={styles.header}>
         <Text style={styles.word}>{item.word}</Text>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={() => onEdit(item)} style={styles.iconBtn}>
-            <Icon name="edit" size={20} color="#444" />
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => onDelete(item.id)} style={styles.iconBtn}>
             <Icon name="delete" size={20} color="#e00" />
           </TouchableOpacity>
         </View>
       </View>
-      <Text style={styles.definition} numberOfLines={2}>{item.definition}</Text>
-      {item.tags?.length ? (
-        <View style={styles.tagsRow}>
-          {item.tags.map(tag => <Badge key={tag} label={tag} />)}
+
+      {/* 品詞バッジ */}
+      {parts.length > 0 && (
+        <View style={styles.partOfSpeechContainer}>
+          {parts.map((pos) => (
+            <Badge
+              key={pos}
+              label={getLocalizedPartOfSpeech(pos, language)}
+            />
+          ))}
         </View>
-      ) : null}
+      )}
+
+      {/* 定義 */}
+      <Text style={styles.definition} numberOfLines={2}>
+        {item.definition}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -60,6 +88,12 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: 8,
   },
+  partOfSpeechContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 6,
+    gap: 4,
+  },
   definition: {
     marginTop: 6,
     color: '#333',
@@ -68,5 +102,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 8,
+    gap: 4,
   },
 });

@@ -1,4 +1,4 @@
-import { users, vocabularyWords, categories, dailyChallenges, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord, type Category, type InsertCategory, type DailyChallenge, type InsertDailyChallenge } from "@shared/schema";
+import { users, vocabularyWords, categories, Tag, dailyChallenges, type User, type InsertUser, type VocabularyWord, type InsertVocabularyWord, type UpdateVocabularyWord, type Category, type InsertCategory, type DailyChallenge, type InsertDailyChallenge } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, or, desc } from "drizzle-orm";
 
@@ -115,7 +115,7 @@ export class DatabaseStorage implements IStorage {
     return existingWord || undefined;
   }
 
-  async createVocabularyWord(insertWord: InsertVocabularyWord): Promise<VocabularyWord> {
+  async createVocabularyWord(insertWord: InsertVocabularyWord & {tags?: Tag[]}): Promise<VocabularyWord> {
     // Check if word already exists (case-insensitive)
     const existingWord = await this.getVocabularyWordByWord(insertWord.word);
     if (existingWord) {
@@ -125,7 +125,8 @@ export class DatabaseStorage implements IStorage {
     const wordData = {
       ...insertWord,
       word: insertWord.word.toLowerCase(), // Store in lowercase for consistency
-      pronunciation: insertWord.pronunciation || ""
+      pronunciation: insertWord.pronunciation || "",
+      userId: insertWord.userId
     };
     const [word] = await db
       .insert(vocabularyWords)
@@ -171,7 +172,9 @@ export class DatabaseStorage implements IStorage {
       .from(vocabularyWords)
       .orderBy(desc(vocabularyWords.createdAt));
     
-    return allWords.filter(word => word.tags && word.tags.includes(category));
+    return allWords.filter((word) =>
+      Array.isArray(word.tags) && word.tags.includes(category)
+    );
   }
 
   async getVocabularyWordsByTag(tag: string): Promise<VocabularyWord[]> {
@@ -194,9 +197,10 @@ export class DatabaseStorage implements IStorage {
       .from(vocabularyWords)
       .orderBy(desc(vocabularyWords.createdAt));
     
-    return allWords.filter(word => {
-      if (!word.tags || word.tags.length === 0) return false;
-      // Check both the original tag and the mapped tag
+    return allWords.filter((word) => {
+      if (!Array.isArray(word.tags) || word.tags.length === 0) {
+        return false;
+      }
       return word.tags.includes(tag) || word.tags.includes(searchTag);
     });
   }
@@ -306,11 +310,14 @@ export class DatabaseStorage implements IStorage {
       console.log(`Selected ${selectedWords.length} words for daily challenge`);
       return selectedWords;
       
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error getting daily challenge words:", error);
-      console.error("Error details:", error.message);
-      console.error("Error stack:", error.stack);
-      throw new Error(`Failed to fetch daily challenge words: ${error.message}`);
+
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      return [];
     }
   }
 
