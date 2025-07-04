@@ -12,6 +12,7 @@ import { PanGestureHandlerGestureEvent, PanGestureHandler } from 'react-native-g
 import Animated from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { VocabularyWord, AccentType } from '../types';
+import { getDifficultyColor } from '../lib/difficulty';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const CARD_W = SCREEN_W - 40;
@@ -47,22 +48,18 @@ const OptimizedSwipeCard = memo(({
   onNeedReviewPress,
 }: OptimizedSwipeCardProps) => {
   const handleSpeak = useCallback((acc: AccentType) => onSpeakWord(acc), [onSpeakWord]);
-  const difficultyColor = useMemo(() => {
-    switch (word.difficulty) {
-      case 1: return '#10b981';
-      case 2: return '#f59e0b';
-      case 3: return '#f97316';
-      case 4: return '#ef4444';
-      default: return '#6b7280';
-    }
-  }, [word.difficulty]);
+  const difficultyColor = useMemo(
+    () => getDifficultyColor(word.difficulty),
+    [word.difficulty]
+  );
 
-  const styles = StyleSheet.create({
-    card: {
-      width: CARD_W, height: CARD_H,
-      borderRadius: 20, padding: 24, margin: 20,
-      backgroundColor: colors.surface,
-      borderWidth: 1, borderColor: colors.border,
+  const styles = useMemo(() =>
+    StyleSheet.create({
+      card: {
+        width: CARD_W, height: CARD_H,
+        borderRadius: 20, padding: 24, margin: 20,
+        backgroundColor: colors.surface,
+        borderWidth: 1, borderColor: colors.border,
       shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3, shadowRadius: 8, elevation: 8,
       justifyContent: 'space-between',
@@ -85,7 +82,7 @@ const OptimizedSwipeCard = memo(({
     review: { backgroundColor: '#ef4444' },
     actionText: { color: '#fff', fontSize: 14, fontWeight: '600' },
     hint: { position: 'absolute', bottom: 8, alignSelf: 'center', fontSize: 12, color: colors.textSecondary, opacity: 0.7 },
-  });
+  }), [colors, difficultyColor]);
 
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
