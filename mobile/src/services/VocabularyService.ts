@@ -133,7 +133,10 @@ class VocabularyService {
   async getTags(): Promise<string[]> {
     const list = await this.getAll();
     const tags = new Set<string>();
-    list.forEach(w => w.tags?.forEach(tag => tags.add(tag)));
+    list.forEach(w => {
+      const arr: string[] = Array.isArray(w.tags) ? w.tags : [];
+      arr.forEach(tag => tags.add(tag));
+    });
     return Array.from(tags).sort();
   }
 }

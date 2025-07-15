@@ -66,7 +66,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   const port = 5002;
-  server.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
+  server.listen(port, '127.0.0.1', () => {
     log(`🚀 Server is running on http://localhost:${port}`);
   });
 })();

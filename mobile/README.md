@@ -91,6 +91,20 @@ The mobile app connects to the existing Express.js backend server:
    cd ..
    ```
 
+### Unified Dev Start
+
+Start backend server on port 5002, Metro bundler on 8081, and install the iOS app in one command:
+```bash
+./dev-setup.sh
+```
+
+### Unified Dev Start
+
+Start backend server, Metro Bundler, and install the iOS app in one command:
+```bash
+./dev-setup.sh
+```
+
 3. **Android Setup**
    Ensure Android development environment is configured
 
